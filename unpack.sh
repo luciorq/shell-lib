@@ -11,7 +11,7 @@ function unpack_deb () {
   deb_data_path=$(realpath "${dir_output}"/deb/dat*)
   unpack "${deb_data_path}" "${dir_output}"
   rm -rf "${dir_output}/deb"
-  content_dirs=($(ls "${dir_output}"))
+  mapfile -t content_dirs < <(ls "${dir_output}")
   for i in "${content_dirs[@]}"; do
     if [[ -d "${dir_output}/${i}" ]]; then
       cp -r "${dir_output}/${i}"/* "${dir_output}";
