@@ -43,8 +43,8 @@ export MACHINE_STORAGE_PATH="$XDG_DATA_HOME/docker/machine"
 export GNUPGHOME="$XDG_DATA_HOME/gnupg"
 
 # Less
-export LESSKEY="$XDG_CONFIG_HOME/less/lesskey" \
-  LESSHISTFILE="$XDG_STATE_HOME/less/history"
+export LESSKEY="$XDG_CONFIG_HOME/less/lesskey"
+export LESSHISTFILE="$XDG_STATE_HOME/less/history"
 
 # Mathematica
 export MATHEMATICA_USERBASE="$XDG_CONFIG_HOME/Mathematica"
@@ -67,7 +67,7 @@ export PSQLRC="$XDG_CONFIG_HOME/postgres/rc" \
   PGPASSFILE="$XDG_CONFIG_HOME/postgres/pass" \
   PGSERVICEFILE="$XDG_CONFIG_HOME/postgres/service.conf"
 # We need to create these directories if not exists
-mkdir -p "$XDG_CONFIG_HOME/postgres" "$XDG_CONFIG_HOME/postgres"
+mkdir -p "$XDG_CONFIG_HOME/postgres" "$XDG_STATE_HOME/postgres"
 
 # Readline
 export INPUTRC="$XDG_CONFIG_HOME/readline/inputrc"
