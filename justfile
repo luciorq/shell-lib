@@ -1,6 +1,6 @@
 prj_name := 'shell-lib'
 lib_home := env_var_or_default('XDG_LIB_HOME', env_var('HOME') + '/.local/lib')
-lib_path := env_var('BASE_PROJECT_DIR') + '/' + prj_name
+lib_path := env_var('LOCAL_PROJECT') + '/' + prj_name
 dest_dir := lib_home + '/' + prj_name
 
 default:
