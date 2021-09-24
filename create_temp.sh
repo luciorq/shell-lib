@@ -6,6 +6,9 @@
 function create_temp () {
   local suff_str exec_cmd
   local usage="create_temp <SUFFIX>"
+  if [[ $1 == -h ]]; then
+    echo "$usage";
+  fi
   suff_str=''
   exec_cmd="mktemp -d -t 'tmp.XXXXXXXXX'"
   if [[ ! "$1" == "" ]]; then
