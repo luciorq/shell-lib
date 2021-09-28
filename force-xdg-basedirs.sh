@@ -81,3 +81,14 @@ export VAGRANT_HOME="$XDG_DATA_HOME/vagrant" \
 
 # WeeChat
 export WEECHAT_HOME="$XDG_CONFIG_HOME/weechat"
+
+#===============================================================
+# luciorq extensions START
+
+# wget
+export WGETRC="$XDG_CONFIG_HOME/wgetrc"
+
+# java openjdk
+export _JAVA_OPTIONS=-Djava.util.prefs.userRoot="$XDG_CONFIG_HOME"/java
+
+# luciorq extensions END
