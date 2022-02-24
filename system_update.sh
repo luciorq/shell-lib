@@ -40,7 +40,7 @@ function system_update () {
   sudo apt upgrade -y -q
   sudo apt dist-upgrade --dry-run -q
 
-  echo -ne  "\n\nUpdating applications via Snap (Snapcraft) ...\n\n"
+  echo -ne "\n\nUpdating applications via Snap (Snapcraft) ...\n\n"
   sudo snap refresh --list
   sudo snap refresh
   # remove older snaps
@@ -68,16 +68,16 @@ function system_update () {
   # + "configured module paths" or add new module paths to
   # + the "ansible_cfg_path" file.
 
-  echo -ne  "\n\nUpdating Custom Applications (install_apps)\n\n"
+  echo -ne "\n\nUpdating Custom Applications (install_apps)\n\n"
 
   ansible_cfg_path="${_BCA_CONFIG}";
   # TODO luciorq Change playbook path to be dependaple on variable;
   # + e.g. ${_LOCAL_PROJECT}
   local pb_path
-  pb_path="${_LOCAL_PROJECT}"/villabioinfo/install_apps/playbooks
+  pb_path="${_LOCAL_PROJECT}"/villabioinfo/install_apps/playbooks;
   ansible-playbook \
     "${pb_path}"/test_install_app.yaml \
-    --extra-vars "@${_LOCAL_CONFIG}/ansible/inventories/vars/cat.yml"
+    --extra-vars "@${_ANS_SEV}";
 
   # ANSIBLE_CONFIG=${ansible_cfg_path} ansible \
   #   -v ${host_exec} -m "${module_name}" -a "${cmd_exec}"
