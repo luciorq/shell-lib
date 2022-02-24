@@ -27,7 +27,7 @@ function download () {
       -j 1 -k 1M -d "${dir_output}" --quiet=true \
       "${get_url}"
   elif [[ ! "$(which curl)" == "" ]]; then
-    curl -L \
+    curl -f -s -S -L \
       -o "${dir_output}/$(basename "${get_url}")" \
       -C - "${get_url}" --silent
   else
