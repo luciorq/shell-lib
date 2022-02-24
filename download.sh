@@ -9,31 +9,32 @@ function download () {
     echo "usage: download <URL> [<OUTPUT_DIR>] [<THREADS>]" 1>&2;
  }
   if [[ $# -eq 0 ]]; then download_usage; unset download_usage; return 1; fi
-  unset download_usage
-  local get_url dir_output thread_num
-  get_url="$1"
-  dir_output="$2"
-  thread_num="$3"
+  unset download_usage;
+  local get_url dir_output thread_num;
+  get_url="$1";
+  dir_output="$2";
+  thread_num="$3";
   if [[ -z "${dir_output}" ]]; then
-    dir_output=$(realpath .)
+    dir_output=$(realpath .);
   fi
   if [[ -z "${thread_num}" ]]; then
-    thread_num=4
+    thread_num=4;
   fi
   mkdir -p "${dir_output}"
-  if [[ ! "$(which aria2c)" == "" ]]; then
+  if [[ ! "$(which_bin aria2c)" == "" ]]; then
     aria2c -c \
       -s "${thread_num}" -x "${thread_num}" \
       -j 1 -k 1M -d "${dir_output}" --quiet=true \
-      "${get_url}"
-  elif [[ ! "$(which curl)" == "" ]]; then
+      "${get_url}";
+  elif [[ ! "$(which_bin curl)" == "" ]]; then
     curl -f -s -S -L \
       -o "${dir_output}/$(basename "${get_url}")" \
-      -C - "${get_url}" --silent
+      -C - "${get_url}" --silent;
   else
-    wget --continue -q \
+    wget --continue \
+      -L -nv -q \
       --no-check-certificate -O "${dir_output}" \
-      "${get_url}"
+      "${get_url}";
   fi
 }
 
