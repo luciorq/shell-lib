@@ -32,22 +32,23 @@ function unpack () {
   }
   if [[ $# -eq 0 ]]; then unpack_usage; unset unpack_usage; return 1; fi
   unset unpack_usage;
-  local zip_path dir_output
+  local zip_path dir_output;
   local rm_bin cp_bin mkdir_bin tar_bin;
-  zip_path="$1"
-  dir_output="$2"
-  rm_bin=$(which_bin rm);
-  cp_bin=$(which_bin cp);
-  mkdir_bin=$(which_bin mkdir);
-  tar_bin=$(which_bin tar);
+  zip_path="$1";
+  dir_output="$2";
+  rm_bin="$(which_bin rm)";
+  cp_bin="$(which_bin cp)";
+  mkdir_bin="$(which_bin mkdir)";
+  tar_bin="$(which_bin tar)";
 
-
-  if [[ "${dir_output}" == "" ]]; then
-    dir_output=$(realpath .);
+  if [[ ! -d "${dir_output}" ]]; then
+    dir_output="$(realpath ./)";
   fi
+
   if [[ ! -d "${dir_output}" && ! -f "${dir_output}" ]]; then
     "${mkdir_bin}" -p "${dir_output}";
   fi
+
   if [[ -n "${zip_path}" && -f "${zip_path}" ]]; then
     case "${zip_path}" in
       *.tar.gz)   "${tar_bin}" -C "${dir_output}" -xzf "${zip_path}"    ;;
@@ -55,7 +56,7 @@ function unpack () {
       *.tar.xz)   "${tar_bin}" -C "${dir_output}" -xJf "${zip_path}"    ;;
       *.txz)      "${tar_bin}" -C "${dir_output}" -xJf "${zip_path}"    ;;
       *.tar.bz2)  "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"    ;;
-      *.tbz2)     "${tar_bin}"- C "${dir_output}" -xjf "${zip_path}"    ;;
+      *.tbz2)     "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"    ;;
       *.bz2)      "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"    ;;
       *.zip)      unzip -o "${zip_path}" -d "${dir_output}"             ;;
       *.gz)       gzip -q -r -dkc < "${zip_path}" > "${dir_output}"     ;;
@@ -63,8 +64,7 @@ function unpack () {
       *)          "${cp_bin}" -r "${zip_path}" "${dir_output}"/         ;;
     esac
   else
-    echo "'${zip_path}' is not a valid file";
+    echo -ne "'${zip_path}' is not a valid file.\n";
+    return 1;
   fi
 }
-
-
