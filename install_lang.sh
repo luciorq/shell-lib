@@ -10,17 +10,18 @@ function install_lang () {
 
   local app_name app_version link_arg test_arg
   local install_path base_path
-  local arch_var os_var
   local recipe_name recipe_channel
   local local_bin_path
 
   local rm_cmd mkdir_cmd;
-  rm_cmd=$(which_bin rm);
-  mkdir_cmd=$(which_bin mkdir);
+  rm_cmd="$(which_bin rm)";
+  mkdir_cmd="$(which_bin mkdir)";
 
-  # 'x86_64' & 'Linux'
-  arch_var=$(uname -m);
-  os_var=$(uname);
+  local sys_arch sys_kernel_name;
+  # e.g.: 'x86_64', 'arm64'
+  sys_arch="$(uname -m)";
+  # e.g.: 'Linux', 'Darwin'
+  sys_kernel_name="$(uname -s)";
 
   app_name="$1"
   app_version="$2"
@@ -68,7 +69,7 @@ function install_lang () {
 
   local base_forge_url;
   base_forge_url="https://github.com/conda-forge/miniforge/releases/latest/download";
-  base_forge_url="${base_forge_url}/Miniforge3-${os_var}-${arch_var}.sh"
+  base_forge_url="${base_forge_url}/Miniforge3-${sys_kernel_name}-${sysarch}.sh"
 
   curl -fsSL \
     -o "${install_path}"/miniforge.sh \
