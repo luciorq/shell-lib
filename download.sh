@@ -6,7 +6,7 @@
 function download () {
   # usage: download <URL> <OUTPUT_DIR> <THREAD_NUM>
   function download_usage () {
-    echo "usage: download <URL> [<OUTPUT_DIR>] [<THREADS>]" 1>&2;
+    >&2 echo -ne "usage: download <URL> [<OUTPUT_DIR>] [<THREADS>]\n";
   }
   if [[ $# -eq 0 ]]; then download_usage; unset download_usage; return 1; fi
   unset download_usage;
@@ -17,7 +17,7 @@ function download () {
   thread_num="$3";
 
   if [[ -z "${dir_output}" ]]; then
-    dir_output=$(realpath .);
+    dir_output="$(realpath .)";
   fi
   if [[ -z "${thread_num}" ]]; then
     thread_num=4;
@@ -60,7 +60,7 @@ function download () {
       --output-document="${output_filename}" \
       "${get_url}";
   else
-    echo -ne "No download method available.";
+    >&2 echo -ne "No download method available.\n";
     return 1;
   fi
 }

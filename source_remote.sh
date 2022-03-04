@@ -8,7 +8,7 @@ function source_remote () {
   elif [[ -n $(which_bin curl) ]]; then  
     source <(wget -q -L -nv -O - "${script_url}");
   else
-    echo "download tool not available. Install 'curl' or 'wget' to continue.";
+    >&2 echo -ne "download tool not available. Install 'curl' or 'wget' to continue.\n";
     return 1;
   fi
 }
