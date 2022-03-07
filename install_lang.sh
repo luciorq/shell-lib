@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 
 # Install programming language from conda-forge pre-compiled binaries
 function install_lang () {

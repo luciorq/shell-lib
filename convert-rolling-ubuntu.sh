@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 
 # FIXME luciorq This script is not working for containers and LTS installs.
 # + Currently, `rolling-rhino` project depends on daily ISO being installed.

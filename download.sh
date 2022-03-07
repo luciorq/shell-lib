@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 
 # download file to output
 # + if aria2 is available uses multi threaded download

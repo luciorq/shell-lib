@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 
 # Unfortunately some tools will not use XDG directories unless these are set
 #

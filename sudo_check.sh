@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 
 # Check if passwordless sudo is available
 # + for interactive usage, a password prompt can be
@@ -6,7 +6,7 @@
 # + for subsequent `sudo_check` calls
 function sudo_check () {
   local sudo_uid su_bin
-  su_bin=$(which sudo || echo "")
+  su_bin="$(which 'sudo' || echo -ne '')"
   if [[ ${su_bin} == "" ]]; then
     echo "`sudo` program not available."
   fi

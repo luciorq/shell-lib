@@ -1,4 +1,4 @@
-#/bin/env bash
+#!/bin/env bash
 
 # Install R packages
 function install_rstats_packages () {

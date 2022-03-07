@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 
 # Return the first executable on path, without failing
 function which_bin () {

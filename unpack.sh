@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 
 # deb file module for unpack
 function unpack_deb () {

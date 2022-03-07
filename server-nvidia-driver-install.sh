@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 
 # Install Nvidia Driver Headless for Ubuntu Server
 # + tested on Ubuntu Server 20.04.3 LTS

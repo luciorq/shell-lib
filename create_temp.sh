@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 
 # Create temporary directory
 # + -t flag is explicit to be complaint
