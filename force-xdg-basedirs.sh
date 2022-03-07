@@ -108,10 +108,17 @@ export RUSTUP_HOME="$XDG_DATA_HOME"/rustup
 # Golang
 export GOPATH="$XDG_DATA_HOME"/go
 
-# Make R respect XDG base dirs spec
+# Make R language (rstats) respect XDG base dirs spec
 export R_ENVIRON_USER="${XDG_CONFIG_HOME}/R/Renviron"
 export R_PROFILE_USER="${XDG_CONFIG_HOME}/R/Rprofile"
+export R_MAKEVARS_USER="${XDG_CONFIG_HOME}/R/Makevars"
+
 export R_HISTFILE="${XDG_DATA_HOME}/R/Rhistory"
+
+# Change R package User install path
+# export R_LIBS_USER=
+
+
 # GNU history respect XDG base dirs spec
 export HISTFILE="${XDG_DATA_HOME}/bash/history"
 
