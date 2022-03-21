@@ -19,19 +19,26 @@ export ACKRC="$XDG_CONFIG_HOME/ack/ackrc"
 export ATOM_HOME="$XDG_DATA_HOME/atom"
 
 # AWS CLI
-export AWS_SHARED_CREDENTIALS_FILE="$XDG_CONFIG_HOME/aws/credentials" \
-  AWS_CONFIG_FILE="$XDG_CONFIG_HOME/aws/config"
+export AWS_SHARED_CREDENTIALS_FILE="$XDG_CONFIG_HOME/aws/credentials";
+export AWS_CONFIG_FILE="$XDG_CONFIG_HOME/aws/config";
 
 # Azure CLI
 export AZURE_CONFIG_DIR="$XDG_DATA_HOME/azure"
 
 # Bundler
-export BUNDLE_USER_CONFIG="$XDG_CONFIG_HOME/bundle" \
-  BUNDLE_USER_CACHE="$XDG_CACHE_HOME/bundle" \
-  BUNDLE_USER_PLUGIN="$XDG_DATA_HOME/bundle/plugin"
+export BUNDLE_USER_CONFIG="$XDG_CONFIG_HOME/bundle";
+export BUNDLE_USER_CACHE="$XDG_CACHE_HOME/bundle";
+export BUNDLE_USER_PLUGIN="$XDG_DATA_HOME/bundle/plugin";
 
 # Cargo
 export CARGO_HOME="$XDG_DATA_HOME/cargo"
+
+# Ripgrep
+export RIPGREP_CONFIG_PATH="$XDG_CONFIG_HOME/ripgrep/config";
+if [[ ! -f $XDG_CONFIG_HOME/ripgrep/config ]]; then
+  mkdir -p "$XDG_CONFIG_HOME/ripgrep";
+  touch "$XDG_CONFIG_HOME/ripgrep/config";
+fi
 
 # Docker
 export DOCKER_CONFIG="$XDG_CONFIG_HOME/docker"
@@ -41,10 +48,24 @@ export MACHINE_STORAGE_PATH="$XDG_DATA_HOME/docker/machine"
 
 # GnuPG
 export GNUPGHOME="$XDG_DATA_HOME/gnupg"
+if [[ ! -d $XDG_CONFIG_HOME/gnupg ]]; then
+  mkdir -p "$XDG_CONFIG_HOME/gnupg";
+fi
+if [[ ! -d "$XDG_DATA_HOME/gnupg" ]]; then
+  mkdir -p "$XDG_DATA_HOME/gnupg";
+  chmod 0700 "$XDG_DATA_HOME/gnupg";
+fi
+if [[ ! -L "$GNUPGHOME/gpg.conf" ]]; then
+  ln -s $XDG_CONFIG_HOME/gnupg/gpg.conf $GNUPGHOME/gpg.conf
+fi
 
 # Less
 export LESSKEY="$XDG_CONFIG_HOME/less/lesskey"
 export LESSHISTFILE="$XDG_STATE_HOME/less/history"
+
+# GNU Screen
+export SCREENRC="$XDG_CONFIG_HOME/screen/screenrc"
+
 
 # Mathematica
 export MATHEMATICA_USERBASE="$XDG_CONFIG_HOME/Mathematica"
@@ -68,6 +89,10 @@ export PSQLRC="$XDG_CONFIG_HOME/postgres/rc" \
   PGSERVICEFILE="$XDG_CONFIG_HOME/postgres/service.conf"
 # We need to create these directories if not exists
 mkdir -p "$XDG_CONFIG_HOME/postgres" "$XDG_STATE_HOME/postgres"
+
+# SQLite
+export SQLITE_HISTORY=$XDG_DATA_HOME/sqlite_history
+
 
 # Readline
 export INPUTRC="$XDG_CONFIG_HOME/readline/inputrc"
@@ -118,11 +143,45 @@ export R_HISTFILE="${XDG_DATA_HOME}/R/Rhistory"
 # Change R package User install path
 # export R_LIBS_USER=
 
+# BASH Shell
+mkdir -p "${XDG_STATE_HOME}"/bash
 
-# GNU history respect XDG base dirs spec
+# GNU BASH history respect XDG base dirs spec
 export HISTFILE="${XDG_DATA_HOME}/bash/history"
+
+# Android (ADB)
+export ADB_VENDOR_KEYS="${XDG_CONFIG_HOME}/adb/adbkey"
+
+# Subversion (svn) - some homebrew formulas used it
+mkdir -p "$XDG_CONFIG_HOME/subversion"; 
+alias svn='svn --config-dir "$XDG_CONFIG_HOME/subversion"';
+
+# Julia Programming Language
+export JULIA_DEPOT_PATH="$XDG_DATA_HOME/julia:$JULIA_DEPOT_PATH"
+
+# TeamSpeak
+export TS3_CONFIG_DIR="$XDG_CONFIG_HOME/ts3client"
 
 # Starship prompt configuration path
 export STARSHIP_CONFIG="${XDG_CONFIG_HOME}/starship/config.toml"
+
+# LaTeX
+mkdir -p "$XDG_CONFIG_HOME/latexmk/latexmkrc";
+export "TEXMACS_HOME_PATH=$XDG_STATE_HOME/texmacs";
+export "TEXMFHOME=$XDG_DATA_HOME/texmf";
+export "TEXMFVAR=$XDG_CACHE_HOME/texlive/texmf-var";
+export "TEXMFCONFIG=$XDG_CONFIG_HOME/texlive/texmf-config";
+
+# Lua Rocks
+if [[ -d ${HOME}/.luarocks ]]; then
+  rm -rf "${HOME}/.luarocks";
+fi
+mkdir -p $XDG_CACHE_HOME/luarocks
+mkdir -p $XDG_CONFIG_HOME/luarocks
+
+# X11
+export XAUTHORITY=$XDG_CONFIG_HOME/X11/Xauthority
+export XINITRC=$XDG_CONFIG_HOME/X11/xinitrc
+
 
 # luciorq extensions END
