@@ -41,7 +41,7 @@ function system_update () {
   elif [[ "${sys_info["os_name"]}" == macOS ]]; then
     _system_update_macos;
   else
-    >&2 echo -ne "No supported system detected.\n";
+    builtin echo >&2 -ne "No supported system detected.\n";
     return 1;
   fi
 }
@@ -94,7 +94,7 @@ function _system_update_ubuntu () {
   local snap_app_name snap_revision;
 
   if [[ "$(sudo_check)" == false ]]; then
-    >&2 echo -ne "Insuficient permissions.\n";
+    builtin echo >&2 -ne "Insuficient permissions.\n";
     return 1;
   fi
 

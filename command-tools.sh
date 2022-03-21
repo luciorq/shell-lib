@@ -32,7 +32,7 @@ function command_path () {
 
 
   for type_key in "keyword builtin alias function"; do
-	  type_text=$(remove_line "${type_text}" "${type_key}")
+    type_text=$(remove_line "${type_text}" "${type_key}")
   done
   
   echo "Debug 2"

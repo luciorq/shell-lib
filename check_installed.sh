@@ -49,7 +49,7 @@ function check_installed () {
   fi
   if [[ ! -n "${cmd_res}" ]]; then
     # TODO luciorq cli_* color variable and bin names.
-    >&2 echo -ne "'${full_cmd}' can't be executed.\n";
+    builtin echo >&2 -ne "'${full_cmd}' can't be executed.\n";
     return 1;
   fi
   return 0;

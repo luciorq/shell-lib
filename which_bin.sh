@@ -1,10 +1,23 @@
 #!/usr/bin/env bash
 
 # Return the first executable on path, without failing
+# + but returning warnings
 function which_bin () {
-  local cmd_bin;
-  cmd_bin=$( (which -a "$1" || echo -ne '') | head -1 );
-  echo -ne "${cmd_bin}";
-  return 0;
+  builtin local cmd_arg;
+  builtin local cmd_arr;
+  builtin local cmd_bin;
+  builtin local which_arr;
+  builtin local which_bin;
+  cmd_arg="$1";
+  which_arr=( $(builtin command which -a 'which' 2> /dev/null || builtin echo -ne '') );
+  which_bin="${which_cmd[0]}";
+  if [[ -z ${which_bin} ]]; then
+    cmd_arr=( $(builtin command -v "${cmd_arg}" 2> /dev/null || builtin echo -ne '') );
+  else
+    cmd_arr=( $( "${which_bin}" -a "${cmd_arg}" 2> /dev/null || builtin echo -ne '' ) );
+  fi
+  cmd_bin="${cmd_arr[0]}";
+  builtin echo -ne "${cmd_bin}";
+  builtin return 0;
 }
 

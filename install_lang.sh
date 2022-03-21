@@ -4,7 +4,7 @@
 function install_lang () {
   local app_usage="Usage:  install_lang <LANG_APP> <VERSION> <INSTALL_PATH> [<link=true>]"
   if [[ "$#" == 0 || "$1" == -h || "$1" == --help ]]; then
-    echo "${app_usage}" 1>&2;
+    builtin echo >&2 "${app_usage}";
     return 1;
   fi
 

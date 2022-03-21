@@ -6,7 +6,7 @@
 function download () {
   # usage: download <URL> <OUTPUT_DIR> <THREAD_NUM>
   function download_usage () {
-    >&2 echo -ne "usage: download <URL> [<OUTPUT_DIR>] [<THREADS>]\n";
+    builtin echo >&2 -ne "usage: download <URL> [<OUTPUT_DIR>] [<THREADS>]\n";
   }
   if [[ $# -eq 0 ]]; then download_usage; unset download_usage; return 1; fi
   unset download_usage;
@@ -60,7 +60,7 @@ function download () {
       --output-document="${output_filename}" \
       "${get_url}";
   else
-    >&2 echo -ne "No download method available.\n";
+    builtin echo >&2 -ne "No download method available.\n";
     return 1;
   fi
 }

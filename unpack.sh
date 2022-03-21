@@ -28,7 +28,7 @@ function unpack_deb () {
 # Unpack compressed files to directory
 function unpack () {
   function unpack_usage () {
-    >&2 echo -ne "unpack: <ZIP_FILE> [<OUTPUT_DIR>]\n";
+    builtin echo >&2 -ne "unpack: <ZIP_FILE> [<OUTPUT_DIR>]\n";
   }
   if [[ $# -eq 0 ]]; then unpack_usage; unset unpack_usage; return 1; fi
   unset unpack_usage;
@@ -64,7 +64,7 @@ function unpack () {
       *)          "${cp_bin}" -r "${zip_path}" "${dir_output}"/         ;;
     esac
   else
-    >&2 echo -ne "'${zip_path}' is not a valid file.\n";
+    builtin echo >&2 -ne "'${zip_path}' is not a valid file.\n";
     return 1;
   fi
 }
