@@ -19,13 +19,14 @@ function parse_yaml () {
     fi
   done
   # TODO luciorq Add check for MacOS or at least having
-  # + ruby installed, or try python or jq if ruby is not
+  # + ruby installed, or try python or yq if ruby is not
   # + available.
   ruby_bin="$(which_bin 'ruby')";
-  ruby_script="puts YAML::load(open(ARGV.first).read)";
+  ruby_script="var_res=YAML::load(open(ARGV.first).read)";
   for levels in ${yaml_levels[@]}; do
     ruby_script="${ruby_script}['${levels}']";
   done
+  ruby_script="${ruby_script}; if var_res.class == Hash; puts YAML::dump(var_res) else puts var_res end;";
   # echo $ruby_script;
   "${ruby_bin}" -ryaml -e "${ruby_script}" "${yaml_path}";
 }
