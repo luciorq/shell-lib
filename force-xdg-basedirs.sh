@@ -83,15 +83,16 @@ export NVM_DIR="$XDG_DATA_HOME/nvm"
 export PARALLEL_HOME="$XDG_CONFIG_HOME/parallel"
 
 # PostgreSQL
-export PSQLRC="$XDG_CONFIG_HOME/postgres/rc" \
-  PSQL_HISTORY="$XDG_STATE_HOME/postgres/history" \
-  PGPASSFILE="$XDG_CONFIG_HOME/postgres/pass" \
-  PGSERVICEFILE="$XDG_CONFIG_HOME/postgres/service.conf"
+export PSQLRC="$XDG_CONFIG_HOME/postgres/rc"
+export PSQL_HISTORY="$XDG_STATE_HOME/postgres/history"
+export PGPASSFILE="$XDG_CONFIG_HOME/postgres/pass"
+export PGSERVICEFILE="$XDG_CONFIG_HOME/postgres/service.conf"
 # We need to create these directories if not exists
-mkdir -p "$XDG_CONFIG_HOME/postgres" "$XDG_STATE_HOME/postgres"
+\mkdir -p "$XDG_CONFIG_HOME/postgres"
+\mkdir -p "$XDG_STATE_HOME/postgres"
 
 # SQLite
-export SQLITE_HISTORY=$XDG_DATA_HOME/sqlite_history
+export SQLITE_HISTORY="$XDG_DATA_HOME/sqlite_history"
 
 
 # Readline
@@ -101,14 +102,11 @@ export INPUTRC="$XDG_CONFIG_HOME/readline/inputrc"
 export RUSTUP_HOME="$XDG_DATA_HOME/rustup"
 
 # Vagrant
-export VAGRANT_HOME="$XDG_DATA_HOME/vagrant" \
-  VAGRANT_ALIAS_FILE="$XDG_DATA_HOME/vagrant/aliases"
+export VAGRANT_HOME="$XDG_DATA_HOME/vagrant"
+export VAGRANT_ALIAS_FILE="$XDG_DATA_HOME/vagrant/aliases"
 
 # WeeChat
 export WEECHAT_HOME="$XDG_CONFIG_HOME/weechat"
-
-#===============================================================
-# luciorq extensions START
 
 # wget
 export WGETRC="$XDG_CONFIG_HOME/wgetrc"
@@ -144,16 +142,18 @@ export R_HISTFILE="${XDG_DATA_HOME}/R/Rhistory"
 # export R_LIBS_USER=
 
 # BASH Shell
-mkdir -p "${XDG_STATE_HOME}"/bash
-
 # GNU BASH history respect XDG base dirs spec
 export HISTFILE="${XDG_DATA_HOME}/bash/history"
-
+\mkdir -p "${XDG_STATE_HOME}"/bash
+\mkdir -p "${XDG_DATA_HOME}"/bash
+if [[ ! -f ${HISTFILE} ]]; then
+  \touch "${HISTFILE}";
+fi
 # Android (ADB)
 export ADB_VENDOR_KEYS="${XDG_CONFIG_HOME}/adb/adbkey"
 
 # Subversion (svn) - some homebrew formulas used it
-mkdir -p "$XDG_CONFIG_HOME/subversion"; 
+\mkdir -p "$XDG_CONFIG_HOME/subversion"; 
 alias svn='svn --config-dir "$XDG_CONFIG_HOME/subversion"';
 
 # Julia Programming Language
@@ -166,7 +166,7 @@ export TS3_CONFIG_DIR="$XDG_CONFIG_HOME/ts3client"
 export STARSHIP_CONFIG="${XDG_CONFIG_HOME}/starship/config.toml"
 
 # LaTeX
-mkdir -p "$XDG_CONFIG_HOME/latexmk/latexmkrc";
+\mkdir -p "$XDG_CONFIG_HOME/latexmk/latexmkrc";
 export "TEXMACS_HOME_PATH=$XDG_STATE_HOME/texmacs";
 export "TEXMFHOME=$XDG_DATA_HOME/texmf";
 export "TEXMFVAR=$XDG_CACHE_HOME/texlive/texmf-var";
@@ -174,14 +174,15 @@ export "TEXMFCONFIG=$XDG_CONFIG_HOME/texlive/texmf-config";
 
 # Lua Rocks
 if [[ -d ${HOME}/.luarocks ]]; then
-  rm -rf "${HOME}/.luarocks";
+  \rm -rf "${HOME}/.luarocks";
 fi
-mkdir -p $XDG_CACHE_HOME/luarocks
-mkdir -p $XDG_CONFIG_HOME/luarocks
-
+if [[ ! -d ${XDG_CACHE_HOME}/luarocks ]]; then
+  \mkdir -p "${XDG_CACHE_HOME}/luarocks";
+fi
+if [[ ! -d ${XDG_CONFIG_HOME}/luarocks ]]; then
+  \mkdir -p "${XDG_CONFIG_HOME}/luarocks";
+fi
 # X11
 export XAUTHORITY=$XDG_CONFIG_HOME/X11/Xauthority
 export XINITRC=$XDG_CONFIG_HOME/X11/xinitrc
 
-
-# luciorq extensions END

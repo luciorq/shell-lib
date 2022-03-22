@@ -16,6 +16,11 @@ function _install_yabai () {
   # Spacebar - Menu bar
   brew install cmacrae/formulae/spacebar
 
+  # NOTE luciorq If full functionality is required, please
+  # + disable SIP
+  builtin echo -ne "\n";
+
+
   # Sign, it will prompt to authenticate
   codesign -fs 'yabai-cert' $(which yabai)
   # copy example config files
@@ -46,7 +51,7 @@ function _install_yabai () {
   fi
   chmod +x ${HOME}/.config/spacebar/spacebarrc
  
-
+  
 
   # Enable accessibility API permission
   # TODO luciorq Add a wait till confirm button and open system preferences
@@ -68,6 +73,9 @@ function _install_yabai () {
 function reload_yabai () {
   local user_id;
   user_id=$(id -u);
+  sudo yabai --uninstall-sa
+  sudo yabai --install-sa
+
   launchctl kickstart -k "gui/${user_id}/homebrew.mxcl.spacebar";
   launchctl kickstart -k "gui/${user_id}/homebrew.mxcl.yabai";
   skhd --reload;
