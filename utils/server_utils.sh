@@ -3,16 +3,17 @@
 # Disable 'cloud-init' on Ubuntu server
 function __remove_cloudinit () {
   local rm_bin;
-  rm_bin="$(which 'rm')";
+  rm_bin="$(which_bin 'rm')";
+  sudo mkdir -p /etc/cloud;
   sudo touch /etc/cloud/cloud-init.disabled;
   # NOTE luciorq This step needs manual intervention
   sudo dpkg-reconfigure cloud-init;
   sudo apt purge -y cloud-init;
-  sudo rm -rf /etc/cloud/ && sudo rm -rf /var/lib/cloud/
+  sudo "${rm_bin}" -rf /etc/cloud/ && sudo rm -rf /var/lib/cloud/
   sleep 3;
-  sudo systemctl daemon-reload
+  sudo systemctl daemon-reload;
   sleep 3;
-  sudo systemctl daemon-reexec
+  sudo systemctl daemon-reexec;
   # sudo reboot
 }
 
@@ -38,4 +39,42 @@ function __remove_osprober () {
 # Clean server
 function __clean_server () {
   sudo apt autoremove --purge;
+}
+
+# Remove Snaps and Snapd service
+function __remove_snapd () {
+  local installed_snaps snap_pkg;
+  local snap_dir snap_dir_arr;
+  declare -a installed_snaps=( $(sudo snap list --all | cut -f1 -d " " | grep -v -i "^Name$") );
+  for snap_pkg in ${installed_snaps[@]}; do
+    sudo snap remove --purge ${snap_pkg} 2> /dev/null;
+  done
+  installed_snaps=( $(sudo snap list --all | cut -f1 -d " " | grep -v -i "^Name$") );
+  for snap_pkg in ${installed_snaps[@]}; do
+    sudo snap remove --purge ${snap_pkg} 2> /dev/null;
+  done
+  sudo systemctl stop snapd;
+  sleep 2;
+  sudo systemctl disable snapd;
+  sleep 2;
+  sudo apt purge --yes snapd;
+
+  systemctl list-units --state failed | grep -oP "snap.*mount" | xargs -n 1 sudo systemctl 2> /dev/null disable;
+
+  declare -a snapd_dir_arr=( /var/snap /var/lib/snapd /var/cache/snapd /usr/lib/snapd /root/snap /snap );
+  for snap_dir in ${snap_dir_arr[@]}; do
+    if [[ -d "${snap_dir}" ]]; then
+      sudo rm -rf "{snap_dir}";
+    fi
+  done
+
+  # Stop it from being reinstalled by 'mistake' when installing other packages
+  sudo mkdir -p /etc/apt/preferences.d/
+  sudo touch /etc/apt/preferences.d/no-snap.pref
+  sudo builtin echo 'Package: snapd' >> /etc/apt/preferences.d/no-snap.pref
+  sudo builtin echo 'Pin: release a=*' >> /etc/apt/preferences.d/no-snap.pref
+  sudo builtin echo 'Pin-Priority: -10' >> /etc/apt/preferences.d/no-snap.pref
+
+  # sudo mv no-snap.pref /etc/apt/preferences.d/
+  sudo chown root:root /etc/apt/preferences.d/no-snap.pref
 }
