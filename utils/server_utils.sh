@@ -71,9 +71,9 @@ function __remove_snapd () {
   # Stop it from being reinstalled by 'mistake' when installing other packages
   sudo mkdir -p /etc/apt/preferences.d/
   sudo touch /etc/apt/preferences.d/no-snap.pref
-  sudo builtin echo 'Package: snapd' >> /etc/apt/preferences.d/no-snap.pref
-  sudo builtin echo 'Pin: release a=*' >> /etc/apt/preferences.d/no-snap.pref
-  sudo builtin echo 'Pin-Priority: -10' >> /etc/apt/preferences.d/no-snap.pref
+  builtin echo 'Package: snapd' | sudo tee -a /etc/apt/preferences.d/no-snap.pref
+  builtin echo 'Pin: release a=*' | sudo tee -a /etc/apt/preferences.d/no-snap.pref
+  builtin echo 'Pin-Priority: -10' | sudo tee -a /etc/apt/preferences.d/no-snap.pref
 
   # sudo mv no-snap.pref /etc/apt/preferences.d/
   sudo chown root:root /etc/apt/preferences.d/no-snap.pref
