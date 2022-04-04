@@ -33,10 +33,13 @@ function __install_macos_devtools () {
   fi
 
   # Link developer tools headers
-  "${sudo_bin}" "${ln_bin}" -sf \
-    /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/* \
-    /usr/local/include 2> /dev/null
+  # "${sudo_bin}" "${ln_bin}" -sf \
+  #   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/* \
+  #   /usr/local/include 2> /dev/null
+  # NOTE: Undo the above
+  # for i in $(\ls -A1 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include); do if [[ -L /usr/local/include/${i} ]]; then sudo unlink /usr/local/include/${i}; fi; done
 }
+
 
 # Install Rosetta2 on ARM
 function __install_rosetta () {
@@ -187,6 +190,39 @@ function __install_kitty () {
   brew_bin="$(which_bin 'brew')";
   "${brew_bin}" install --cask kitty;
   # TODO luciorq Make Kitty default terminal 
+}
+
+# Allow sudo commands to authenticate through TouchID
+function __allow_touch_id_sudo () {
+  local str_present;
+  local pam_sudo_path;
+  local wait_var;
+  pam_sudo_path='/private/etc/pam.d/sudo'
+  replace_str='auth       sufficient     pam_tid.so'
+  str_present=$(check_in_file "auth.*sufficient.*pam_tid.so" "${pam_sudo_path}");
+  if [[ ${str_present} == false ]]; then
+    
+    # Edit /private/etc/pam.d/sudo
+    # + Add: 'auth       sufficient     pam_tid.so' to the first line
+    # + IMPORTANT It needs to be above the other options!
+    # sudo replace_in_file "auth.*sufficient.*pam_tid.so" "${replace_str}" "${pam_sudo_path}";
+    builtin echo -ne "Insert the following:\n";
+    builtin echo -ne "--> 'auth       sufficient     pam_tid.so'\n";
+    builtin echo -ne "To the first line of ${pam_sudo_path}\n";
+    builtin echo -ne "Press enter to continue:"
+    read wait_var
+    sudo visudo "${pam_sudo_path}";
+    builtin echo -ne "TouchID sudo enabled.\n";
+  else
+    builtin echo -ne "TouchID sudo already enabled.\n";
+  fi
+}
+
+# Open MacOS options menu
+function __open_macos_menu () {
+  #  Example of opening System Preferencer -> Spotlight -> Search Results
+  # + x-help-action://openPrefPane?bundleId=com.apple.preference.spotlight&anchorId=searchResults
+  return 0;
 }
 
 # Update configuration from applications
