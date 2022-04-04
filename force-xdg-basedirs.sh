@@ -58,6 +58,10 @@ fi
 if [[ ! -L "$GNUPGHOME/gpg.conf" ]]; then
   ln -s $XDG_CONFIG_HOME/gnupg/gpg.conf $GNUPGHOME/gpg.conf
 fi
+if [[ ! -L "$GNUPGHOME/gpg-agent.conf" ]]; then
+  ln -s $XDG_CONFIG_HOME/gnupg/gpg-agent.conf $GNUPGHOME/gpg-agent.conf
+fi
+
 
 # Less
 export LESSKEY="$XDG_CONFIG_HOME/less/lesskey"
@@ -109,8 +113,12 @@ export VAGRANT_ALIAS_FILE="$XDG_DATA_HOME/vagrant/aliases"
 export WEECHAT_HOME="$XDG_CONFIG_HOME/weechat"
 
 # wget
-export WGETRC="$XDG_CONFIG_HOME/wgetrc"
-alias wget='wget --hsts-file="$XDG_CACHE_HOME/wget-hsts"'
+[[ -d ${XDG_CONFIG_HOME}/wget ]] || mkdir -p "${XDG_CONFIG_HOME}/wget"
+[[ -f ${XDG_CONFIG_HOME}/wget/wgetrc ]] || touch "${XDG_CONFIG_HOME}/wget/wgetrc"
+export WGETRC="$XDG_CONFIG_HOME/wget/wgetrc"
+
+[[ -d ${XDG_CACHE_HOME}/wget ]] || mkdir -p "${XDG_CACHE_HOME}/wget"
+alias wget='wget --hsts-file="${XDG_CACHE_HOME}/wget/wget-hsts"'
 
 # java openjdk
 export _JAVA_OPTIONS=-Djava.util.prefs.userRoot="$XDG_CONFIG_HOME"/java
@@ -135,17 +143,18 @@ export GOPATH="$XDG_DATA_HOME"/go
 export R_ENVIRON_USER="${XDG_CONFIG_HOME}/R/Renviron"
 export R_PROFILE_USER="${XDG_CONFIG_HOME}/R/Rprofile"
 export R_MAKEVARS_USER="${XDG_CONFIG_HOME}/R/Makevars"
-
 export R_HISTFILE="${XDG_DATA_HOME}/R/Rhistory"
+[[ -d ${XDG_DATA_HOME}/R ]] || mkdir -p "${XDG_DATA_HOME}/R";
+[[ -f ${R_HISTFILE} ]] || touch "${R_HISTFILE}" && chmod 0600 "${R_HISTFILE}";
 
 # Change R package User install path
 # export R_LIBS_USER=
 
 # BASH Shell
 # GNU BASH history respect XDG base dirs spec
-export HISTFILE="${XDG_DATA_HOME}/bash/history"
-\mkdir -p "${XDG_STATE_HOME}"/bash
-\mkdir -p "${XDG_DATA_HOME}"/bash
+export HISTFILE="${XDG_DATA_HOME}/bash/history";
+\mkdir -p "${XDG_STATE_HOME}/bash";
+\mkdir -p "${XDG_DATA_HOME}/bash";
 if [[ ! -f ${HISTFILE} ]]; then
   \touch "${HISTFILE}";
 fi
@@ -153,17 +162,17 @@ fi
 export ADB_VENDOR_KEYS="${XDG_CONFIG_HOME}/adb/adbkey"
 
 # Subversion (svn) - some homebrew formulas used it
-\mkdir -p "$XDG_CONFIG_HOME/subversion"; 
+\mkdir -p "$XDG_CONFIG_HOME/subversion";
 alias svn='svn --config-dir "$XDG_CONFIG_HOME/subversion"';
 
 # Julia Programming Language
-export JULIA_DEPOT_PATH="$XDG_DATA_HOME/julia:$JULIA_DEPOT_PATH"
+export JULIA_DEPOT_PATH="$XDG_DATA_HOME/julia:$JULIA_DEPOT_PATH";
 
 # TeamSpeak
-export TS3_CONFIG_DIR="$XDG_CONFIG_HOME/ts3client"
+export TS3_CONFIG_DIR="$XDG_CONFIG_HOME/ts3client";
 
 # Starship prompt configuration path
-export STARSHIP_CONFIG="${XDG_CONFIG_HOME}/starship/config.toml"
+export STARSHIP_CONFIG="${XDG_CONFIG_HOME}/starship/config.toml";
 
 # LaTeX
 \mkdir -p "$XDG_CONFIG_HOME/latexmk/latexmkrc";
