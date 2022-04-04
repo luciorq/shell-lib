@@ -2,11 +2,13 @@
 
 # Kitten Aware SSH connection
 function ssh () {
+  local ssh_bin;
+  ssh_bin="$(require 'ssh')";
   if [[ ${TERM}  == xterm-kitty ]]; then
-    TERM='xterm-256color' ssh ${@};
-    # kitty +kitten ssh ${@};
+    TERM='xterm-256color' "${ssh_bin}" ${@:1};
+    # kitty +kitten ssh ${@:1};
   else
-    ssh ${@};
+    "${ssh_bin}" ${@:1};
   fi
 }
 
