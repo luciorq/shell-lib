@@ -22,6 +22,9 @@ function install_lang () {
   sys_arch="$(uname -m)";
   # e.g.: 'Linux', 'Darwin'
   sys_kernel_name="$(uname -s)";
+  if [[ ${sys_kernel_name} == Darwin ]]; then
+    sys_kernel_name='MacOSX';
+  fi
 
   app_name="$1"
   app_version="$2"
@@ -47,13 +50,13 @@ function install_lang () {
   if [[ -z "${app_version}" ]]; then
     # TODO luciorq replace fixed string with read global option implementation
     # + e.g.: app_version=$(read_option "${_ENV_PREFIX}_${app_name}_version")
-    app_version=4.1.2; # R version
+    app_version=4.1.3; # R version
   fi
 
   install_path=$(eval echo "${install_path}")
-
   if [[ -z "${install_path}" ]]; then
-    install_path=/opt/langs
+    install_path="${HOME}/.local/opt/mamba"
+    # install_path=/opt/langs;
   fi
 
   if [[ ! -d ${install_path} ]]; then
@@ -69,14 +72,14 @@ function install_lang () {
 
   local base_forge_url;
   base_forge_url="https://github.com/conda-forge/miniforge/releases/latest/download";
-  base_forge_url="${base_forge_url}/Miniforge3-${sys_kernel_name}-${sysarch}.sh"
+  base_forge_url="${base_forge_url}/Mambaforge-${sys_kernel_name}-${sys_arch}.sh";
 
   curl -fsSL \
-    -o "${install_path}"/miniforge.sh \
+    -o "${install_path}"/mambaforge.sh \
     "${base_forge_url}";
-  chmod 755 "${install_path}"/miniforge.sh
-  "${install_path}"/miniforge.sh -b -p "${install_path}"/miniforge
-  "${install_path}"/miniforge/bin/conda \
+  chmod 755 "${install_path}"/mambaforge.sh
+  "${install_path}"/mambaforge.sh -b -p "${install_path}"/mambaforge;
+  "${install_path}"/mambaforge/bin/mamba \
       create \
       --quiet --yes \
       --prefix "${base_path}"/"${app_version}" \
@@ -99,7 +102,7 @@ function install_lang () {
     # + Check 'sysreqs' R package
     #local r_bin
     #r_bin="$(which R)"
-    "${install_path}"/miniforge/bin/conda \
+    "${install_path}"/mambaforge/bin/mamba \
       install \
       --quiet --yes \
       --prefix "${base_path}"/"${app_version}" \
@@ -157,4 +160,7 @@ function install_python () {
 function install_rstats () {
   install_lang R 4.1.2 '${HOME}/.local/apps' link=true
 }
+
+
+
 
