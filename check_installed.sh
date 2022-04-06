@@ -45,7 +45,7 @@ function check_installed () {
     return 1;
   fi
   cmd_bin=$(which_bin "${cmd_str}");
-  cmd_res=$( "${cmd_bin}" ${cmd_args_exec} 2> /dev/null || builtin echo -ne '' );
+  cmd_res=$( "${cmd_bin}" ${cmd_args_exec} 2>&1 || builtin echo -ne '' );
 
   if [[ -n "${cmd_res[@]}" ]]; then
     builtin echo -ne "${cmd_bin}";
