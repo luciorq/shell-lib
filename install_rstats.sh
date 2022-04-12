@@ -241,7 +241,7 @@ function __install_rstats_hb () {
 # Install R packages
 function __install_rstats_packages () {
   local config_path;
-  config_path="$_LOCAL_CONFIG/vars/rstats_packages.yaml";
+  config_path="${_LOCAL_CONFIG}/vars/rstats_packages.yaml";
   declare -a cran_packages=$(parse_yaml "${config_path}" default cran_packages);
   declare -a bioc_packages=$(parse_yaml "${config_path}" default bioc_packages);
   declare -a gh_packages=$(parse_yaml "${config_path}" default gh_packages);
@@ -297,13 +297,14 @@ function install_rstats_pkg () {
     gh)        install_str='remotes::install_github'    ;;
     local)     install_str='remotes::install_local'     ;;
     bioc*)     install_str='BiocManager::install'       ;;
+    *) builtin echo >&2 -ne "'${pkg_type}' not available as a Source.\n";return 1;;
   esac
   "${r_bin}" -q -s -e \
     "if(isFALSE(base::requireNamespace('${cran_pkg}',quietly=TRUE))){${install_str}('${cran_pkg}')}";
 }
 
 
-function __install_rstats_precompiled () {
+function __install_rstats_precompiled_ubuntu () {
 
   local r_version rstudio_version
   sudo apt-get update
@@ -314,7 +315,7 @@ function __install_rstats_precompiled () {
   mkdir -p ~/temp/
   cd ~/temp/
   curl -O https://cdn.rstudio.com/r/ubuntu-2004/pkgs/r-${r_version}_1_amd64.deb
-  sudo gdebi r-${r_version}_1_amd64.deb
+  sudo gdebi -n r-${r_version}_1_amd64.deb
 
   if [[ -e /usr/local/bin/R ]]; then rm /usr/local/bin/R; fi
   if [[ -e /usr/local/bin/Rscript ]]; then rm /usr/local/bin/Rscript; fi
@@ -322,8 +323,64 @@ function __install_rstats_precompiled () {
   sudo ln -sf /opt/R/${r_version}/bin/Rscript /usr/local/bin/Rscript
 
   curl -O https://s3.amazonaws.com/rstudio-ide-build/desktop/bionic/amd64/rstudio-${rstudio_version}-amd64.deb
-  sudo gdebi rstudio-${rstudio_version}-amd64.deb
+  sudo gdebi -n rstudio-${rstudio_version}-amd64.deb
 
   rm ~/temp/r-*
   rm ~/temp/rstudio-*
+}
+
+
+# =============================================================================
+# Install RStudio related functions
+# =============================================================================
+
+# Install RStudio Desktop MacOS, using Homebrew
+# + Currently not working with ARM source compiled R versions
+# + Electron version will have native ARM support for MacOS
+# + <https://github.com/rstudio/rstudio/issues/8652#issuecomment-1082077752>
+# + and <https://s3.amazonaws.com/rstudio-ide-build/electron/macos>
+function __install_rstudio_desktop () {
+  local _usage="$0 [daily-electron|daily|preview|current]";
+  local release_type;
+  local brew_bin;
+  local os_type;
+  release_type="${1:-current}";
+  os_type="${os_type}";
+
+  if [[ ${os_type} == "Darwin" ]]; then
+  brew_bin="$(require 'brew')";
+  "${brew_bin}" tap luciorq/homebrew-rs-daily;
+  case ${release_type} in
+    daily-electron) "${brew_bin}" install --cask luciorq/rs-daily/rstudio-daily-electron;;
+    daily) "${brew_bin}" install --cask homebrew/cask-versions/rstudio-daily;;
+    preview) "${brew_bin}" install --cask homebrew/cask-versions/rstudio-preview;;
+    current) "${brew_bin}" install --cask rstudio;;
+    *) builtin echo >&2 -ne "'${release_type}' not available.\n";;
+  esac
+  fi
+  return 0;
+}
+
+function __get_latest_rstudio_electron () {
+  local jq_bin;
+  local json_var;
+  local rs_daily_url rs_daily_hash;
+  jq_bin="$(require 'jq')";
+  json_var="$(curl -L -s -S -f https://dailies.rstudio.com/rstudio/latest/index.json)"
+  rs_daily_url=$(builtin echo "${json_var}" | "${jq_bin}" '.products.electron.platforms.macos.link | values' | sed 's|\"||g');
+  rs_daily_hash=$(builtin echo "${json_var}" | "${jq_bin}" '.products.electron.platforms.macos.sha256 | values' | sed 's|\"||g');
+}
+
+# =============================================================================
+# RIM - R Installation Manager
+# =============================================================================
+
+# Dev version @ https://github.com/gaborcsardi/rim
+# + Brew formulaes @ https://github.com/gaborcsardi/homebrew-rim
+function __install_rstats_rim () {
+  local brew_bin;
+  brew_bin="$(require 'brew')";
+  "${brew_bin}" tap gaborcsardi/rim
+  "${brew_bin}" install --cask gaborcsardi/rim/rim
+
 }
