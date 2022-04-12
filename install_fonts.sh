@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
-# Install fonts from remote URL 
+# Install fonts from remote URL
 function install_fonts () {
-  # Usage: install_fonts <BASE_URL> <FAMILY_DIR> <TYPE_ARRAY> <VERSION> 
+  # Usage: install_fonts <BASE_URL> <FAMILY_DIR> <TYPE_ARRAY> <VERSION>
   local base_url base_dest_dir font_version font_url
   local dest_dir family_dir font_dir font_path
   local name_type path_type temp_dir
   local is_su su_bin
   local fontype_array
-  local i j 
-   
+  local i j
+
   base_url="$1"
 
   is_su=$(sudo_check)
@@ -34,7 +34,7 @@ function install_fonts () {
   font_version="$4"
 
   # fonttype_array=("Regular" "Bold" "Italic" "Bold Italic")
-  
+
   # TODO luciorq use sed to replace "\'" with "" on $fonttype_str
   fonttype_array=()
   fonttype_str=$3
@@ -45,7 +45,7 @@ function install_fonts () {
   echo ${!fonttype_array[@]}
   echo ${fonttype_array[@]}
 
-  
+
   temp_dir=$(create_temp)
 
   for i in ${!fonttype_array[@]}; do
@@ -67,13 +67,13 @@ function install_fonts () {
 
 # install JetBrains Mono NF
 function install_jetbrains-mono-nf () {
-  # Usage: install_fonts <BASE_URL> <FAMILY_DIR> <TYPE_ARRAY> <VERSION> 
-  local base_url font_version 
+  # Usage: install_fonts <BASE_URL> <FAMILY_DIR> <TYPE_ARRAY> <VERSION>
+  local base_url font_version
   base_url='https://github.com/ryanoasis/nerd-fonts/blob/master/patched-fonts/JetBrainsMono/Ligatures/{{path_type}}/complete/JetBrains%20Mono%20{{name_type}}%20Nerd%20Font%20Complete.ttf'
   font_version='2.225'
   font_dir='jetbrains-mono'
   type_array='"Regular" "Bold" "Italic" "Bold Italic" "ExtraBold" "ExtraBold Italic"'
-  install_fonts ${base_url} ${font_dir} "${type_array}" ${font_version} 
+  install_fonts ${base_url} ${font_dir} "${type_array}" ${font_version}
 }
 
 # TODO luciorq Install FiraCode NF
@@ -81,18 +81,23 @@ function install_jetbrains-mono-nf () {
 
 # Regenerate font cache
 function regenerate_font_cache () {
-  fc-cache --force --really-force -r -v
+  local fcc_bin;
+  fcc_bin="$(require 'fc-cache')";
+  builtin echo -ne "Rebuilding Font Cache...\n";
+  "${fcc_bin}" --force --really-force -r -v;
 }
 
 # List available fonts and path
 function list_fonts () {
-  echo ""
-  echo "System fonts:"
-  fc-list : file
-
-  echo ""
-  echo ""
-  echo ""
-  echo "Kitty fonts:"
-  kitty + list-fonts --psnames
+  local fcl_bin kitty_bin;
+  fcl_bin="$(which_bin 'fc-list')";
+  kitty_bin="$(which_bin 'kitty')";
+  if [[ -n ${fcl_bin} ]]; then
+    builtin echo -ne "\n\nSystem fonts:\n";
+    "${fcl_bin}" : file family;
+  fi
+  if [[ -n ${kitty_bin} ]]; then
+    builtin echo -ne "\n\nKitty fonts:\n";
+    "${kitty_bin}" + list-fonts --psnames;
+  fi
 }
