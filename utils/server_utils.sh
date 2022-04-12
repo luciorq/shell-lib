@@ -78,3 +78,14 @@ function __remove_snapd () {
   # sudo mv no-snap.pref /etc/apt/preferences.d/
   sudo chown root:root /etc/apt/preferences.d/no-snap.pref
 }
+
+
+# Disable NetworkManager and set netplan as default
+function __set_netplan_default_network () {
+  # Remove renderer: NetworkManager from /etc/netplan/*.yaml
+  sudo systemctl stop network-manager.service;
+  sudo systemctl disable network-manager.service;
+  sudo netplan --debug try;
+  sudo netplan generate;
+  sudo netplan apply;
+}

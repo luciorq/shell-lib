@@ -44,6 +44,15 @@ function system_update () {
     builtin echo >&2 -ne "No supported system detected.\n";
     return 1;
   fi
+
+  # Update applications configurations
+  echo -ne "\n\nUpdating Applications Configurations\n\n";
+  local tldr="$(which_bin 'tldr')";
+  if [[ -n ${tldr_bin} ]]; then
+    tldr --update;
+  fi
+
+  echo -ne "\n\nSystem update succesfull.\n\n";
 }
 
 # Parse system info into array
@@ -83,7 +92,6 @@ function _get_system_info () {
 }
 
 
-
 # MacOS specific updates
 function _system_update_macos () {
   return 0;
@@ -98,53 +106,43 @@ function _system_update_ubuntu () {
     return 1;
   fi
 
-  echo -ne "\n\nUpdating packages from package manager (APT) ...\n\n"
-  sudo apt update -y -q;
-  sudo apt upgrade -y -q;
-  sudo apt dist-upgrade --dry-run -q;
+  echo -ne "\n\nUpdating packages from package manager (APT) ...\n\n";
+  __update_apt_pkgs;
 
-  echo -ne "\n\nUpdating applications via Snap (Snapcraft) ...\n\n"
-  sudo snap refresh --list;
-  sudo snap refresh;
-  # remove older snaps
-  snap list --all \
-    | awk '/disabled/{print $1, $3}' \
-    | while read snap_app_name snap_revision; \
-    do "$(which_bin sudo)" snap remove "${snap_app_name}" \
-      --revision="${snap_revision}"; \
-    done
+  echo -ne "\n\nUpdating applications via Snap (Snapcraft) ...\n\n";
+  __update_snap_pkgs;
 
-  echo -ne "\n\nUpdating Firmwares and Drivers (fwupdmgr) ...\n\n"
-  sudo fwupdmgr refresh --force
-  sudo fwupdmgr get-upgrades
+  echo -ne "\n\nUpdating Firmwares and Drivers (fwupdmgr) ...\n\n";
+  sudo fwupdmgr refresh --force;
+  sudo fwupdmgr get-upgrades;
   # --offline
   sudo fwupdmgr update -y \
       --ignore-power \
-      --no-reboot-check
+      --no-reboot-check;
 
   # TODO luciorq Add python, golang, rust, and R packages to auto update
-  echo -ne "\n\nUpdating Programming Languages (R, Python, Node.js & Go)\n\n"
+  echo -ne "\n\nUpdating Programming Languages (R, Python, Node.js & Go)\n\n";
   # _update_programming_languages;
-  
-  # TODO luciorq Use install_app module to install system applications 
+
+  # TODO luciorq Use install_app module to install system applications
   # + using ansible need to integrate installed module to
   # + "configured module paths" or add new module paths to
   # + the "ansible_cfg_path" file.
 
-  echo -ne "\n\nUpdating Custom Applications (install_apps)\n\n"
+  echo -ne "\n\nUpdating Custom Applications (install_apps)\n\n";
 
   local ansible_bin;
   local ansible_cfg_path;
   local ansible_playbook_path;
 
-  ansible_bin="$(check_installed 'ansible-playbook --version')";
+  ansible_bin="$(require 'ansible-playbook')";
   ansible_cfg_path="${_BCA_CONFIG}";
-  ansible_playbook_name=test_install_app.yaml
+  ansible_playbook_name=test_install_app.yaml;
   ansible_playbook_path="${_LOCAL_PROJECT}"/villabioinfo/install_apps/playbooks;
-  ansible_playbook_path="${ansible_playbook_path}/${ansible_playbook_name}"
+  ansible_playbook_path="${ansible_playbook_path}/${ansible_playbook_name}";
 
-  if [[ -n "${ansible_bin}" ]]; then
-    ANSIBLE_CONFIG=${ansible_cfg_path} "${ansible_bin}" \
+  if [[ -n ${ansible_bin} ]]; then
+    ANSIBLE_CONFIG="${ansible_cfg_path}" "${ansible_bin}" \
       "${ansible_playbook_path}" \
       --extra-vars "@${_ANS_SEV}";
   else
@@ -154,10 +152,5 @@ function _system_update_ubuntu () {
   #   -v ${host_exec} -m "${module_name}" -a "${cmd_exec}"
 
 
-  # Update applications configurations
-  echo -ne "\n\nUpdating Applications Configurations\n\n";
-  tldr --update;
-
-  echo -ne "\n\nSystem update succesfull.\n\n";
 }
 

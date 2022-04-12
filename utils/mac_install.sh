@@ -52,7 +52,7 @@ function __install_rosetta () {
   local has_rosetta;
   local updater_path bom_path;
   local sys_arch;
-  
+
   sys_arch="$(uname -m)";
 
   if [[ ! ${sys_arch} == arm64 ]]; then
@@ -77,7 +77,7 @@ function __install_rosetta () {
   if [[ -d ${updater_path} ]]; then
     open "${updater_path}";
     # TODO luciorq Add Apple Script to click confirm
-  fi 
+  fi
 
   if [[ -f /Library/Apple/System/Library/Receipts/com.apple.pkg.RosettaUpdateAuto.bom ]]; then
     echo -ne "Rosetta2 Updater available...\n";
@@ -147,7 +147,7 @@ function __install_homebrew_pkgs () {
   for cask_pkg in ${cask_arr[@]}; do
     "${brew_bin}" install --cask "${cask_pkg}";
   done
-  
+
   # Install fonts
   __install_fonts;
   # Double check on conflicting packages not being installed
@@ -189,7 +189,7 @@ function __install_kitty () {
   local fonts_arr font_pkg;
   brew_bin="$(which_bin 'brew')";
   "${brew_bin}" install --cask kitty;
-  # TODO luciorq Make Kitty default terminal 
+  # TODO luciorq Make Kitty default terminal
 }
 
 # Allow sudo commands to authenticate through TouchID
@@ -201,7 +201,7 @@ function __allow_touch_id_sudo () {
   replace_str='auth       sufficient     pam_tid.so'
   str_present=$(check_in_file "auth.*sufficient.*pam_tid.so" "${pam_sudo_path}");
   if [[ ${str_present} == false ]]; then
-    
+
     # Edit /private/etc/pam.d/sudo
     # + Add: 'auth       sufficient     pam_tid.so' to the first line
     # + IMPORTANT It needs to be above the other options!
@@ -234,7 +234,7 @@ function __update_configs () {
 }
 
 # Install R
-function __install_rstats () { 
+function __install_rstats () {
   # from: https://stackoverflow.com/questions/68263165/installing-r-on-osx-big-sur-edit-and-apple-m1-for-use-with-rcpp-and-openmp
   # Also check:
   # + https://johnmuschelli.com/neuroc/installing_devtools/index.html#5_Updating_a_package
