@@ -36,16 +36,16 @@ function unpack () {
   local rm_bin cp_bin mkdir_bin tar_bin;
   zip_path="$1";
   dir_output="$2";
-  rm_bin="$(which_bin rm)";
-  cp_bin="$(which_bin cp)";
-  mkdir_bin="$(which_bin mkdir)";
-  tar_bin="$(which_bin tar)";
+  rm_bin="$(which_bin 'rm')";
+  cp_bin="$(which_bin 'cp')";
+  mkdir_bin="$(which_bin 'mkdir')";
+  tar_bin="$(which_bin 'tar')";
 
-  if [[ ! -d "${dir_output}" ]]; then
+  if [[ ! -d ${dir_output} ]]; then
     dir_output="$(realpath ./)";
   fi
 
-  if [[ ! -d "${dir_output}" && ! -f "${dir_output}" ]]; then
+  if [[ ! -d ${dir_output} && ! -f ${dir_output} ]]; then
     "${mkdir_bin}" -p "${dir_output}";
   fi
 
