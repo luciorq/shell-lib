@@ -165,7 +165,7 @@ function __update_bash_shell () {
   if [[ -z ${is_bash_allowed} ]]; then
     echo "${bash_bin}" | sudo tee -a /private/etc/shells
   fi
-  sudo chpass -s "${bash_bin}" luciorq
+  sudo chpass -s "${bash_bin}" "${USER}"
   # TODO luciorq Change the default shell in Terminal App
 }
 

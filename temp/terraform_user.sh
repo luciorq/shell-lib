@@ -4,7 +4,7 @@ function __terraform_bootstrap () {
   local bottle_pkgs;
   local _pkg;
   local bca_prefix;
-  bca_prefix="${HOME}/.local/opt/bca";
+  bca_prefix="${HOME}/.local/opt/apps";
   declare -a bottle_pkgs=(
     git
     gettext
@@ -20,7 +20,7 @@ function __terraform_bootstrap () {
   for _pkg in ${bottle_pkgs[@]}; do
     __fix_rpaths "${_pkg}";
   done
- 
+
 }
 
 # =================================================================
@@ -78,7 +78,7 @@ function __brew_download_bottle () {
 
 function __install_path () {
   local base_path;
-  base_path="${HOME}/.local/opt/bca";
+  base_path="${HOME}/.local/opt";
   builtin echo -ne "${base_path}";
   return 0;
 }
