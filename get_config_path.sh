@@ -7,4 +7,5 @@ function get_config_path () {
   private_dir="${1}";
   cfg_path="${_LOCAL_CONFIG:-${XDG_CONFIG_HOME:-${HOME}/.config}/${private_dir}}";
   builtin echo -ne "${cfg_path}";
+  return 0;
 }

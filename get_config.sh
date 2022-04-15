@@ -16,5 +16,13 @@ function get_config () {
   declare -a full_args_arr=($@);
   declare -a args_arr=( ${full_args_arr[@]:1} );
   var_file="${cfg_dir}/vars/${file_base_name}.${file_ext}";
-  parse_yaml "${var_file}" default ${args_arr[@]};
+  if [[ ! -f ${var_file} ]]; then
+    file_ext="yml";
+    var_file="${cfg_dir}/vars/${file_base_name}.${file_ext}";
+  fi
+  if [[ ! -f ${var_file} ]]; then
+    builtin echo >&2 -ne "Error: '${var_file}' no such file.\n";
+    return 1;
+  fi
+   parse_yaml "${var_file}" default ${args_arr[@]};
 }
