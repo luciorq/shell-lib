@@ -14,10 +14,11 @@ function __install_ubuntu_desktop () {
 # =============================================================================
 function __install_ubuntu_server () {
   __install_nala;
+  __remove_network_manager;
 }
 
 # =============================================================================
-#
+# Utilities
 # =============================================================================
 
 # Install NALA Apt wrapper
@@ -36,7 +37,7 @@ function __install_nala () {
     x86_64)    arch_str='amd64'    ;;
     aarch64)   arch_str='arm64'    ;;
     arm64)     arch_str='arm64'    ;;
-    *) builtin echo -ne ")Arcitecture not supported.\n"; return 1;;
+    *) builtin echo -ne ")Architecture not supported.\n"; return 1;;
   esac
 
   # Check latest version at:
@@ -55,3 +56,17 @@ function __install_nala () {
   sudo nala fetch;
 }
 
+# Remove NetworkManager and set default to netplan
+function __remove_network_manager () {
+  sudo apt purge --auto-remove network-manage*
+  sudo apt purge --auto-remove gnome-*
+
+  sudo systemctl stop NetworkManager.service
+  sudo systemctl disable NetworkManager.service
+  sudo systemctl stop NetworkManager-wait-online.service
+  sudo systemctl disable NetworkManager-wait-online.service
+  sudo systemctl stop NetworkManager-dispatcher.service
+  sudo systemctl disable NetworkManager-dispatcher.service
+  sudo systemctl stop network-manager.service
+  sudo systemctl disable network-manager.service
+}
