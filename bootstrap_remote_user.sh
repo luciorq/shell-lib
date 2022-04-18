@@ -10,6 +10,7 @@ function bootstrap_user () {
   mkdir -p ${HOME}/.local/opt/apps;
   __build_git "${install_type}";
   __install_yq;
+  __build_bash "${install_type}";
   install_apps "${install_type}";
   source_configs;
 }
@@ -47,6 +48,52 @@ function __build_git () {
   make -C "${build_path}/git-main" install -j ${num_threads};
   "${rm_bin}" -rf "${build_path}/git-main" "${build_path}/main.zip";
   "${inst_path}/bin/git" --version;
+}
+function __build_bash () {
+  local latest_tag;
+  local mirror_repo;
+  local build_version;
+  local build_path;
+  local inst_path;
+  local num_threads;
+  local get_url;
+  local rm_bin make_bin;
+  rm_bin="$(which_bin 'rm')";
+  make_bin="$(which_bin 'gmake')";
+  if [[ -z ${make_bin} ]]; then
+    make_bin="$(require 'make')";
+  fi
+  mirror_repo='bminor/bash'
+  latest_tag=$(curl -fsSL "https://api.github.com/repos/${mirror_repo}/tags");
+  latest_tag=($(
+    builtin echo -ne "${latest_tag}" \
+      | grep '"name": ' \
+      | grep -v "\-rc\|\-beta\|\-alpha\|devel"
+  ))
+  # build_version="5.1";
+  build_version=$(
+    builtin echo -ne "${latest_tag[1]}" \
+      | sed 's|\"bash\-\(.*\)",|\1|g'
+  )
+  build_path="$(create_temp bash-inst)";
+  # inst_path="$(__install_path --user)";
+  inst_path="${HOME}/.local";
+  if [[ -f ${inst_path}/bin/bash ]]; then
+    return 0;
+  fi
+  num_threads=$(nproc);
+  if [[ ${num_threads} -gt 8 ]]; then
+    num_threads=8;
+  fi
+  get_url="https://ftp.gnu.org/gnu/bash/bash-${build_version}.tar.gz";
+  download "${get_url}" "${build_path}";
+  unpack "${build_path}/bash-${build_version}.tar.gz" "${build_path}";
+  # make -C "${build_path}/bash-${build_version}" configure -j ${num_threads};
+  (cd "${build_path}/bash-${build_version}" && ./configure --prefix="${inst_path}");
+  make -C "${build_path}/bash-${build_version}" -j ${num_threads};
+  make -C "${build_path}/bash-${build_version}" install -j ${num_threads};
+  "${rm_bin}" -rf "${build_path}/bash-${build_version}" "${build_path}/bash-${build_version}.tar.gz";
+  "${inst_path}/bin/bash" --version;
 }
 
 # =============================================================================
