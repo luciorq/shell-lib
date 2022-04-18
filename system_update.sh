@@ -47,10 +47,15 @@ function system_update () {
 
   # Update applications configurations
   echo -ne "\n\nUpdating Applications Configurations\n\n";
-  local tldr="$(which_bin 'tldr')";
+  local tldr_bin="$(which_bin 'tldr')";
   if [[ -n ${tldr_bin} ]]; then
-    tldr --update;
+    "${tldr_bin}" --update;
   fi
+  local bat_bin="$(which_bin 'bat')";
+  if [[ -n ${bat_bin} ]]; then
+    "${bat_bin}" cache --build;
+  fi
+
 
   echo -ne "\n\nSystem update succesfull.\n\n";
 }
@@ -68,8 +73,8 @@ function _parse_system_info () {
   sys_info_arr["kernel_version"]="${sys_arr[4]}";
   for _key in "${!sys_info_arr[@]}"; do
     sys_info_arr[${_key}]=$(
-      echo -ne "${sys_info_arr[${_key}]}"| sed -e "s/^'//g" | sed -e "s/'$//g"
-    )
+      echo -ne "${sys_info_arr[${_key}]}"| sed -e "s/^'//g" | sed -e "s/'$//g";
+    );
   done
 }
 
