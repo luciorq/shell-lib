@@ -13,18 +13,43 @@ function __install_neovim () {
 }
 
 
+# Rum Neovim commands from the CLI
+# @examples `neovim_command +PlugInstall`
+function neovim_command () {
+  local nvim_bin;
+  local nvim_cmds;
+  nvim_bin="$(require 'nvim')";
+  "${nvim_bin}" --headless ${nvim_cmds[@]} +qa
+}
+
 # tested on neovim 0.7 alpha
 function __install_neovim_configs () {
-  brew install npm
-  gh repo clone luciorq/neovim-lua ${HOME}/temp/neovim-lua
+  local npm_bin gh_bin;
+  # brew install npm;
+  npm_bin="$(require 'npm');"
+  gh_bin="$(require 'gh')";
+
+  "${gh_bin}" repo clone \
+    luciorq/neovim-lua \
+    "${HOME}/workspaces/temp/neovim-lua";
+
   # Copy config
   # cp -Rv ${HOME}/temp/neovim-lua/nvim ${HOME}/.config/
   # install packer
   #git clone --depth 1 https://github.com/wbthomason/packer.nvim \
   #  ${HOME}/.local/share/nvim/site/pack/packer/start/packer.nvim
+  git clone --depth 1 https://github.com/wbthomason/packer.nvim \
+    ${HOME}/.local/share/nvim/site/pack/packer/start/packer.nvim
   # Install Packages
-  # nvim --headless +PackerSync +qa
-  sudo npm install -g bash-language-server pyright vscode-langservers-extracted typescript typescript-language-server
+  # sudo
+  "${npm_bin}" install -g \
+    bash-language-server
+    # pyright \
+    # vscode-langservers-extracted \
+    # typescript \
+    # typescript-language-server
 
+  neovim_command +PackerSync
 }
+
 
