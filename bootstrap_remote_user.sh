@@ -15,6 +15,20 @@ function bootstrap_user () {
   source_configs;
 }
 
+function __clean_home () {
+  local remove_dirs _dir;
+  declare -a remove_dirs=(
+    .vim
+    .vimrc
+    .npm
+    .sudo_as_admin_successful
+  )
+
+  for _dir in ${remove_dirs[@]}; do
+    "${rm_dir}"
+  done
+}
+
 # =============================================================================
 # Build Tools from source
 # =============================================================================
@@ -49,6 +63,7 @@ function __build_git () {
   "${rm_bin}" -rf "${build_path}/git-main" "${build_path}/main.zip";
   "${inst_path}/bin/git" --version;
 }
+
 function __build_bash () {
   local latest_tag;
   local mirror_repo;
@@ -143,5 +158,7 @@ function __install_yq () {
   return 0;
 }
 
-
+# =============================================================================
+# Bootstrap R environment
+# =============================================================================
 

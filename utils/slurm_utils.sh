@@ -5,7 +5,7 @@ function slurm_check_job () {
   local job_id;
   declare -a job_id=($@);
   SACCT_FORMAT="JobID%20,JobName,User,Partition,NodeList,Elapsed,State,ExitCode,MaxRSS,AllocTRES%32" \
-    acct -j ${job_id[@]};
+    sacct -j ${job_id[@]};
 }
 
 # Check partitions details
