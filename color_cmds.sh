@@ -22,7 +22,7 @@ function cat_color () {
   # "${cat_bin}" ${fn_args[@]}
   "${bat_bin}" -p --paging 'never' \
     --theme 'gruvbox-dark' \
-    --color always \
+    --color auto \
     ${fn_args[@]};
 }
 

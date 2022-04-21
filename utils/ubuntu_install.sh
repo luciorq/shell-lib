@@ -14,7 +14,16 @@ function __install_ubuntu_desktop () {
 # =============================================================================
 function __install_ubuntu_server () {
   __install_nala;
+  __convert_server;
+  __enable_hwe;
+  __remove_desktop_resources;
   __remove_network_manager;
+  __remove_cloudinit;
+  __remove_snapd;
+  __remove_unwanted_resources;
+  __set_netplan_default_network;
+  __allow_nvidia_headless;
+  __clean_server;
 }
 
 # =============================================================================
@@ -56,17 +65,78 @@ function __install_nala () {
   sudo nala fetch;
 }
 
+# Remove desktop based Packages
+function __remove_desktop_resources () {
+  sudo apt purge --auto-remove 'ubuntu-desktop'
+  sudo apt purge --auto-remove 'gnome'
+  sudo apt purge --auto-remove 'pulseaudio'
+  sudo apt purge --auto-remove gnome-*
+  # Remove all flavors of ubuntu desktop
+  sudo apt purge --auto-remove 'buntu-desktop$'
+  sudo apt purge --auto-remove 'mate-desktop'
+  # Agressively removes all packages for desktop
+  # + sudo apt purge --auto-remove '\-desktop$'
+}
+
 # Remove NetworkManager and set default to netplan
 function __remove_network_manager () {
-  sudo apt purge --auto-remove network-manage*
-  sudo apt purge --auto-remove gnome-*
+  local services_arr _service;
+  local pkg_arr _pkg;
+   declare -a services_arr=(
+    NetworkManager.service
+    NetworkManager-wait-online.service
+    NetworkManager-dispatcher.service
+    network-manager.service
 
-  sudo systemctl stop NetworkManager.service
-  sudo systemctl disable NetworkManager.service
-  sudo systemctl stop NetworkManager-wait-online.service
-  sudo systemctl disable NetworkManager-wait-online.service
-  sudo systemctl stop NetworkManager-dispatcher.service
-  sudo systemctl disable NetworkManager-dispatcher.service
+  )
+  declare -a pkg_arr=(
+    network-manager
+  )
+  for _service in ${services_arr[@]}; do
+    sudo systemctl stop ${_service};
+    sudo systemctl disable ${_service};
+  done
+  for _pkg in ${pkg_arr[@]}; do
+    sudo apt purge --yes --auto-remove ${_pkg}
+  done
+  sudo apt purge --auto-remove network-manage*
+  # sudo apt purge --auto-remove gnome-*
+
   sudo systemctl stop network-manager.service
   sudo systemctl disable network-manager.service
+}
+
+
+# Remove some not used service and Packages
+function __remove_unwanted_resources () {
+  local pkg_arr;
+  local _pkg;
+  local services_arr;
+  local _service;
+  declare -a services_arr=(
+    mongodb.service
+    GeoMxNGSPipeline.service
+  )
+  declare -a pkg_arr=(
+    mongodb
+    rstudio
+  )
+  for _service in ${services_arr[@]}; do
+    sudo systemctl stop ${_service};
+    sudo systemctl disable ${_service};
+  done
+  for _pkg in ${pkg_arr[@]}; do
+    sudo apt purge --yes --auto-remove ${_pkg}
+  done
+
+}
+
+# Deny open-source nvidia drivers from kernel
+function __allow_nvidia_headless () {
+  sudo bash -c \
+    "echo blacklist nouveau > /etc/modprobe.d/deny-nvidia-nouveau.conf"
+  sudo bash -c \
+    "echo options nouveau modeset=0 >> /etc/modprobe.d/deny-nvidia-nouveau.conf"
+  cat '/etc/modprobe.d/deny-nvidia-nouveau.conf';
+  sudo update-initramfs -u;
 }
