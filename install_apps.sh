@@ -62,6 +62,91 @@ function __get_gh_latest_release () {
   return 0;
 }
 
+# Install apps utils ----------------------------------------------------------
+
+# Install app from downloadable tarball source code
+function __install_app_source () {
+  local install_path;
+  local tarball_name;
+  local get_url;
+  local dl_path;
+  local build_arr;
+  local build_path;
+  local rm_bin;
+  local ls_bin;
+  local nproc_bin;
+  local num_threads;
+  rm_bin="$(which_bin 'rm')";
+  ls_bin="$(which_bin 'ls')";
+  nproc_bin="$(which_bin 'nproc')";
+  if [[ -n ${nproc_bin} ]]; then
+    num_threads=$("${nproc_bin}");
+    if [[ ${num_threads} -gt 8 ]]; then
+      num_threads=8;
+    fi
+  else
+    num_threads=8;
+  fi
+  install_path="${1}";
+  tarball_name="${2}";
+  get_url="${3}";
+  dl_path="$(create_temp 'install_app')";
+  download "${get_url}" "${dl_path}";
+  unpack "${dl_path}/${tarball_name}" "${dl_path}";
+  "${rm_bin}" -rf "${dl_path}/${tarball_name}";
+  declare -a build_arr=( $("${ls_bin}" -A1 "${dl_path}") );
+  build_path="${dl_path}/${build_arr[0]}"
+  # make -C "${build_path}/bash-${build_version}" configure -j ${num_threads};
+  (cd "${build_path}" && ./configure --prefix="${install_path}");
+  make -C "${build_path}" -j ${num_threads};
+  make -C "${build_path}" install -j ${num_threads};
+  "${rm_bin}" -rf "${build_path}";
+  return 0;
+}
+
+# Install app from downloadable tarball binary
+function __install_app_binary () {
+  local install_path;
+  local tarball_name;
+  local get_url;
+  local dl_path;
+  local rm_bin;
+  rm_bin="$(which_bin 'rm')";
+  install_path="${1}";
+  tarball_name="${2}";
+  get_url="${3}";
+  dl_path="$(create_temp 'install_app')";
+  download "${get_url}" "${dl_path}";
+  unpack "${dl_path}/${tarball_name}" "${install_path}";
+  "${rm_bin}" -rf "${dl_path}/${tarball_name}";
+  return 0;
+}
+
+# Install rust binaries from cargo
+function __install_app_cargo () {
+  local cargo_bin;
+  local install_path;
+  local app_name;
+  local app_url;
+  local cargo_type;
+  cargo_bin=$(which_bin 'cargo');
+  if [[ -z ${cargo_bin} ]]; then
+    builtin echo -ne "'cargo' is not available for installing rust apps.\n";
+    return 1;
+  fi
+  install_path="${1}";
+  app_name="${2}";
+  get_url="${3}";
+  if [[ -n ${get_url} ]]; then
+    app_name="--git ${get_url}";
+  fi
+  "${cargo_bin}" install \
+    --all-features \
+    --root "${install_path}" \
+    ${app_name};
+  return 0;
+}
+
 # Install App -----------------------------------------------------------------
 
 # Install Application to a local user path or system wide
@@ -145,7 +230,7 @@ function __install_app () {
   if [[ ${app_repo} == null ]]; then
     app_repo='';
   fi
-  if [[ ${app_version} == latest ]]; then
+  if [[ ${app_version} == latest && -n ${app_repo} ]]; then
     app_version=$(__get_gh_latest_release "${app_repo}");
   fi
   tarball_version="${app_version#v*}";
@@ -168,10 +253,16 @@ function __install_app () {
     app_url='';
   fi
 
-  if [[ -n ${app_repo} && -z ${app_url} ]]; then
-    app_type='github';
-  else
+  app_type=$(
+    builtin echo -ne \
+      $(get_config apps apps ${app_num} type 2> /dev/null \
+      || builtin echo -ne '')
+  )
+  if [[ ${app_type} == null ]]; then
     app_type='binary';
+  fi
+  if [[ -n ${app_repo} && -z ${app_url} ]]; then
+    app_type="${app_type}_github";
   fi
 
   tarball_name=$(
@@ -181,8 +272,13 @@ function __install_app () {
       | sed "s|{[ ]*name[ ]*}|${app_name}|g" \
       | sed "s|{[ ]*version[ ]*}|${tarball_version}|g"
   )
-  if [[ ${tarball_name} == null || -z ${tarball_name} ]]; then
-    tarball_name="$(basename ${app_url})";
+
+  if [[ -n ${app_url} ]]; then
+    if [[ ${tarball_name} == null || -z ${tarball_name} ]]; then
+      tarball_name="$(basename ${app_url})";
+    fi
+  else
+    tarball_name='';
   fi
   declare -a exec_path_arr=(
     $(builtin echo -ne \
@@ -222,16 +318,27 @@ function __install_app () {
   fi
 
   case ${app_type} in
-    github)
+    source_github)
       base_url="https://github.com/${app_repo}/releases/download/${app_version}";
       get_url="${base_url}/${tarball_name}";
+      app_type="source";
     ;;
+    binary_github)
+      base_url="https://github.com/${app_repo}/releases/download/${app_version}";
+      get_url="${base_url}/${tarball_name}";
+      app_type="binary";
+    ;;
+    cargo_github)
+      base_url='';
+      get_url="https://github.com/${app_repo}";
+      app_type="cargo";
+    ;;
+
     *)
       base_url='';
       get_url="${app_url}";
   esac
 
-  dl_path="$(create_temp 'install_app')";
   lib_path="$(__install_path ${install_type})";
   install_path="${lib_path}/${app_name}/${app_version}";
   missing_install='false';
@@ -240,7 +347,7 @@ function __install_app () {
       missing_install='true';
     fi
   done
-  if [[ ${missing_install} == false ]]; then
+  if [[ ${app_type} == binary && ${missing_install} == false ]]; then
     return 0;
   fi
 
@@ -251,13 +358,30 @@ function __install_app () {
   #echo $install_path
   #echo "${link_inst_path}/$(basename ${exec_path_arr[0]})"
 
-  download "${get_url}" "${dl_path}";
   if [[ ! -d ${install_path} ]]; then
     "${mkdir_bin}" -p "${install_path}";
   fi
-  unpack "${dl_path}/${tarball_name}" "${install_path}";
 
-  "${rm_bin}" -rf "${dl_path}/${tarball_name}";
+  case ${app_type} in
+    source)
+      __install_app_source "${install_path}" "${tarball_name}" "${get_url}";
+    ;;
+    binary)
+      __install_app_binary "${install_path}" "${tarball_name}" "${get_url}";
+    ;;
+    cargo)
+      if [[ -z ${get_url} && -n ${app_repo} ]]; then
+        get_url="https://github.com/${app_repo}";
+      fi
+      __install_app_cargo "${install_path}" "${app_name}" "${get_url}";
+    ;;
+    *)
+      builtin echo >&2 \
+        -ne "Error: Unknown installation type: '${app_type}'.\n";
+      return 1;
+    ;;
+  esac
+
   chmod_bin="$(which_bin 'chmod')";
   "${chmod_bin}" +x "${install_path}/${exec_path_arr[0]}";
   if [[ ${app_link} == true ]]; then
