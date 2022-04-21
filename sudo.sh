@@ -6,13 +6,12 @@ function sudo () {
   builtin local cmd_str type_str aux_str args_str;
   builtin local cmd_bin alias_cmd_bin args_arr aux_arr;
   builtin local sudo_bin bash_bin;
-  builtin local dot_sym bullet_sym arrow_sym;
+  builtin local dot_sym arrow_sym;
   builtin local space_regex;
   builtin local alias_arg alias_args_arr;
   builtin local aux_arg;
   builtin local fun_str;
   dot_sym='*';
-  bullet_sym='⦿';
   arrow_sym='-->';
 
   if [[ ! ${SHELL} =~ bash ]]; then
@@ -62,9 +61,9 @@ function sudo () {
     builtin echo -ne "${arrow_sym} Function\n";
     fun_str=$(declare -f ${cmd_str});
     eval "${sudo_bin}" "${bash_bin}" -c \
-      "'${fun_str}'; ${cmd_str} ${alias_args_arr[@]} ${args_arr[@]:1}";
+      "'${fun_str}'; TERM='xterm-256color' ${cmd_str} ${alias_args_arr[@]} ${args_arr[@]:1}";
   else
     builtin echo -ne "${arrow_sym} Normal\n";
-    builtin eval "${sudo_bin}" "${cmd_bin}" ${alias_args_arr[@]} ${args_arr[@]:1};
+    builtin eval "${sudo_bin}" TERM='xterm-256color' "${cmd_bin}" ${alias_args_arr[@]} ${args_arr[@]:1};
   fi
 }
