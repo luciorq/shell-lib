@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+
+# If in doubt check this support page:
+# + <https://wiki.archlinux.org/title/XDG_Base_Directory>
 # Unfortunately some tools will not use XDG directories unless these are set
 #
 # - Hex
@@ -113,12 +116,12 @@ export VAGRANT_ALIAS_FILE="$XDG_DATA_HOME/vagrant/aliases"
 export WEECHAT_HOME="$XDG_CONFIG_HOME/weechat"
 
 # wget
-[[ -d ${XDG_CONFIG_HOME}/wget ]] || mkdir -p "${XDG_CONFIG_HOME}/wget"
-[[ -f ${XDG_CONFIG_HOME}/wget/wgetrc ]] || touch "${XDG_CONFIG_HOME}/wget/wgetrc"
-export WGETRC="$XDG_CONFIG_HOME/wget/wgetrc"
+[[ -d ${XDG_CONFIG_HOME}/wget ]] || \mkdir -p "${XDG_CONFIG_HOME}/wget"
+[[ -f ${XDG_CONFIG_HOME}/wget/wgetrc ]] || \touch "${XDG_CONFIG_HOME}/wget/wgetrc"
+export WGETRC="$XDG_CONFIG_HOME/wget/wgetrc";
 
-[[ -d ${XDG_CACHE_HOME}/wget ]] || mkdir -p "${XDG_CACHE_HOME}/wget"
-alias wget='wget --hsts-file="${XDG_CACHE_HOME}/wget/wget-hsts"'
+[[ -d ${XDG_CACHE_HOME}/wget ]] || \mkdir -p "${XDG_CACHE_HOME}/wget"
+alias wget='wget --hsts-file="${XDG_CACHE_HOME}/wget/wget-hsts"';
 
 # java openjdk
 export _JAVA_OPTIONS=-Djava.util.prefs.userRoot="$XDG_CONFIG_HOME"/java
@@ -159,11 +162,11 @@ if [[ ! -f ${HISTFILE} ]]; then
   \touch "${HISTFILE}";
 fi
 # Android (ADB)
-export ADB_VENDOR_KEYS="${XDG_CONFIG_HOME}/adb/adbkey"
+export ADB_VENDOR_KEYS="${XDG_CONFIG_HOME}/adb/adbkey";
 
 # Subversion (svn) - some homebrew formulas used it
 \mkdir -p "$XDG_CONFIG_HOME/subversion";
-alias svn='svn --config-dir "$XDG_CONFIG_HOME/subversion"';
+alias svn='svn --config-dir "$XDG_CONFIG_HOME/subversion" ';
 
 # Julia Programming Language
 export JULIA_DEPOT_PATH="$XDG_DATA_HOME/julia:$JULIA_DEPOT_PATH";
@@ -194,4 +197,13 @@ fi
 # X11
 export XAUTHORITY=$XDG_CONFIG_HOME/X11/Xauthority
 export XINITRC=$XDG_CONFIG_HOME/X11/xinitrc
-
+#NPM
+export NPM_CONFIG_USERCONFIG=$XDG_CONFIG_HOME/npm/npmrc
+if [[ ! -d "$(dirname ${NPM_CONFIG_USERCONFIG})" ]]; then
+  \mkdir -p "$(dirname ${NPM_CONFIG_USERCONFIG})";
+fi
+if [[ ! -f "${NPM_CONFIG_USERCONFIG}" ]]; then
+  \touch "${NPM_CONFIG_USERCONFIG}";
+fi
+# subversion - svn
+alias svn='svn --config-dir "$XDG_CONFIG_HOME"/subversion';
