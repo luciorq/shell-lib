@@ -101,6 +101,7 @@ function __install_app_source () {
   make -C "${build_path}" -j ${num_threads};
   make -C "${build_path}" install -j ${num_threads};
   "${rm_bin}" -rf "${build_path}";
+  "${rm_bin}" -rf "${dl_path}";
   return 0;
 }
 
@@ -119,6 +120,7 @@ function __install_app_binary () {
   download "${get_url}" "${dl_path}";
   unpack "${dl_path}/${tarball_name}" "${install_path}";
   "${rm_bin}" -rf "${dl_path}/${tarball_name}";
+  "${rm_bin}" -rf "${dl_path}";
   return 0;
 }
 
@@ -141,6 +143,7 @@ function __install_app_cargo () {
     app_name="--git ${get_url}";
   fi
   "${cargo_bin}" install \
+    --quiet \
     --all-features \
     --root "${install_path}" \
     ${app_name};
@@ -169,6 +172,7 @@ function __install_app () {
   local exec_path_arr;
   local exec_path;
   local extra_cmd_arr;
+  local _extra_cmd;
   local extra_cmd;
   local app_link;
   local dl_path lib_path;
@@ -258,7 +262,7 @@ function __install_app () {
       $(get_config apps apps ${app_num} type 2> /dev/null \
       || builtin echo -ne '')
   )
-  if [[ ${app_type} == null ]]; then
+  if [[ ${app_type} == null || -z ${app_type} ]]; then
     app_type='binary';
   fi
   if [[ -n ${app_repo} && -z ${app_url} ]]; then
@@ -277,8 +281,6 @@ function __install_app () {
     if [[ ${tarball_name} == null || -z ${tarball_name} ]]; then
       tarball_name="$(basename ${app_url})";
     fi
-  else
-    tarball_name='';
   fi
   declare -a exec_path_arr=(
     $(builtin echo -ne \
@@ -333,7 +335,6 @@ function __install_app () {
       get_url="https://github.com/${app_repo}";
       app_type="cargo";
     ;;
-
     *)
       base_url='';
       get_url="${app_url}";
@@ -347,7 +348,7 @@ function __install_app () {
       missing_install='true';
     fi
   done
-  if [[ ${app_type} == binary && ${missing_install} == false ]]; then
+  if [[ ${app_type} != cargo && ${missing_install} == false ]]; then
     return 0;
   fi
 
@@ -370,9 +371,6 @@ function __install_app () {
       __install_app_binary "${install_path}" "${tarball_name}" "${get_url}";
     ;;
     cargo)
-      if [[ -z ${get_url} && -n ${app_repo} ]]; then
-        get_url="https://github.com/${app_repo}";
-      fi
       __install_app_cargo "${install_path}" "${app_name}" "${get_url}";
     ;;
     *)
@@ -396,7 +394,21 @@ function __install_app () {
     done
   fi
 
-  extra_cmd=$(builtin echo -ne $(get_config apps apps ${app_num} extra_cmd 2> /dev/null builtin echo -ne '') \
+  IFS=$'\n' read -a extra_cmd_arr \
+    -d '' <<< $(builtin echo -ne \
+      $(get_config apps apps ${app_num} extra_cmd 2> \
+        /dev/null || builtin echo -ne ''))
+
+  if [[ ${extra_cmd_arr[0]} == null ]]; then
+    extra_cmd_arr='';
+  fi
+  if [[ -z ${extra_cmd_arr[@]} ]]; then
+    extra_cmd_arr='';
+  fi
+
+  if [[ -n ${extra_cmd_arr[@]} ]]; then
+    for _extra_cmd in "${extra_cmd_arr[@]}"; do
+      extra_cmd=$(builtin echo "${_extra_cmd}" \
         | sed "s|{[ ]*name[ ]*}|${app_name}|g" \
         | sed "s|{[ ]*version[ ]*}|${tarball_version}|g" \
         | sed "s|{[ ]*repo[ ]*}|${app_repo}|g" \
@@ -404,14 +416,13 @@ function __install_app () {
         | sed "s|{[ ]*install_path[ ]*}|${link_inst_path}|g" \
         | sed "s|{[ ]*lib_path[ ]*}|${install_path}|g" \
         | sed "s|{[ ]*exec_path[ ]*}|${exec_path_arr[0]}|g"
-  )
-  if [[ ${extra_cmd} == null ]]; then
-    extra_cmd='';
+      )
+      builtin eval "${extra_cmd}";
+    done
   fi
-  if [[ -n ${extra_cmd} ]]; then
-    builtin eval $(builtin echo "${extra_cmd}");
-  fi
-  builtin echo -ne "App: '${app_name}' (${app_version}) installed succesfully\n";
+
+  builtin echo -ne \
+    "App: '${app_name}' (${app_version}) installed succesfully\n";
   return 0;
 }
 

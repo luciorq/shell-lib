@@ -13,6 +13,7 @@ function bootstrap_user () {
   __build_bash "${install_type}";
   install_apps "${install_type}";
   source_configs;
+  __clean_home;
 }
 
 function __clean_home () {
@@ -23,7 +24,6 @@ function __clean_home () {
     .npm
     .sudo_as_admin_successful
   )
-
   for _dir in ${remove_dirs[@]}; do
     "${rm_dir}"
   done
@@ -43,7 +43,6 @@ function __build_git () {
   if [[ -z ${make_bin} ]]; then
     make_bin="$(require 'make')";
   fi
-  build_path="$(create_temp git-inst)";
   # inst_path="$(__install_path --user)";
   inst_path="${HOME}/.local";
   if [[ -f ${inst_path}/bin/git ]]; then
@@ -54,6 +53,7 @@ function __build_git () {
     num_threads=8;
   fi
   get_url='https://github.com/git/git/archive/refs/heads/main.zip';
+  build_path="$(create_temp git-inst)";
   download "${get_url}" "${build_path}";
   unpack "${build_path}/main.zip" "${build_path}";
   make -C "${build_path}/git-main" configure -j ${num_threads};
@@ -61,6 +61,7 @@ function __build_git () {
   make -C "${build_path}/git-main" -j ${num_threads};
   make -C "${build_path}/git-main" install -j ${num_threads};
   "${rm_bin}" -rf "${build_path}/git-main" "${build_path}/main.zip";
+  "${rm_bin}" -rf "${build_path}";
   "${inst_path}/bin/git" --version;
 }
 
@@ -90,7 +91,6 @@ function __build_bash () {
     builtin echo -ne "${latest_tag[1]}" \
       | sed 's|\"bash\-\(.*\)",|\1|g'
   )
-  build_path="$(create_temp bash-inst)";
   # inst_path="$(__install_path --user)";
   inst_path="${HOME}/.local";
   if [[ -f ${inst_path}/bin/bash ]]; then
@@ -101,6 +101,7 @@ function __build_bash () {
     num_threads=8;
   fi
   get_url="https://ftp.gnu.org/gnu/bash/bash-${build_version}.tar.gz";
+  build_path="$(create_temp bash-inst)";
   download "${get_url}" "${build_path}";
   unpack "${build_path}/bash-${build_version}.tar.gz" "${build_path}";
   # make -C "${build_path}/bash-${build_version}" configure -j ${num_threads};
@@ -108,6 +109,7 @@ function __build_bash () {
   make -C "${build_path}/bash-${build_version}" -j ${num_threads};
   make -C "${build_path}/bash-${build_version}" install -j ${num_threads};
   "${rm_bin}" -rf "${build_path}/bash-${build_version}" "${build_path}/bash-${build_version}.tar.gz";
+  "${rm_bin}" -rf "${build_path}";
   "${inst_path}/bin/bash" --version;
 }
 
