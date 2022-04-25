@@ -2,7 +2,6 @@
 
 function type_str () {
   local type_key type_str_arr;
-  
   type_key="$1"
 
   declare -A type_str_arr=(
@@ -11,7 +10,8 @@ function type_str () {
     [alias]="is aliased to"
     [function]="is a function"
   )
-  echo "${type_str_arr["${type_key}"]}"
+  echo "${type_str_arr["${type_key}"]}";
+  return 0;
 }
 
 function remove_line () {
@@ -19,9 +19,10 @@ function remove_line () {
     input_str="$1"
     type_key="$2"
     echo "${input_str}" \
-      | grep -v "$(type_str "${type_key}")"
-  }
- 
+      | grep -v "$(type_str "${type_key}")";
+    return 0;
+}
+
 function command_path () {
   local cmd_str cmd_bin type_text;
   cmd_str="$1"
@@ -32,9 +33,9 @@ function command_path () {
 
 
   for type_key in "keyword builtin alias function"; do
-    type_text=$(remove_line "${type_text}" "${type_key}")
+    type_text="$(remove_line "${type_text}" "${type_key}")";
   done
-  
+
   echo "Debug 2"
-  echo ${type_text}
+  echo "${type_text}"
 }

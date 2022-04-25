@@ -11,29 +11,29 @@ function download () {
   if [[ $# -eq 0 ]]; then download_usage; unset download_usage; return 1; fi
   unset download_usage;
   local get_url dir_output thread_num output_filename output_basename;
-  local aria2c_bin wget_bin curl_bin;
-  get_url="$1";
-  dir_output="$2";
-  thread_num="$3";
+  local aria_bin wget_bin curl_bin;
+  get_url="${1}";
+  dir_output="${2}";
+  thread_num="${3}";
 
-  if [[ -z "${dir_output}" ]]; then
-    dir_output="$(realpath .)";
+  if [[ -z ${dir_output} ]]; then
+    dir_output="$(realpath ./)";
   fi
-  if [[ -z "${thread_num}" ]]; then
-    thread_num=4;
+  if [[ -z ${thread_num} ]]; then
+    thread_num="8"; # $(nproc 2> /dev/null || builtin echo -ne "8")";
   fi
-  if [[ -d "${dir_output}" ]]; then
+  if [[ ! -d ${dir_output} ]]; then
     "$(which_bin mkdir)" -p "${dir_output}";
   fi
-  output_basename=$(basename "${get_url}");
+  output_basename="$(basename "${get_url}")";
   output_filename="${dir_output}/${output_basename}";
 
-  aria2c_bin="$(which_bin aria2c)";
-  wget_bin="$(which_bin wget)";
-  curl_bin="$(which_bin curl)";
+  aria_bin="$(which_bin 'aria2c')";
+  wget_bin="$(which_bin 'wget')";
+  curl_bin="$(which_bin 'curl')";
 
-  if [[ -n "${aria2c_bin}" ]]; then
-    "${aria2c_bin}" \
+  if [[ -n ${aria_bin} ]]; then
+    "${aria_bin}" \
       --continue=true \
       -s "${thread_num}" \
       -x "${thread_num}" \
@@ -44,13 +44,14 @@ function download () {
       --quiet=true \
       --check-integrity=true \
       "${get_url}";
-  elif [[ -n "${curl_bin}" ]]; then
+  elif [[ -n ${curl_bin} ]]; then
     "${curl_bin}" \
       -f -s -S -L \
+      --create-dirs \
       --silent \
       -o "${output_filename}" \
       -C - "${get_url}";
-  elif [[ -n "${wget_bin}" ]]; then
+  elif [[ -n ${wget_bin} ]]; then
     "${wget_bin}" \
       --continue \
       -L \

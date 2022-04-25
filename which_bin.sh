@@ -8,13 +8,19 @@ function which_bin () {
   builtin local cmd_bin;
   builtin local which_arr;
   builtin local which_bin;
-  cmd_arg="$1";
-  declare -a which_arr=( $(builtin command which -a 'which' 2> /dev/null || builtin echo -ne '') );
+  cmd_arg="${1}";
+  builtin mapfile -t which_arr < <(
+    builtin command which -a 'which' 2> /dev/null || builtin echo -ne ''
+  );
   which_bin="${which_arr[0]}";
   if [[ -z ${which_bin} ]]; then
-    declare -a cmd_arr=( $(builtin command -v "${cmd_arg}" 2> /dev/null || builtin echo -ne '') );
+    builtin mapfile -t cmd_arr < <(
+      builtin command -v "${cmd_arg}" 2> /dev/null || builtin echo -ne ''
+    );
   else
-    declare -a cmd_arr=( $( "${which_bin}" -a "${cmd_arg}" 2> /dev/null || builtin echo -ne '' ) );
+    builtin mapfile -t cmd_arr < <(
+      "${which_bin}" -a "${cmd_arg}" 2> /dev/null || builtin echo -ne ''
+    );
   fi
   cmd_bin="${cmd_arr[0]}";
   builtin echo -ne "${cmd_bin}";

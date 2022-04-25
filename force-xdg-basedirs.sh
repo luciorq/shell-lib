@@ -28,12 +28,15 @@ export AWS_CONFIG_FILE="$XDG_CONFIG_HOME/aws/config";
 # Azure CLI
 export AZURE_CONFIG_DIR="$XDG_DATA_HOME/azure"
 
-# Bundler
+# Bundler - ruby bundler
 export BUNDLE_USER_CONFIG="$XDG_CONFIG_HOME/bundle";
 export BUNDLE_USER_CACHE="$XDG_CACHE_HOME/bundle";
 export BUNDLE_USER_PLUGIN="$XDG_DATA_HOME/bundle/plugin";
+# Gems - ruby Gems
+export GEM_HOME="$XDG_DATA_HOME/gem"
+export GEM_SPEC_CACHE="$XDG_CACHE_HOME/gem"
 
-# Cargo
+# Cargo - rust cargo
 export CARGO_HOME="$XDG_DATA_HOME/cargo"
 
 # Ripgrep

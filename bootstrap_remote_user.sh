@@ -5,33 +5,50 @@
 function bootstrap_user () {
   local install_type;
   install_type='--user';
-  mkdir -p ${HOME}/.local/bin;
-  mkdir -p ${HOME}/.local/lib;
-  mkdir -p ${HOME}/.local/opt/apps;
+  mkdir -p "${HOME}/.local/bin";
+  mkdir -p "${HOME}/.local/lib";
+  mkdir -p "${HOME}/.local/opt/apps";
+  __check_glibc "${install_type}";
   __build_git "${install_type}";
   __install_yq;
   __build_bash "${install_type}";
   install_apps "${install_type}";
   source_configs;
   __clean_home;
+  return 0;
 }
 
 function __clean_home () {
   local remove_dirs _dir;
+  local rm_bin;
+  rm_bin="$(which_bin 'rm')";
   declare -a remove_dirs=(
     .vim
     .vimrc
     .npm
+    .gem
     .sudo_as_admin_successful
   )
-  for _dir in ${remove_dirs[@]}; do
-    "${rm_dir}"
-  done
+  for _dir in "${remove_dirs[@]}"; do
+    if [[ -f ${HOME}/${_dir} ]]; then
+      "${rm_bin}" "${HOME}/${_dir}";
+    elif [[ -d ${HOME}/${_dir} ]]; then
+      "${rm_bin}" -rf "${HOME}/${_dir}";
+    fi
+  done;
+  return 0;
 }
 
 # =============================================================================
 # Build Tools from source
 # =============================================================================
+
+# Compile standard C library
+function __build_glibc () {
+  local ldd_bin="$(which_bin 'ldd')";
+  local num_threads
+}
+
 function __build_git () {
   local build_path;
   local inst_path;
@@ -81,7 +98,7 @@ function __build_bash () {
   fi
   mirror_repo='bminor/bash'
   latest_tag=$(curl -fsSL "https://api.github.com/repos/${mirror_repo}/tags");
-  latest_tag=($(
+  declare -a latest_tag=($(
     builtin echo -ne "${latest_tag}" \
       | grep '"name": ' \
       | grep -v "\-rc\|\-beta\|\-alpha\|devel"
@@ -117,13 +134,13 @@ function __build_bash () {
 # Install Pre-compiled binaries
 # =============================================================================
 function __install_yq () {
-  local yq_available;
   local latest_version;
   local gh_repo;
   local get_url;
   local sys_arch bin_arch;
   local ln_bin chmod_bin;
   local link_inst_path;
+  # local yq_available;
   # yq_available=$(is_available 'yq');
   # if [[ ${yq_available} == true ]]; then
   #   return 0;

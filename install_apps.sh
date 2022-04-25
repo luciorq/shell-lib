@@ -4,17 +4,15 @@
 # Install Apps defined in a configuration YAML file.
 function install_apps () {
   local _usage="usage: $0 [--user|--system]";
-  local args_arr _arg;
+  local _arg;
   local install_type;
   local apps_length;
-  local apps_yaml_list;
   local app_num_arr;
   local app_num;
-  declare -a args_arr=( ${@} );
-  if [[ -z ${args_arr[@]} ]]; then
+  if [[ $# -eq 0 ]]; then
     install_type='--user';
   fi
-  for _arg in ${args_arr[@]}; do
+  for _arg in "${@}"; do
     if [[ ${_arg} == --system ]]; then
       install_type='--system';
     elif [[ ${_arg} == --user ]]; then
@@ -23,10 +21,12 @@ function install_apps () {
   done
 
   apps_length="$(get_config apps apps | grep -c '^name:')";
-  declare -a app_num_arr=( $( seq 0 $(( ${apps_length} - 1 ))) );
+  builtin mapfile -t app_num_arr < <(
+    seq 0 $(( apps_length - 1 ))
+  );
 
-  for app_num in ${app_num_arr[@]}; do
-    echo "Installing App: '${app_num}'";
+  for app_num in "${app_num_arr[@]}"; do
+    builtin echo -ne "Installing App: '${app_num}':\n";
     __install_app "${install_type}" "${app_num}";
   done
 }
@@ -52,12 +52,12 @@ function __get_gh_latest_release () {
   local repo;
   local release_url;
   local latest_version;
-  repo="$1";
-  release_url=$(
-    curl -fsSL -I -o /dev/null -w %{url_effective} \
+  repo="${1}";
+  release_url="$(
+    curl -fsSL -I -o /dev/null -w '%{url_effective}' \
       "https://github.com/${repo}/releases/latest"
-  );
-  latest_version=$(echo "${release_url}" | sed "s|.*/tag/||");
+  )";
+  latest_version="${release_url//http*\/tag\//}";
   builtin echo -ne "${latest_version}";
   return 0;
 }
@@ -94,7 +94,9 @@ function __install_app_source () {
   download "${get_url}" "${dl_path}";
   unpack "${dl_path}/${tarball_name}" "${dl_path}";
   "${rm_bin}" -rf "${dl_path}/${tarball_name}";
-  declare -a build_arr=( $("${ls_bin}" -A1 "${dl_path}") );
+  builtin mapfile -t build_arr < <(
+    "${ls_bin}" -A1 "${dl_path}"
+  );
   build_path="${dl_path}/${build_arr[0]}"
   # make -C "${build_path}/bash-${build_version}" configure -j ${num_threads};
   (cd "${build_path}" && ./configure --prefix="${install_path}");
@@ -130,7 +132,7 @@ function __install_app_cargo () {
   local install_path;
   local app_name;
   local app_url;
-  local cargo_type;
+  local git_var;
   cargo_bin=$(which_bin 'cargo');
   if [[ -z ${cargo_bin} ]]; then
     builtin echo -ne "'cargo' is not available for installing rust apps.\n";
@@ -139,14 +141,17 @@ function __install_app_cargo () {
   install_path="${1}";
   app_name="${2}";
   get_url="${3}";
+
+  git_var='';
   if [[ -n ${get_url} ]]; then
-    app_name="--git ${get_url}";
+    git_var='--git';
+    app_name="${get_url}";
   fi
   "${cargo_bin}" install \
     --quiet \
     --all-features \
     --root "${install_path}" \
-    ${app_name};
+    "${git_var}" "${app_name}";
   return 0;
 }
 
@@ -156,8 +161,10 @@ function __install_app_cargo () {
 function __install_app () {
   # Variable declaration ------------------------------------------------------
   local _usage="usage: $0 [--user|--system] <APP_NUM>";
-  local sed_bin rm_bin cp_bin mkdir_bin ln_bin chmod_bin;
-  local args_arr last_arg _arg;
+  local sed_bin rm_bin;
+  # local cp_bin;
+  local mkdir_bin ln_bin chmod_bin;
+  local _arg;
   local install_type;
   local app_num;
   local link_inst_path;
@@ -178,6 +185,7 @@ function __install_app () {
   local dl_path lib_path;
   local install_path;
   local missing_install;
+  local _link_exec;
 
   # Check available tools -----------------------------------------------------
   sed_bin=$(which_bin 'gsed');
@@ -185,25 +193,21 @@ function __install_app () {
     sed_bin="$(require 'sed')";
   fi
   rm_bin="$(require 'rm')";
-  cp_bin="$(require 'cp')";
+  # cp_bin="$(require 'cp')";
   mkdir_bin="$(require 'mkdir')";
   ln_bin="$(require 'ln')";
 
   # Argument parsing -- -------------------------------------------------------
-  declare -a args_arr=( ${@} );
-  last_arg="${args_arr[${#args_arr[@]} - 1]}";
-  if [[ -z ${last_arg} ]]; then
-    last_arg='0';
+  app_num="${2}";
+  if [[ -z ${app_num} ]]; then
+    app_num="${1}";
+  fi
+  link_inst_path='';
+  if [[ $# -eq 0 || $# -eq 1 ]]; then
+    link_inst_path="${HOME}/.local/bin";
     install_type='--user';
   fi
-  case ${last_arg} in
-    0)        app_num='0'                               ;;
-    --user)   app_num='0'; install_type='--user'        ;;
-    --system) app_num='0'; install_type='--system'      ;;
-    *)        app_num="${last_arg}"     ;;
-  esac
-  link_inst_path='';
-  for _arg in ${args_arr[@]}; do
+  for _arg in "${@}"; do
     if [[ ${_arg} == --system ]]; then
       link_inst_path="/usr/local/bin";
       install_type='--system';
@@ -214,54 +218,54 @@ function __install_app () {
   done
 
   # YAML Argument parsing -----------------------------------------------------
-  app_name=$(
-    get_config apps apps ${app_num} name 2> /dev/null || builtin echo -ne ''
-  )
+  app_name="$(
+    get_config apps apps "${app_num}" name 2> /dev/null || builtin echo -ne ''
+  )";
+  builtin echo -ne "  --> ${app_name}\n";
   if [[ -z ${app_name} || ${app_name} == null ]]; then
     builtin echo >&2 -ne "'name' not fount for '${app_num}'.\n";
     builtin echo >&2 -ne "Each element of the app list need a 'name' value.\n";
     return 1;
   fi
-  app_version=$(
-    get_config apps apps ${app_num} version 2> /dev/null || builtin echo -ne ''
-  )
+  app_version="$(
+    get_config apps apps "${app_num}" version 2> /dev/null || builtin echo -ne ''
+  )";
   if [[ -z ${app_version} || ${app_version} == null ]]; then
     app_version='latest';
   fi
-  app_repo=$(
-    get_config apps apps ${app_num} repo 2> /dev/null || builtin echo -ne ''
-  )
+  app_repo="$(
+    get_config apps apps "${app_num}" repo 2> /dev/null || builtin echo -ne ''
+  )"
   if [[ ${app_repo} == null ]]; then
     app_repo='';
   fi
   if [[ ${app_version} == latest && -n ${app_repo} ]]; then
-    app_version=$(__get_gh_latest_release "${app_repo}");
+    app_version="$(__get_gh_latest_release "${app_repo}")";
   fi
   tarball_version="${app_version#v*}";
 
-  app_url=$(
-    get_config apps apps ${app_num} url 2> /dev/null || builtin echo -ne ''
-  )
+  app_url="$(
+    get_config apps apps "${app_num}" url 2> /dev/null || builtin echo -ne ''
+  )";
 
   if [[ ${app_url} == null ]]; then
     app_url='';
   fi
-  app_url=$(
+  app_url="$(
     builtin echo -ne \
-      $(get_config apps apps ${app_num} url 2> /dev/null \
-      || builtin echo -ne '') \
+      "$(get_config apps apps "${app_num}" url 2> /dev/null \
+      || builtin echo -ne '')" \
       | sed "s|{[ ]*name[ ]*}|${app_name}|g" \
       | sed "s|{[ ]*version[ ]*}|${tarball_version}|g"
-  )
+  )";
   if [[ ${app_url} == null ]]; then
     app_url='';
   fi
 
-  app_type=$(
-    builtin echo -ne \
-      $(get_config apps apps ${app_num} type 2> /dev/null \
-      || builtin echo -ne '')
-  )
+  app_type="$(
+    get_config apps apps "${app_num}" type 2> /dev/null \
+      || builtin echo -ne ''
+  )";
   if [[ ${app_type} == null || -z ${app_type} ]]; then
     app_type='binary';
   fi
@@ -269,41 +273,40 @@ function __install_app () {
     app_type="${app_type}_github";
   fi
 
-  tarball_name=$(
+  tarball_name="$(
     builtin echo -ne \
-      $(get_config apps apps ${app_num} tarball 2> /dev/null \
-      || builtin echo -ne '') \
+      "$(get_config apps apps "${app_num}" tarball 2> /dev/null \
+      || builtin echo -ne '')" \
       | sed "s|{[ ]*name[ ]*}|${app_name}|g" \
       | sed "s|{[ ]*version[ ]*}|${tarball_version}|g"
-  )
+  )"
 
   if [[ -n ${app_url} ]]; then
     if [[ ${tarball_name} == null || -z ${tarball_name} ]]; then
-      tarball_name="$(basename ${app_url})";
+      tarball_name="$(basename "${app_url}")";
     fi
   fi
-  declare -a exec_path_arr=(
-    $(builtin echo -ne \
-      $(get_config apps apps ${app_num} exec_path 2> /dev/null \
-        || builtin echo -ne '') \
+  builtin mapfile -t exec_path_arr < <(
+    builtin echo -ne \
+      "$(get_config apps apps "${app_num}" exec_path 2> /dev/null \
+        || builtin echo -ne '')" \
         | sed "s|{[ ]*name[ ]*}|${app_name}|g" \
         | sed "s|{[ ]*version[ ]*}|${tarball_version}|g" \
         | sed "s|{[ ]*repo[ ]*}|${app_repo}|g" \
         | sed "s|{[ ]*tarball[ ]*}|${tarball_name}|g" \
         | sed "s|{[ ]*install_path[ ]*}|${install_path}|g" \
         | sed "s|{[ ]*lib_path[ ]*}|${lib_path}|g"
-    )
   )
 
-  if [[ ${exec_path_arr[@]} == null ]]; then
+  if [[ ${exec_path_arr[0]} == null ]]; then
     exec_path_arr='';
   fi
-  if [[ -z ${exec_path_arr[@]} ]]; then
+  if [[ -z ${exec_path_arr[0]} ]]; then
     exec_path_arr="${app_name}";
   fi
-  app_link=$(
-    get_config apps apps ${app_num} link 2> /dev/null || builtin echo -ne ''
-  )
+  app_link="$(
+    get_config apps apps "${app_num}" link 2> /dev/null || builtin echo -ne ''
+  )";
   # Argument checking ---------------------------------------------------------
   if [[ -z ${app_link} || ${app_link} == null ]]; then
     app_link='true';
@@ -340,10 +343,10 @@ function __install_app () {
       get_url="${app_url}";
   esac
 
-  lib_path="$(__install_path ${install_type})";
+  lib_path="$(__install_path "${install_type}")";
   install_path="${lib_path}/${app_name}/${app_version}";
   missing_install='false';
-  for exec_path in ${exec_path_arr[@]}; do
+  for exec_path in "${exec_path_arr[@]}"; do
     if [[ ! -f ${install_path}/${exec_path} ]]; then
       missing_install='true';
     fi
@@ -353,12 +356,6 @@ function __install_app () {
   fi
 
   # Main ----------------------------------------------------------------------
-  #echo $dl_path
-  #echo $get_url
-  #echo $lib_path
-  #echo $install_path
-  #echo "${link_inst_path}/$(basename ${exec_path_arr[0]})"
-
   if [[ ! -d ${install_path} ]]; then
     "${mkdir_bin}" -p "${install_path}";
   fi
@@ -383,30 +380,31 @@ function __install_app () {
   chmod_bin="$(which_bin 'chmod')";
   "${chmod_bin}" +x "${install_path}/${exec_path_arr[0]}";
   if [[ ${app_link} == true ]]; then
-    for exec_path in ${exec_path_arr[@]}; do
-      if [[ -f ${link_inst_path}/$(basename ${exec_path}) ]]; then
-        "${rm_bin}" "${link_inst_path}/$(basename ${exec_path})";
+    for exec_path in "${exec_path_arr[@]}"; do
+      _link_exec="${link_inst_path}/$(basename "${exec_path}")";
+      if [[ -f ${_link_exec} ]]; then
+        "${rm_bin}" "${_link_exec}";
       fi
       "${chmod_bin}" +x "${install_path}/${exec_path}";
       "${ln_bin}" -sf \
         "${install_path}/${exec_path}" \
-        "${link_inst_path}/$(basename ${exec_path})";
+        "${link_inst_path}/$(basename "${exec_path}")";
     done
   fi
 
-  IFS=$'\n' read -a extra_cmd_arr \
-    -d '' <<< $(builtin echo -ne \
-      $(get_config apps apps ${app_num} extra_cmd 2> \
-        /dev/null || builtin echo -ne ''))
+  builtin mapfile -t extra_cmd_arr < <(
+    get_config apps apps "${app_num}" extra_cmd 2> /dev/null \
+      || builtin echo -ne ''
+  )
 
   if [[ ${extra_cmd_arr[0]} == null ]]; then
     extra_cmd_arr='';
   fi
-  if [[ -z ${extra_cmd_arr[@]} ]]; then
+  if [[ -z ${extra_cmd_arr[0]} ]]; then
     extra_cmd_arr='';
   fi
 
-  if [[ -n ${extra_cmd_arr[@]} ]]; then
+  if [[ -n ${extra_cmd_arr[0]} ]]; then
     for _extra_cmd in "${extra_cmd_arr[@]}"; do
       extra_cmd=$(builtin echo "${_extra_cmd}" \
         | sed "s|{[ ]*name[ ]*}|${app_name}|g" \
