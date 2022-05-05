@@ -1,4 +1,4 @@
-#/usr/bin/env bash
+#!/usr/bin/env bash
 
 # Pure Bash substitute for cat
 function cat_pure () {

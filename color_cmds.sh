@@ -25,14 +25,14 @@ function cat_color () {
 
   bat_bin="$(which_bin 'bat')";
   if [[ -z ${bat_bin} ]]; then
-    "${cat_bin}" "$@";
+    "${cat_bin}" $@;
     return 0;
   fi
 
   bat_filename='';
   for _arg in "${@}"; do
     if [[ -z ${bat_filename} && -f ${_arg} ]]; then
-      bat_filename="--file-name ${_arg}";
+      bat_filename="--file-name ${_arg} ";
     fi
   done
 
@@ -41,5 +41,5 @@ function cat_color () {
     -p \
     --paging 'never' \
     --theme 'gruvbox-dark' \
-    ${bat_filename} --color auto
+    ${bat_filename}--color auto
 }

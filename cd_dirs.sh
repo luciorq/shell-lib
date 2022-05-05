@@ -19,8 +19,8 @@ function __cd_dir () {
   local dir_path;
   local realpath_bin;
   dir_arg=("$@");
-  dir_path=( $(builtin eval builtin echo -ne ${dir_arg}) );
-  
+  builtin mapfile -t dir_path < <( builtin eval builtin echo -ne ${dir_arg} );
+
   dir_path="${dir_path[0]}";
   realpath_bin="$(which_bin 'realpath')";
   if [[ -n ${realpath_bin} ]]; then
