@@ -10,7 +10,7 @@ function which_bin () {
   builtin local which_bin;
   cmd_arg="${1}";
   builtin mapfile -t which_arr < <(
-    builtin command which -a 'which' 2> /dev/null || builtin echo -ne ''
+    builtin command -p which -a 'which' 2> /dev/null || builtin echo -ne ''
   );
   which_bin="${which_arr[0]}";
   if [[ -z ${which_bin} ]]; then
