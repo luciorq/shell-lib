@@ -43,11 +43,13 @@ function download () {
       --out="${output_basename}" \
       --quiet=true \
       --check-integrity=true \
+      --check-certificate=false \
       "${get_url}";
   elif [[ -n ${curl_bin} ]]; then
     "${curl_bin}" \
       -f -s -S -L \
       --create-dirs \
+      --insecure \
       --silent \
       -o "${output_filename}" \
       -C - "${get_url}";
