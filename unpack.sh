@@ -41,15 +41,13 @@ function unpack () {
   mkdir_bin="$(which_bin 'mkdir')";
   tar_bin="$(which_bin 'tar')";
 
-  if [[ ! -d ${dir_output} ]]; then
+  if [[ -z ${dir_output} ]]; then
     dir_output="$(realpath ./)";
   fi
 
-  if [[ ! -d ${dir_output} && ! -f ${dir_output} ]]; then
-    "${mkdir_bin}" -p "${dir_output}";
-  fi
+  "${mkdir_bin}" -p "${dir_output}";
 
-  if [[ -n "${zip_path}" && -f "${zip_path}" ]]; then
+  if [[ -n ${zip_path} && -f ${zip_path} ]]; then
     case "${zip_path}" in
       *.tar.gz)   "${tar_bin}" -C "${dir_output}" -xzf "${zip_path}"    ;;
       *.tgz)      "${tar_bin}" -C "${dir_output}" -xzf "${zip_path}"    ;;
@@ -58,7 +56,7 @@ function unpack () {
       *.tar.bz2)  "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"    ;;
       *.tbz2)     "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"    ;;
       *.bz2)      "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"    ;;
-      *.zip)      unzip -o "${zip_path}" -d "${dir_output}"             ;;
+      *.zip)      unzip -qq -o "${zip_path}" -d "${dir_output}"         ;;
       *.gz)       gzip -q -r -dkc < "${zip_path}" > "${dir_output}"     ;;
       *.deb)      unpack_deb "${zip_path}" "${dir_output}"              ;;
       *)          "${cp_bin}" -r "${zip_path}" "${dir_output}"/         ;;
