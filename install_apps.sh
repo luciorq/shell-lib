@@ -29,6 +29,9 @@ function install_apps () {
     builtin echo -ne "Installing App: '${app_num}':\n";
     __install_app "${install_type}" "${app_num}";
   done
+
+  builtin echo -ne "Completed 'install_apps'\n";
+  return;
 }
 
 # Utils -----------------------------------------------------------------------
@@ -58,7 +61,46 @@ function __get_gh_latest_release () {
       "https://github.com/${repo}/releases/latest"
   )";
   latest_version="${release_url//http*\/tag\//}";
+  latest_version="${latest_version//http*\/releases/}";
   builtin echo -ne "${latest_version}";
+  return 0;
+}
+
+function __get_gh_latest_tag () {
+  local repo;
+  local latest_tag;
+  local tag_arr;
+  local tag_sort_arr;
+  local final_tag;
+  local cat_bin;
+  local sed_bin;
+  local grep_bin;
+  repo="${1}";
+  grep_bin="$(require 'grep')";
+  sed_bin="$(require 'sed')";
+  cat_bin="$(which_bin 'cat')";
+  latest_tag=$(curl -fsSL "https://api.github.com/repos/${repo}/tags");
+  builtin mapfile -t latest_tag_arr < <(
+    builtin echo -ne "${latest_tag}" \
+      | "${grep_bin}" '"name": ' \
+      | "${grep_bin}" -v "\-rc\|\-beta\|\-alpha\|devel"
+  )
+  builtin mapfile -t tag_arr < <(
+    builtin echo "${latest_tag_arr[@]}" \
+      | "${sed_bin}" 's|\"name\":||g' \
+      | sed 's|\"||g' \
+      | sed 's|\\s+||g' \
+      | sed 's|\,||g'
+  )
+  builtin mapfile -t tag_sort_arr < <(
+    "${cat_bin}" <(
+      for _i in ${tag_arr[@]}; do builtin echo -ne "${_i}\n"; done;
+    ) \
+      | grep '^v*[0-9]' \
+      | sort -rV
+  )
+  final_tag="${tag_sort_arr[0]}";
+  builtin echo -ne "${final_tag}\n";
   return 0;
 }
 
@@ -97,7 +139,7 @@ function __install_app_source () {
   builtin mapfile -t build_arr < <(
     "${ls_bin}" -A1 "${dl_path}"
   );
-  build_path="${dl_path}/${build_arr[0]}"
+  build_path="${dl_path}/${build_arr[0]}";
   # make -C "${build_path}/bash-${build_version}" configure -j ${num_threads};
   (cd "${build_path}" && ./configure --prefix="${install_path}");
   make -C "${build_path}" -j ${num_threads};
@@ -151,7 +193,7 @@ function __install_app_cargo () {
     --quiet \
     --all-features \
     --root "${install_path}" \
-    "${git_var}" "${app_name}";
+    ${git_var} ${app_name};
   return 0;
 }
 
@@ -241,6 +283,9 @@ function __install_app () {
   fi
   if [[ ${app_version} == latest && -n ${app_repo} ]]; then
     app_version="$(__get_gh_latest_release "${app_repo}")";
+    if [[ -z ${app_version} ]]; then
+      app_version="$(__get_gh_latest_tag "${app_repo}")";
+    fi
   fi
   tarball_version="${app_version#v*}";
 
@@ -397,11 +442,8 @@ function __install_app () {
       || builtin echo -ne ''
   )
 
-  if [[ ${extra_cmd_arr[0]} == null ]]; then
-    extra_cmd_arr='';
-  fi
   if [[ -z ${extra_cmd_arr[0]} ]]; then
-    extra_cmd_arr='';
+    extra_cmd_arr[0]='';
   fi
 
   if [[ -n ${extra_cmd_arr[0]} ]]; then
@@ -415,7 +457,8 @@ function __install_app () {
         | sed "s|{[ ]*lib_path[ ]*}|${install_path}|g" \
         | sed "s|{[ ]*exec_path[ ]*}|${exec_path_arr[0]}|g"
       )
-      builtin eval "${extra_cmd}";
+      echo "${extra_cmd[*]}";
+      builtin eval $(echo ${extra_cmd[*]});
     done
   fi
 
