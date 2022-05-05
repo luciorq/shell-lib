@@ -5,14 +5,17 @@
 function bootstrap_user () {
   local install_type;
   install_type='--user';
+  mkdir -p "${HOME}/projects";
+  mkdir -p "${HOME}/workspaces";
   mkdir -p "${HOME}/.local/bin";
   mkdir -p "${HOME}/.local/lib";
   mkdir -p "${HOME}/.local/opt/apps";
-  __check_glibc "${install_type}";
+  # __check_glibc "${install_type}";
   __build_git "${install_type}";
   __install_yq;
   __build_bash "${install_type}";
   install_apps "${install_type}";
+  __install_python_cli_tools;
   source_configs;
   __clean_home;
   return 0;
@@ -42,13 +45,6 @@ function __clean_home () {
 # =============================================================================
 # Build Tools from source
 # =============================================================================
-
-# Compile standard C library
-function __build_glibc () {
-  local ldd_bin="$(which_bin 'ldd')";
-  local num_threads
-}
-
 function __build_git () {
   local build_path;
   local inst_path;
@@ -98,11 +94,11 @@ function __build_bash () {
   fi
   mirror_repo='bminor/bash'
   latest_tag=$(curl -fsSL "https://api.github.com/repos/${mirror_repo}/tags");
-  declare -a latest_tag=($(
+  builtin mapfile -t latest_tag < <(
     builtin echo -ne "${latest_tag}" \
       | grep '"name": ' \
       | grep -v "\-rc\|\-beta\|\-alpha\|devel"
-  ))
+  )
   # build_version="5.1";
   build_version=$(
     builtin echo -ne "${latest_tag[1]}" \
@@ -175,6 +171,28 @@ function __install_yq () {
       "${inst_path}/yq/temp/yq_${bin_arch}" \
       "${link_inst_path}/yq";
   return 0;
+}
+
+# =============================================================================
+# Bootstrap Python command line tools installation
+# =============================================================================
+function __install_python_cli_tools () {
+  local py_bin;
+  local pipx_bin;
+  local pipx_pkg_arr;
+  local _pipx_pkg;
+  py_bin="$(which_bin 'python3')";
+  if [[ -z ${py_bin} ]]; then
+    py_bin="$(which_bin 'python')";
+  fi
+  "${py_bin}" -m pip \
+    install --user \
+    pipx;
+  pipx_bin="$(which_bin 'pipx')";
+  builtin mapfile -t pipx_pkg_arr < <(get_config 'python_packages' 'pipx');
+  for _pipx_pkg in "${pipx_pkg_arr[@]}"; do
+    "${pipx_bin}" install "${_pipx_pkg}";
+  done
 }
 
 # =============================================================================
