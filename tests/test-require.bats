@@ -8,14 +8,14 @@ function setup () {
 }
 
 
-@test "require - Common tool" {
+@test "'require' - Common tool" {
   ls_bin="$(which 'ls')";
   run require 'ls';
   [ "${status}" -eq 0 ];
   [ "${output}" = "${ls_bin}" ];
 }
 
-@test "require - Empty PATH" {
+@test "'require' - Empty PATH" {
   # output="$(PATH='' require 'ls' 2>&1)";
   # status="$?";
   PATH='' run require 'ls';

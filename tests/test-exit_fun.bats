@@ -4,7 +4,7 @@ function setup () {
   source exit_fun.sh
 }
 
-@test "exit_fun - Exit from outer function call" {
+@test "'exit_fun' - Exit from outer function call" {
   function test_exit_fun () {
     [[ -z ${1} ]] && exit_fun "Empty arg";
     builtin echo "${1}: OK";
@@ -21,8 +21,7 @@ function setup () {
   [[ ! ${output} =~ ': OK' ]];
 }
 
-
-@test "exit_fun - Exit from script file" {
+@test "'exit_fun' - Exit from script file" {
   run bash tests/test-exit_outer_function.sh;
   [ "${status}" -eq 1 ];
   [[ ${output} =~ 'exit_fun.sh: line 5: Error: This command failed' ]];
