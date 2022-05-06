@@ -47,6 +47,8 @@ function unpack () {
 
   "${mkdir_bin}" -p "${dir_output}";
 
+
+
   if [[ -n ${zip_path} && -f ${zip_path} ]]; then
     case "${zip_path}" in
       *.tar.gz)   "${tar_bin}" -C "${dir_output}" -xzf "${zip_path}"    ;;
@@ -59,7 +61,13 @@ function unpack () {
       *.zip)      unzip -qq -o "${zip_path}" -d "${dir_output}"         ;;
       *.gz)       gzip -q -r -dkc < "${zip_path}" > "${dir_output}"     ;;
       *.deb)      unpack_deb "${zip_path}" "${dir_output}"              ;;
-      *)          "${cp_bin}" -r "${zip_path}" "${dir_output}"/         ;;
+      *)
+        if [[ $(is_compressed "${zip_path}") == true ]]; then
+          "${tar_bin}" -C "${dir_output}" -xf "${zip_path}";
+        else
+          "${cp_bin}" -r "${zip_path}" "${dir_output}"/ ;
+        fi
+      ;;
     esac
   else
     builtin echo >&2 -ne "'${zip_path}' is not a valid file.\n";
