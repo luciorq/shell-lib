@@ -104,6 +104,33 @@ function __get_gh_latest_tag () {
   return 0;
 }
 
+# Retrieve app_num from app_namw
+function __get_app_num_from_app_name () {
+  local input_name;
+  local apps_length;
+  local _app_num;
+  local app_num_arr;
+  local app_num_res;
+  local app_name;
+  input_name="${1}";
+  apps_length="$(get_config apps apps | grep -c '^name:')";
+  builtin mapfile -t app_num_arr < <(
+    seq 0 $(( apps_length - 1 ))
+  );
+  app_num_res='';
+  #echo "${input_name}";
+  for _app_num in "${app_num_arr[@]}"; do
+    app_name="$(get_config apps apps "${_app_num}" name 2> /dev/null \
+      || builtin echo -ne '')";
+    #echo "${app_name}";
+    if [[ ${input_name} == "${app_name}" && -n ${input_name} && -n ${app_name} ]]; then
+      app_num_res="${_app_num}";
+    fi
+  done
+  builtin echo -ne "${app_num_res}";
+  return 0;
+}
+
 # Install apps utils ----------------------------------------------------------
 
 # Install app from downloadable tarball source code
@@ -209,6 +236,7 @@ function __install_app () {
   local _arg;
   local install_type;
   local app_num;
+  local num_regex;
   local link_inst_path;
   local app_name;
   local app_version;
@@ -244,6 +272,16 @@ function __install_app () {
   if [[ -z ${app_num} ]]; then
     app_num="${1}";
   fi
+
+  # get app_num if name was input
+  num_regex='^[0-9]+$';
+  if ! [[ ${app_num} =~ ${num_regex} ]]; then
+    app_num="$(__get_app_num_from_app_name "${app_num}")";
+  fi
+  if [[ -z ${app_num} ]]; then
+    builtin echo -ne "App not available."
+    return 1;
+  fi
   link_inst_path='';
   if [[ $# -eq 0 || $# -eq 1 ]]; then
     link_inst_path="${HOME}/.local/bin";
@@ -265,7 +303,7 @@ function __install_app () {
   )";
   builtin echo -ne "  --> ${app_name}\n";
   if [[ -z ${app_name} || ${app_name} == null ]]; then
-    builtin echo >&2 -ne "'name' not fount for '${app_num}'.\n";
+    builtin echo >&2 -ne "'name' not found for '${app_num}'.\n";
     builtin echo >&2 -ne "Each element of the app list need a 'name' value.\n";
     return 1;
   fi
