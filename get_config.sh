@@ -20,5 +20,5 @@ function get_config () {
     builtin echo >&2 -ne "Error: '${var_file}' no such file.\n";
     return 1;
   fi
-  parse_yaml "${var_file}" default "${@:2}";
+  parse_yaml "${var_file}" main "${@:2}";
 }

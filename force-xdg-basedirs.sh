@@ -231,3 +231,6 @@ export CONDA_ENVS_PATH="${XDG_DATA_HOME}/conda/envs";
 if [[ ! -d "$(dirname "${CONDA_ENVS_PATH}")" ]]; then
   \mkdir -p "$(dirname "${CONDA_ENVS_PATH}")";
 fi
+export CONDA_ROOT_PREFIX="${XDG_DATA_HOME}/conda";
+export MAMBA_ROOT_PREFIX="${XDG_DATA_HOME}/conda";
+export MAMBA_ENVS_PATH="${XDG_DATA_HOME}/conda/envs";

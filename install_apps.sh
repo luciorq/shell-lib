@@ -31,7 +31,7 @@ function install_apps () {
   done
 
   builtin echo -ne "Completed 'install_apps'\n";
-  return;
+  return 0;
 }
 
 # Utils -----------------------------------------------------------------------
@@ -174,6 +174,77 @@ function __install_app_source () {
   "${rm_bin}" -rf "${build_path}";
   "${rm_bin}" -rf "${dl_path}";
   return 0;
+}
+
+
+# install app in a conda environment, using micromamba, if available
+function __install_app_mamba () {
+  local install_path;
+  local app_name;
+  local install_type;
+  local prefix_path;
+  local envs_path;
+  local link_path;
+  local install_path;
+  local mamba_bin;
+  local mkdir_bin;
+  local ln_bin;
+  local chmod_bin;
+  local _exec_bin;
+  local exec_file;
+  install_type="${1}";
+  app_name="${2}";
+  mamba_bin="$(which_bin 'micromamba')";
+  if [[ -z ${mamba_bin} ]]; then
+    mamba_bin="$(which_bin 'mamba')";
+  fi
+  if [[ -z ${mamba_bin} ]]; then
+    mamba_bin="$(which_bin 'conda')";
+  fi
+  mkdir_bin="$(which_bin 'mkdir')";
+  ln_bin="$(which_bin 'ln')";
+  chmod_bin="$(which_bin 'chmod')";
+
+  if [[ ${install_type} == "--user" ]]; then
+    prefix_path="${XDG_DATA_HOME:-${HOME}/.local/share}/conda";
+    envs_path="${HOME}/.local/opt/apps/${app_name}/envs";
+    install_path="${HOME}/.local/opt/apps/${app_name}/bin";
+    link_path="${HOME}/.local/bin";
+  elif [[ ${install_type} == "--system" ]]; then
+    prefix_path="/opt/apps/conda";
+    envs_path="/opt/apps/${app_name}/envs";
+    install_path="/opt/apps/${app_name}/bin";
+    link_path='/usr/local/bin';
+  fi
+
+  if [[ ! -d ${envs_path}/${app_name} ]]; then
+    "${mamba_bin}" create \
+      --yes \
+      --quiet \
+      -c bioconda \
+      -c conda-forge \
+      --root-prefix "${prefix_path}" \
+      --prefix "${envs_path}/${app_name}" \
+      "${app_name}";
+  fi
+
+  "${mkdir_bin}" -p "${install_path}";
+  # TODO(luciorq) Search for mamba or conda binaries in the exec_file call
+  for _exec_bin in "${@:3}"; do
+    exec_file="${install_path}/${_exec_bin}";
+    \touch "${exec_file}";
+    builtin echo -ne '#!/usr/bin/env bash\n\n' > "${exec_file}";
+    builtin echo \
+      "${mamba_bin} run -a sdtin -a stdout -a stderr --prefix ${envs_path}/${app_name} ${_exec_bin} \"\${@}\"" \
+      >> "${exec_file}";
+    "${chmod_bin}" +x "${exec_file}";
+    "${ln_bin}" -sf "${exec_file}" "${link_path}/${_exec_bin}";
+  done
+  return 0;
+}
+
+function __install_app_conda () {
+  __install_app_mamba "${@}";
 }
 
 # Install app from downloadable tarball binary
@@ -434,7 +505,7 @@ function __install_app () {
       missing_install='true';
     fi
   done
-  if [[ ${app_type} != cargo && ${missing_install} == false ]]; then
+  if [[ ${app_type} != cargo && ${app_type} != conda && ${missing_install} == false ]]; then
     return 0;
   fi
 
@@ -453,6 +524,9 @@ function __install_app () {
     cargo)
       __install_app_cargo "${install_path}" "${app_name}" "${get_url}";
     ;;
+    conda)
+      __install_app_mamba "${install_type}" "${app_name}" "${exec_path_arr[@]}";
+    ;;
     *)
       builtin echo >&2 \
         -ne "Error: Unknown installation type: '${app_type}'.\n";
@@ -460,21 +534,22 @@ function __install_app () {
     ;;
   esac
 
-  chmod_bin="$(which_bin 'chmod')";
-  "${chmod_bin}" +x "${install_path}/${exec_path_arr[0]}";
-  if [[ ${app_link} == true ]]; then
-    for exec_path in "${exec_path_arr[@]}"; do
-      _link_exec="${link_inst_path}/$(basename "${exec_path}")";
-      if [[ -f ${_link_exec} ]]; then
-        "${rm_bin}" "${_link_exec}";
-      fi
-      "${chmod_bin}" +x "${install_path}/${exec_path}";
-      "${ln_bin}" -sf \
-        "${install_path}/${exec_path}" \
-        "${link_inst_path}/$(basename "${exec_path}")";
-    done
+  if [[ ! ${app_type} == conda ]]; then
+    chmod_bin="$(which_bin 'chmod')";
+    "${chmod_bin}" +x "${install_path}/${exec_path_arr[0]}";
+    if [[ ${app_link} == true ]]; then
+      for exec_path in "${exec_path_arr[@]}"; do
+        _link_exec="${link_inst_path}/$(basename "${exec_path}")";
+        if [[ -f ${_link_exec} ]]; then
+          "${rm_bin}" "${_link_exec}";
+        fi
+        "${chmod_bin}" +x "${install_path}/${exec_path}";
+        "${ln_bin}" -sf \
+          "${install_path}/${exec_path}" \
+          "${link_inst_path}/$(basename "${exec_path}")";
+      done
+    fi
   fi
-
   builtin mapfile -t extra_cmd_arr < <(
     get_config apps apps "${app_num}" extra_cmd 2> /dev/null \
       || builtin echo -ne ''
