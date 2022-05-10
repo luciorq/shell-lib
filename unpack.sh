@@ -32,7 +32,9 @@ function unpack () {
   }
   if [[ $# -eq 0 ]]; then unpack_usage; unset unpack_usage; return 1; fi
   unset unpack_usage;
-  local zip_path dir_output;
+  local zip_path;
+  local dir_output;
+  local output_file_path;
   local rm_bin cp_bin mkdir_bin tar_bin;
   zip_path="$1";
   dir_output="$2";
@@ -45,22 +47,22 @@ function unpack () {
     dir_output="$(realpath ./)";
   fi
 
+  output_file_path="${dir_output}/$(basename "${zip_path}")";
+
   "${mkdir_bin}" -p "${dir_output}";
-
-
 
   if [[ -n ${zip_path} && -f ${zip_path} ]]; then
     case "${zip_path}" in
-      *.tar.gz)   "${tar_bin}" -C "${dir_output}" -xzf "${zip_path}"    ;;
-      *.tgz)      "${tar_bin}" -C "${dir_output}" -xzf "${zip_path}"    ;;
-      *.tar.xz)   "${tar_bin}" -C "${dir_output}" -xJf "${zip_path}"    ;;
-      *.txz)      "${tar_bin}" -C "${dir_output}" -xJf "${zip_path}"    ;;
-      *.tar.bz2)  "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"    ;;
-      *.tbz2)     "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"    ;;
-      *.bz2)      "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"    ;;
-      *.zip)      unzip -qq -o "${zip_path}" -d "${dir_output}"         ;;
-      *.gz)       gzip -q -r -dkc < "${zip_path}" > "${dir_output}"     ;;
-      *.deb)      unpack_deb "${zip_path}" "${dir_output}"              ;;
+      *.tar.gz)   "${tar_bin}" -C "${dir_output}" -xzf "${zip_path}"         ;;
+      *.tgz)      "${tar_bin}" -C "${dir_output}" -xzf "${zip_path}"         ;;
+      *.tar.xz)   "${tar_bin}" -C "${dir_output}" -xJf "${zip_path}"         ;;
+      *.txz)      "${tar_bin}" -C "${dir_output}" -xJf "${zip_path}"         ;;
+      *.tar.bz2)  "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"         ;;
+      *.tbz2)     "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"         ;;
+      *.bz2)      "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"         ;;
+      *.zip)      unzip -qq -o "${zip_path}" -d "${dir_output}"              ;;
+      *.gz)       gzip -q -dkc < "${zip_path}" > "${output_file_path/.gz/}"  ;;
+      *.deb)      unpack_deb "${zip_path}" "${dir_output}"                   ;;
       *)
         if [[ $(is_compressed "${zip_path}") == true ]]; then
           "${tar_bin}" -C "${dir_output}" -xf "${zip_path}";
