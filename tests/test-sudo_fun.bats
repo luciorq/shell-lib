@@ -1,36 +1,49 @@
 #!/usr/bin/env bats
 
 function setup () {
-  source sudo_fun.sh
-}
-
-@test "which_bin - Finds ls binary" {
+  source which_bin.sh;
+  source exit_fun.sh;
+  source sudo_fun.sh;
+  alias ls='exa -g';
+  _target_path="$(dirname $(dirname "${BATS_TEST_FILENAME}"))";
+  sudo_bin="$(which sudo)";
   ls_bin="$(which ls)";
-  run which_bin 'ls';
-  [ "${status}" -eq 0 ];
-  [ "${output}" = "${ls_bin}" ];
 }
 
-@test "which_bin - works with empty PATH" {
-  PATH='' run which_bin 'which';
+@test "'sudo_fun' - Normal command" {
+  default_output="$("${sudo_bin}" "${ls_bin}" "${_target_path}")";
+  run sudo_fun "${ls_bin}" "${_target_path}";
   [ "${status}" -eq 0 ];
-  [ "${output}" = '' ];
+  [[ "${output}" =~ "* Command type:" ]];
+  [[ "${output}" =~ "Normal" ]];
+  [[ "${output}" =~ "${default_output}" ]];
 }
 
-@test "which_bin - Works without 'which' on PATH" {
-  touch tests/test_exec.sh
-  chmod +x tests/test_exec.sh
-  PATH="${PWD}/tests" run which_bin 'test_exec.sh';
+@test "'sudo_fun' - Expand alias" {
+  default_output="$("${sudo_bin}" exa -g "${_target_path}")";
+  run sudo_fun ls "${_target_path}";
+  echo "${output}";
+  #echo "----------------------------------------------------";
+  #echo "${default_output}";
   [ "${status}" -eq 0 ];
-  [ "${output}" = "${PWD}/tests/test_exec.sh" ];
-  rm tests/test_exec.sh
+  [[ "${output}" =~ "* Command type:" ]];
+  [[ "${output}" =~ "Alias" ]];
+  #[[ "${output}" =~ "Normal" ]];
+  [[ "${output}" =~ "${default_output}" ]];
 }
 
-@test "Finds executable in custom PATH" {
-  touch tests/test_exec.sh
-  chmod +x tests/test_exec.sh
-  PATH="${PATH}:${PWD}/tests" run which_bin 'test_exec.sh';
+@test "'sudo_fun' - Expand functions" {
+  default_output="$(which ls)";
+  run sudo_fun which_bin ls;
   [ "${status}" -eq 0 ];
-  [ "${output}" = "${PWD}/tests/test_exec.sh" ];
-  rm tests/test_exec.sh
+  [[ "${output}" =~ "Function" ]];
+  [[ "${output}" =~ "${default_output}" ]];
+}
+
+@test "'sudo_fun' - Shell builtins" {
+  default_output="$(echo 'lalala')";
+  run sudo_fun echo 'lalala';
+  [ "${status}" -eq 0 ];
+  [[ "${output}" =~ "Builtin" ]];
+  [[ "${output}" =~ "${default_output}" ]];
 }

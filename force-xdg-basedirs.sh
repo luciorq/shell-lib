@@ -234,3 +234,9 @@ fi
 export CONDA_ROOT_PREFIX="${XDG_DATA_HOME}/conda";
 export MAMBA_ROOT_PREFIX="${XDG_DATA_HOME}/conda";
 export MAMBA_ENVS_PATH="${XDG_DATA_HOME}/conda/envs";
+
+# OpenSSH
+# + control masters
+if [[ ! -d ${XDG_STATE_HOME}/ssh/cm ]]; then
+  \mkdir -p "${XDG_STATE_HOME}/ssh/cm";
+fi

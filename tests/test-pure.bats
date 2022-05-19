@@ -4,6 +4,7 @@ function setup () {
   source dirname_pure.sh;
   source cat_pure.sh;
   source head_pure.sh;
+  source sleep_pure.sh;
 }
 
 @test "'dirname_pure' - Compare with GNU dirname" {
@@ -40,4 +41,11 @@ function setup () {
   run head_pure 4 tests/test_data.yaml;
   [ "${status}" -eq 0 ];
   [ "${output}" = "${head_res}" ];
+}
+
+@test "'sleep_pure' - Compare with GNU sleep" {
+  default_res="$(sleep 0.2)";
+  run sleep_pure 0.2;
+  [ "${status}" -eq 0 ];
+  [ "${output}" = "${default_res}" ];
 }

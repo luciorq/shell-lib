@@ -1,6 +1,10 @@
+# shellcheck shell=bash
+
 prj_name := 'shell-lib'
-lib_home := env_var_or_default('XDG_LIB_HOME', env_var('HOME') + '/.local/lib')
+lib_home := env_var_or_default('XDG_LIB_HOME', env_var('HOME') + '/' + '.local/lib')
+
 lib_path := env_var('_LOCAL_PROJECT') + '/' + prj_name
+lib_tools_path := env_var('_LOCAL_PROJECT') + '/' + 'shell-tools'
 dest_dir := lib_home + '/' + prj_name
 
 default:
@@ -39,22 +43,22 @@ install-bundle:
 
 
 install-mac-launchers:
-  #!/usr/bin/env bash
+  #!/usr/bin/env bash -i
   set -euxo pipefail
-  for _app in $(\ls -A1 "{{lib_path}}/inst/"*.command); do
+  for _app in $(\ls -A1 "{{lib_tools_path}}/inst/"*.command); do
     inst_path="/usr/local/bin/$(basename ${_app})";
-    [[ -f ${inst_path} ]] && sudo rm "${inst_path}";
-    chmod a+x "${_app}";
-    sudo cp "${_app}" "${inst_path}";
+    [[ -f ${inst_path} ]] && \sudo rm "${inst_path}";
+    \sudo chmod a+x "${_app}";
+    \sudo cp "${_app}" "${inst_path}";
   done
 
 test:
-  #!/usr/bin/env bash
-  set -euxo pipefail
-  bats -x tests/
+  #!/usr/bin/env bash -i
+  set -euxo pipefail;
+  bats -x tests/;
 
 init:
-  #!/usr/bin/env bash
+  #!/usr/bin/env bash -i
   set -euxo pipefail
   bashly init
   bashly add yaml
