@@ -143,22 +143,18 @@ function __install_app_source () {
   local build_path;
   local rm_bin;
   local ls_bin;
-  local nproc_bin;
+  local make_bin;
   local num_threads;
-  rm_bin="$(which_bin 'rm')";
-  ls_bin="$(which_bin 'ls')";
-  nproc_bin="$(which_bin 'nproc')";
-  if [[ -n ${nproc_bin} ]]; then
-    num_threads=$("${nproc_bin}");
-    if [[ ${num_threads} -gt 8 ]]; then
-      num_threads=8;
-    fi
-  else
-    num_threads=8;
-  fi
   install_path="${1}";
   tarball_name="${2}";
   get_url="${3}";
+  rm_bin="$(which_bin 'rm')";
+  ls_bin="$(which_bin 'ls')";
+  make_bin="$(which_bin 'gmake')";
+  if [[ -z ${make_bin} ]]; then
+    make_bin="$(require 'make')";
+  fi
+  num_threads="$(get_nthreads 8)";
   dl_path="$(create_temp 'install_app')";
   download "${get_url}" "${dl_path}";
   unpack "${dl_path}/${tarball_name}" "${dl_path}";
@@ -169,8 +165,12 @@ function __install_app_source () {
   build_path="${dl_path}/${build_arr[0]}";
   # make -C "${build_path}/bash-${build_version}" configure -j ${num_threads};
   (cd "${build_path}" && ./configure --prefix="${install_path}");
-  make -C "${build_path}" -j ${num_threads};
-  make -C "${build_path}" install -j ${num_threads};
+  "${make_bin}" \
+    -C "${build_path}" \
+    -j "${num_threads}";
+  "${make_bin}" \
+    -C "${build_path}" install \
+    -j "${num_threads}";
   "${rm_bin}" -rf "${build_path}";
   "${rm_bin}" -rf "${dl_path}";
   return 0;
@@ -192,6 +192,9 @@ function __install_app_mamba () {
   local chmod_bin;
   local _exec_bin;
   local exec_file;
+  # local python_url;
+  # local python_latest_version;
+  local python_version;
   install_type="${1}";
   app_name="${2}";
   mamba_bin="$(which_bin 'micromamba')";
@@ -216,15 +219,27 @@ function __install_app_mamba () {
     install_path="/opt/apps/${app_name}/bin";
     link_path='/usr/local/bin';
   fi
-
+  python_version="$(
+    "${mamba_bin}" search \
+      --quiet \
+      -c bioconda \
+      -c conda-forge \
+      python \
+        | grep 'cpython' \
+        | head -n 1 \
+        | sed -e 's/[[:space:]]python[[:space:]]//g' \
+        | sed 's/[[:space:]].*$//g'
+  )";
   if [[ ! -d ${envs_path}/${app_name} ]]; then
     "${mamba_bin}" create \
       --yes \
       --quiet \
       -c bioconda \
       -c conda-forge \
+      -c defaults \
       --root-prefix "${prefix_path}" \
       --prefix "${envs_path}/${app_name}" \
+      python="${python_version}" \
       "${app_name}";
   fi
 
@@ -284,14 +299,14 @@ function __install_app_cargo () {
 
   git_var='';
   if [[ -n ${get_url} ]]; then
-    git_var='--git';
+    git_var='--git ';
     app_name="${get_url}";
   fi
   "${cargo_bin}" install \
     --quiet \
     --all-features \
     --root "${install_path}" \
-    ${git_var} ${app_name};
+    ${git_var}${app_name};
   return 0;
 }
 
@@ -476,7 +491,7 @@ function __install_app () {
    app_link='true';
   fi
 
-  case ${app_type} in
+  case "${app_type}" in
     source_github)
       base_url="https://github.com/${app_repo}/releases/download/${app_version}";
       get_url="${base_url}/${tarball_name}";
@@ -514,7 +529,7 @@ function __install_app () {
     "${mkdir_bin}" -p "${install_path}";
   fi
 
-  case ${app_type} in
+  case "${app_type}" in
     source)
       __install_app_source "${install_path}" "${tarball_name}" "${get_url}";
     ;;

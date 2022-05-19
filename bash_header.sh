@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
+# shellcheck shell=bash
 
 # Print useful remainders for writing
 # + BASH scripts and functions
 function bash_header () {
   local fn_name="${1:-function_name}";
-  builtin echo -ne '#!/usr/bin/env bash\n\n';
+  builtin echo -ne '#!/usr/bin/env bash\n';
+  builtin echo -ne '# shellcheck shell=bash\n\n';
   builtin echo -ne "# Description for ${fn_name}\n";
   builtin echo -ne "function ${fn_name} () {\n";
   builtin echo -ne '  set -o errexit;\n';
@@ -16,5 +18,5 @@ function bash_header () {
   builtin echo -ne '\n';
   builtin echo -ne '  return 0;\n';
   builtin echo -ne '}\n';
-  return -0;
+  return 0;
 }

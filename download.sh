@@ -12,21 +12,20 @@ function download () {
   unset download_usage;
   local get_url dir_output thread_num output_filename output_basename;
   local aria_bin wget_bin curl_bin;
+  local cache_path;
   get_url="${1}";
   dir_output="${2}";
-  thread_num="${3}";
 
   if [[ -z ${dir_output} ]]; then
     dir_output="$(realpath ./)";
   fi
-  if [[ -z ${thread_num} ]]; then
-    thread_num="8"; # $(nproc 2> /dev/null || builtin echo -ne "8")";
-  fi
+  thread_num="$(get_nthreads 8)";
   if [[ ! -d ${dir_output} ]]; then
     "$(which_bin mkdir)" -p "${dir_output}";
   fi
   output_basename="$(basename "${get_url}")";
   output_filename="${dir_output}/${output_basename}";
+  cache_path="${XDG_CACHE_HOME:-${HOME}/.cache}";
 
   aria_bin="$(which_bin 'aria2c')";
   wget_bin="$(which_bin 'wget')";
@@ -54,11 +53,13 @@ function download () {
       -o "${output_filename}" \
       -C - "${get_url}";
   elif [[ -n ${wget_bin} ]]; then
+    cache_path="${cache_path}/wget/wget-hsts";
     "${wget_bin}" \
       --continue \
       -L \
       -nv \
       -q \
+      --hsts-file="${cache_path}" \
       --no-check-certificate \
       --output-document="${output_filename}" \
       "${get_url}";
@@ -66,4 +67,5 @@ function download () {
     builtin echo >&2 -ne "No download method available.\n";
     return 1;
   fi
+  return 0;
 }
