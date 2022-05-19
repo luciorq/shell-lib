@@ -45,6 +45,169 @@ function __clean_home () {
 # =============================================================================
 # Build Tools from source
 # =============================================================================
+function __build_rust_cargo () {
+  local cargo_bin;
+  local cargo_path;
+  cargo_bin="$(which_bin 'cargo')";
+  cargo_path="${HOME}/.local/share/cargo/bin/cargo";
+
+  if [[ -z ${cargo_bin} ]]; then
+    if [[ ! -f ${cargo_path} ]]; then
+      bash \
+        <(curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs) \
+        --no-modify-path --quiet -y;
+    fi
+    ln -sf \
+      "${HOME}/.local/share/cargo/bin/cargo" \
+      "${HOME}/.bin/cargo"
+  fi
+  return 0;
+}
+
+function __build_rust_cargo_tools () {
+  local cargo_bin;
+  local install_path;
+  local cargo_arr;
+  local bin_arr;
+  local _bin;
+  declare -a cargo_arr=(
+    starship
+    exa
+    bat
+    du-dust
+    fd-find
+    sd
+    hck
+  );
+  cargo_bin="$(which_bin 'cargo')";
+  install_path="${HOME}/.local/opt/apps/temp";
+  if [[]]; then
+    "${cargo_bin}" install --quiet \
+      --root "${install_path}" ${cargo_arr[*]};
+  fi
+  return 0;
+}
+
+function __check_glibc () {
+  local glibc_version;
+  local ldd_bin;
+  local latest_version;
+  local min_version;
+  ldd_bin="$(which_bin 'ldd')";
+  if [[ -z ${ldd_bin} ]]; then
+    return 0;
+  fi
+  min_version="${1:-2.18}";
+  glibc_version="$(
+    builtin echo -ne "$("${ldd_bin}" --version ldd)" \
+      | head -n1 \
+      | sed -e 's/.*[[:space:]]//g'
+  )";
+  latest_version="$(
+    builtin echo -ne "${glibc_version}\n${min_version}\n" \
+      | sort -r -V \
+      | head -n1
+  )";
+  if [[ ${latest_version} =~ ${glibc_version} ]]; then
+    builtin echo -ne 'true';
+  else
+    builtin echo -ne 'false';
+  fi
+  return 0;
+}
+
+function __build_glibc () {
+  local glibc_right;
+  local inst_path;
+  local app_name;
+  local mirror_repo;
+  local make_bin;
+  local latest_tag;
+  local latest_version;
+  local build_version;
+  local num_threads;
+  local get_url;
+  local rm_bin;
+  local mkdir_bin;
+  local make_bin;
+  local build_path;
+  local install_type;
+  local force_version;
+  install_type="${1:---user}";
+  force_version="${2:-latest}";
+  inst_path="${HOME}/.local/opt/apps/${app_name}";
+  if [[ ${install_type} == --system ]]; then
+    inst_path="/opt/apps/${app_name}";
+  fi
+
+  app_name='glibc';
+
+  if [[ ! ${OSTYPE} =~ "linux" ]]; then
+    return 0;
+  fi
+
+  # if [[ ${force_version} == latest ]]; then
+  if [[ -z ${2} ]]; then
+    glibc_right="$(__check_glibc '2.18')";
+  else
+    glibc_right='false';
+  fi
+  if [[ ${glibc_right} =~ "true" ]]; then
+    return 0;
+  fi
+
+  rm_bin="$(which_bin 'rm')";
+  mkdir_bin="$(which_bin 'mkdir')";
+  make_bin="$(which_bin 'gmake')";
+  if [[ -z ${make_bin} ]]; then
+    make_bin="$(require 'make')";
+  fi
+  num_threads="$(get_nthreads 8)";
+
+  if [[ ${force_version} == latest ]]; then
+    mirror_repo='bminor/glibc';
+    latest_tag="$(
+      curl -fsSL "https://api.github.com/repos/${mirror_repo}/tags"
+    )";
+    latest_version="$(
+    builtin echo "${latest_tag[@]}" \
+      | sed 's/\(\"name\"\):/\n\1/g' \
+      | grep '"name"' \
+      | sed -e 's/\"name\"[[:space:]]\"\(.*\)/\1/g' \
+      | sed -e 's/\",//g' \
+      | grep -v '\-rc\|\-beta\|\-alpha\|devel' \
+      | grep -v '\.9...$' \
+      | grep -v '\.9.$' \
+      | sed -e 's/glibc\-//g' \
+      | sort -rV
+    )";
+    build_version="${latest_version/[[:space:]]*/}";
+  else
+    build_version="${force_version}";
+  fi
+
+  base_name="${app_name}-${build_version}";
+
+  get_url="https://ftp.gnu.org/gnu/glibc/${base_name}.tar.gz";
+  build_path="$(create_temp 'glibc-build')";
+  download "${get_url}" "${build_path}";
+  unpack "${build_path}/${base_name}.tar.gz" "${build_path}";
+
+  "${mkdir_bin}" -p "${inst_path}";
+  "${mkdir_bin}" -p "${build_path}/${base_name}/build"
+
+  (cd "${build_path}/${base_name}/build" && ../configure --prefix="${inst_path}");
+  MAKE="$(which make)" "${make_bin}" \
+    -C "${build_path}/${base_name}" -j "${num_threads}";
+  MAKE="$(which make)" "${make_bin}" \
+    -C "${build_path}/${base_name}" install -j "${num_threads}";
+  "${rm_bin}" -rf \
+    "${build_path}/${base_name}" \
+    "${build_path}/${base_name}.tar.gz";
+  "${rm_bin}" -rf "${build_path}";
+  return 0;
+}
+
 function __build_git () {
   local build_path;
   local inst_path;
@@ -61,70 +224,79 @@ function __build_git () {
   if [[ -f ${inst_path}/bin/git ]]; then
     return 0;
   fi
-  num_threads=$(nproc);
-  if [[ ${num_threads} -gt 8 ]]; then
-    num_threads=8;
-  fi
+  num_threads="$(get_nthreads 8)";
   get_url='https://github.com/git/git/archive/refs/heads/main.zip';
-  build_path="$(create_temp git-inst)";
+  build_path="$(create_temp 'git-inst')";
   download "${get_url}" "${build_path}";
   unpack "${build_path}/main.zip" "${build_path}";
-  make -C "${build_path}/git-main" configure -j ${num_threads};
+  "${make_bin}" -C "${build_path}/git-main" configure -j "${num_threads}";
   (cd "${build_path}/git-main" && ./configure --prefix="${inst_path}");
-  make -C "${build_path}/git-main" -j ${num_threads};
-  make -C "${build_path}/git-main" install -j ${num_threads};
+  "${make_bin}" -C "${build_path}/git-main" -j "${num_threads}";
+  "${make_bin}" -C "${build_path}/git-main" install -j "${num_threads}";
   "${rm_bin}" -rf "${build_path}/git-main" "${build_path}/main.zip";
   "${rm_bin}" -rf "${build_path}";
   "${inst_path}/bin/git" --version;
+  return 0;
 }
 
 function __build_bash () {
   local latest_tag;
+  local latest_release_version;
   local mirror_repo;
   local build_version;
   local build_path;
   local inst_path;
   local num_threads;
   local get_url;
-  local rm_bin make_bin;
+  local rm_bin;
+  local make_bin;
+
   rm_bin="$(which_bin 'rm')";
   make_bin="$(which_bin 'gmake')";
   if [[ -z ${make_bin} ]]; then
     make_bin="$(require 'make')";
   fi
-  mirror_repo='bminor/bash'
-  latest_tag=$(curl -fsSL "https://api.github.com/repos/${mirror_repo}/tags");
-  builtin mapfile -t latest_tag < <(
-    builtin echo -ne "${latest_tag}" \
-      | grep '"name": ' \
-      | grep -v "\-rc\|\-beta\|\-alpha\|devel"
-  )
-  # build_version="5.1";
-  build_version=$(
-    builtin echo -ne "${latest_tag[1]}" \
-      | sed 's|\"bash\-\(.*\)",|\1|g'
-  )
   # inst_path="$(__install_path --user)";
   inst_path="${HOME}/.local";
   if [[ -f ${inst_path}/bin/bash ]]; then
     return 0;
   fi
-  num_threads=$(nproc);
-  if [[ ${num_threads} -gt 8 ]]; then
-    num_threads=8;
-  fi
+  mirror_repo='bminor/bash';
+  latest_tag="$(
+    curl -fsSL "https://api.github.com/repos/${mirror_repo}/tags"
+  )";
+  latest_release_version="$(
+    builtin echo "${latest_tag[@]}" \
+      | sed 's/\(\"name\"\):/\n\1/g' \
+      | grep '"name"' \
+      | sed -e 's/\"name\"[[:space:]]\"\(.*\)/\1/g' \
+      | sed -e 's/\",//g' \
+      | grep -v '\-rc\|\-beta\|\-alpha\|devel' \
+      | grep 'bash' \
+      | sed 's/bash\-//g' \
+      | sort -rV
+  )";
+  build_version="${latest_release_version/[[:space:]]*/}";
+  num_threads="$(get_nthreads 8)";
   get_url="https://ftp.gnu.org/gnu/bash/bash-${build_version}.tar.gz";
   build_path="$(create_temp bash-inst)";
   download "${get_url}" "${build_path}";
   unpack "${build_path}/bash-${build_version}.tar.gz" "${build_path}";
-  # make -C "${build_path}/bash-${build_version}" configure -j ${num_threads};
+  # "${make_bin}" -C "${build_path}/bash-${build_version}" configure -j ${num_threads};
   (cd "${build_path}/bash-${build_version}" && ./configure --prefix="${inst_path}");
-  make -C "${build_path}/bash-${build_version}" -j ${num_threads};
-  make -C "${build_path}/bash-${build_version}" install -j ${num_threads};
-  "${rm_bin}" -rf "${build_path}/bash-${build_version}" "${build_path}/bash-${build_version}.tar.gz";
+  "${make_bin}" \
+    -C "${build_path}/bash-${build_version}" -j "${num_threads}";
+  "${make_bin}" \
+    -C "${build_path}/bash-${build_version}" install -j "${num_threads}";
+  "${rm_bin}" -rf \
+    "${build_path}/bash-${build_version}" \
+    "${build_path}/bash-${build_version}.tar.gz";
   "${rm_bin}" -rf "${build_path}";
   "${inst_path}/bin/bash" --version;
+
+  return 0;
 }
+
 
 # =============================================================================
 # Install Pre-compiled binaries
@@ -134,36 +306,26 @@ function __install_yq () {
   local gh_repo;
   local get_url;
   local sys_arch bin_arch;
-  local ln_bin chmod_bin;
+  local ln_bin chmod_bin mkdir_bin;
   local link_inst_path;
-  # local yq_available;
-  # yq_available=$(is_available 'yq');
-  # if [[ ${yq_available} == true ]]; then
-  #   return 0;
-  # fi
   inst_path="$(__install_path --user)";
   link_inst_path="${HOME}/.local/bin";
-  # if [[ -f ${link_inst_path}/yq ]]; then
-  # return 0;
-  # fi
   sys_arch="$(uname -s)-$(uname -m)";
-  case ${sys_arch} in
+  case "${sys_arch}" in
     Linux-x86_64)     bin_arch="linux_amd64"    ;;
     Linux-aarch64)    bin_arch="linux_arm64"    ;;
     Darwin-x86_64)    bin_arch="darwin_amd64"   ;;
     Darwin-arm64)     bin_arch="darwin_arm64"   ;;
-    *)
-      builtin echo >&2 -ne "Error: Unknown CPU architecture '${sys_arch}'\n";
-      return 1;
-    ;;
+    *) exit_fun "Error: Unknown CPU architecture '${sys_arch}'\n" ;;
   esac
-  ln_bin="$(which_bin 'ln')";
-  chmod_bin="$(which_bin 'chmod')";
+  ln_bin="$(require 'ln')";
+  chmod_bin="$(require 'chmod')";
+  mkdir_bin="$(require 'mkdir')";
   gh_repo='mikefarah/yq';
-  latest_version="$(__get_gh_latest_release ${gh_repo})";
+  latest_version="$(__get_gh_latest_release "${gh_repo}")";
   base_url="https://github.com/${gh_repo}/releases/download";
   get_url="${base_url}/${latest_version}/yq_${bin_arch}";
-  mkdir -p "${inst_path}/yq/temp";
+  "${mkdir_bin}" -p "${inst_path}/yq/temp";
   download "${get_url}" "${inst_path}/yq/temp";
   "${chmod_bin}" +x "${inst_path}/yq/temp/yq_${bin_arch}";
 
@@ -181,18 +343,18 @@ function __install_python_cli_tools () {
   local pipx_bin;
   local pipx_pkg_arr;
   local _pipx_pkg;
+  local ln_bin;
+  __install_app --user 'micromamba';
+  __install_app --user 'python';
+  __install_app --user 'pipx';
   py_bin="$(which_bin 'python3')";
-  if [[ -z ${py_bin} ]]; then
-    py_bin="$(which_bin 'python')";
-  fi
-  "${py_bin}" -m pip \
-    install --user \
-    pipx;
-  pipx_bin="$(which_bin 'pipx')";
+  ln_bin="$(which_bin '')";
+  pipx_bin="$(require 'pipx')";
   builtin mapfile -t pipx_pkg_arr < <(get_config 'python_packages' 'pipx');
   for _pipx_pkg in "${pipx_pkg_arr[@]}"; do
     "${pipx_bin}" install "${_pipx_pkg}";
   done
+  return 0;
 }
 
 # =============================================================================
