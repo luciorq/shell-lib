@@ -3,82 +3,56 @@
 # Allow for sudo with aliases or custom functions,
 # + also shows alias expanded command and command type.
 function sudo_fun () {
-  builtin local cmd_str;
-  builtin local cmd_str_arr;
-  builtin local type_str;
-  builtin local aux_str;
-  builtin local cmd_bin;
-  builtin local cmd_bin_arr;
-  builtin local args_arr aux_arr;
   builtin local sudo_bin bash_bin;
-  builtin local sudo_bin_arr bash_bin_arr;
-  builtin local dot_sym arrow_sym;
-  builtin local alias_arg alias_args_arr;
-  builtin local fun_str;
-  dot_sym='*';
-  arrow_sym='-->';
-
-  builtin mapfile -t sudo_bin_arr < <(
-    builtin command which -a 'sudo' || builtin echo -ne ''
-  );
-  sudo_bin="${sudo_bin_arr[0]}";
+  builtin local cmd_str;
+  builtin local cmd_type;
+  builtin local args_q;
+  builtin local args_str;
+  builtin local cmd_prep;
+  sudo_bin="$(which_bin 'sudo')";
   if [[ -z ${sudo_bin} ]]; then
-    builtin return 1;
+    exit_fun "'sudo' is not available ...";
   fi
   if [[ ${1} == '--help' || ${1} == '-h' ]]; then
     "${sudo_bin}" --help;
+    return;
   fi
 
   if [[ $# -eq 0 ]]; then
     "${sudo_bin}";
+    return;
   fi
 
-  builtin mapfile -t bash_bin_arr < <(
-    builtin command which -a 'bash' || builtin echo -ne ''
-  );
-  bash_bin="${bash_bin_arr[0]}";
+  bash_bin="$(which_bin 'bash')";
+
+  cmd_prep="shopt -s expand_aliases; _SUDO_FUN=true; TERM=xterm-256color; ";
 
   cmd_str="${1}";
 
-  builtin echo -ne "${dot_sym} Command type:\n";
+  declare -a args_q=("${@@Q}");
+  args_str="${args_q[*]:1}";
 
-  aux_str='';
-  type_str=$(builtin type -a "${cmd_str}" 2> /dev/null | head -1);
-  alias_args_arr='';
-  while [[ "${type_str}" == *'is aliased to'* ]]; do
-    builtin echo -ne "${arrow_sym} Alias\n";
-    aux_str=$(
-      builtin type -a "${cmd_str}" | head -1 | grep -o -P "(?<=\`).*(?=')"
-    );
-    builtin mapfile -t aux_arr < <(
-      builtin echo "${aux_str}"
-    );
-    alias_args_arr="${aux_arr[@]:1} ${alias_args_arr}";
-    cmd_str=(${aux_arr[0]});
-    builtin mapfile -t  cmd_bin_arr < <(
-      builtin command which -a "${cmd_str}" || builtin echo -ne ''
-    );
-    cmd_bin="${cmd_bin_arr[0]}";
-    type_str=$(builtin type -a "${cmd_str}" 2> /dev/null | head -1);
-    if [[ "${type_str}" == *'is a function'* ]]; then
-      break
-    elif [[ -n ${cmd_bin} ]]; then
-      break
-    fi
-  done
-  # declare -a args_arr=(${@@Q})
-  builtin mapfile -t cmd_bin_arr < <(
-    builtin command which -a "${cmd_str}" || builtin echo -ne ''
-  );
-  cmd_bin="${cmd_bin_arr[0]}";
-  cmd_str="${cmd_str[0]}";
-  if [[ "${type_str}" == *'is a function'* ]]; then
-    builtin echo -ne "${arrow_sym} Function\n";
-    fun_str=$(declare -f "${cmd_str}");
-    "${sudo_bin}" "${bash_bin}" -c \
-      "eval \"${fun_str}\"; TERM=\'xterm-256color\' ${cmd_str} ${alias_args_arr[@]} ${@:1};";
-  else
-    builtin echo -ne "${arrow_sym} Normal\n";
-    "${sudo_bin}" TERM='xterm-256color' "${cmd_bin}" "${alias_args_arr[@]:1}" "${args_arr[@]:1}";
-  fi
+  cmd_type="$(
+    _SUDO_FUN=true "${bash_bin}" -i -c \
+      "${cmd_prep} builtin type -t '${cmd_str}';"
+  )";
+
+  case "${cmd_type}" in
+    file) type_str="Normal";;
+    builtin) type_str="Shell Builtin";;
+    alias) type_str="Alias";;
+    function) type_str="Function";;
+    *) exit_fun "Unknown command '${cmd_type}' type for '${cmd_str}'.";;
+  esac
+
+  builtin echo -ne "* Command type:\n";
+  builtin echo -ne "\t--> ${type_str}\n";
+
+  # builtin echo -ne "eval \"${*@Q}\";\n";
+  "${sudo_bin}" _SUDO_FUN=true "${bash_bin}" \
+    -O expand_aliases \
+    -i -c \
+    "${cmd_prep}eval ${cmd_str} \"${args_str}\"";
+
+  return 0;
 }
