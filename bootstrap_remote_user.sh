@@ -4,20 +4,26 @@
 # + reload user environment
 function bootstrap_user () {
   local install_type;
+  local mkdir_bin;
   install_type='--user';
-  mkdir -p "${HOME}/projects";
-  mkdir -p "${HOME}/workspaces";
-  mkdir -p "${HOME}/.local/bin";
-  mkdir -p "${HOME}/.local/lib";
-  mkdir -p "${HOME}/.local/opt/apps";
-  # __check_glibc "${install_type}";
+  mkdir_bin="$(require 'mkdir')";
+  "${mkdir_bin}" -p "${HOME}/projects";
+  "${mkdir_bin}" -p "${HOME}/workspaces";
+  "${mkdir_bin}" -p "${HOME}/.local/bin";
+  "${mkdir_bin}" -p "${HOME}/.local/lib";
+  "${mkdir_bin}" -p "${HOME}/.local/opt/apps";
   __build_git "${install_type}";
   __install_yq;
   __build_bash "${install_type}";
-  install_apps "${install_type}";
   __install_python_cli_tools;
+  # __build_glibc "${install_type}";
+  __build_rust_cargo "${install_type}";
+  install_apps "${install_type}";
+  __build_rust_cargo_tools;
+  __install_node_cli_tools;
   source_configs;
   __clean_home;
+  __update_configs;
   return 0;
 }
 
@@ -31,6 +37,15 @@ function __clean_home () {
     .npm
     .gem
     .sudo_as_admin_successful
+    .bash_history
+    .wget-hsts
+    .python_history
+    .subversion
+    .mamba
+    .Rhistory
+    .bash_profile
+    .zshenv
+    .zshrc
   )
   for _dir in "${remove_dirs[@]}"; do
     if [[ -f ${HOME}/${_dir} ]]; then
@@ -332,6 +347,36 @@ function __install_yq () {
   "${ln_bin}" -sf \
       "${inst_path}/yq/temp/yq_${bin_arch}" \
       "${link_inst_path}/yq";
+  return 0;
+}
+
+# =============================================================================
+# Bootstrap NodeJs command line tools installation
+# =============================================================================
+function __install_node_cli_tools () {
+  local npm_bin;
+  local npm_pkg_arr;
+  local _npm_pkg;
+  local npm_exec_arr;
+  local _npm_exec;
+  npm_bin="$(which_bin 'npm')";
+  if [[ -z ${npm_bin} ]]; then
+    builtin echo -ne "'npm' is not installed\n";
+    return 0;
+  fi
+  "${npm_bin}" install -g npm;
+  builtin mapfile -t npm_pkg_arr < <(get_config 'node_packages' 'npm');
+  for _npm_pkg in "${npm_pkg_arr[@]}"; do
+    "${npm_bin}" install -g "${_npm_pkg}";
+  done
+  builtin mapfile -t npm_exec_arr < <(
+    \ls -A1 "${HOME}/.local/share/npm/bin"
+  );
+  for _npm_exec in "${npm_exec_arr[@]}"; do
+    \ln -sf \
+      "${HOME}/.local/share/npm/bin/${_npm_exec}" \
+      "${HOME}/.local/bin/${_npm_exec}";
+  done
   return 0;
 }
 
