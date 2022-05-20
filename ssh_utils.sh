@@ -13,9 +13,12 @@ function ssha_fun () {
 
   ssh_agent_bin="$(require 'ssh-agent')";
   ssh_add_bin="$(require 'ssh-add')";
-  ssha_args='--apple-use-keychain ';
+  declare -a ssha_args=(
+    --apple-use-keychain
+  );
 
-  builtin eval "$(ssh-agent)" && ssh-add ${ssha_args}"${key_path}";
+  builtin eval "$("${ssh_agent_bin}")" \
+    && "${ssh_add_bin}" "${ssha_args[@]}" "${key_path}";
   return 0;
 }
 
@@ -26,6 +29,7 @@ function ssha_fun () {
 # Generate SSH key and push to server
 function ssh_key_create_and_push () {
   local _usage="ssh_key_create_and_push <USER> <HOST> <ID_FILE> [<PORT>|22]";
+  unset _usage;
   local ssh_user;
   local remote_ip;
   local key_name;
@@ -38,6 +42,8 @@ function ssh_key_create_and_push () {
   key_name="${3}";
   remote_port="${4:-22}";
   key_dir="${HOME}/.ssh/keys";
+  mkdir_bin="$(require 'mkdir')";
+  chmod_bin="$(require 'chmod')"
   if [[ ! -d ${key_dir} ]]; then
     "${mkdir_bin}" -p "${key_dir}";
   fi
@@ -51,6 +57,7 @@ function ssh_key_create_and_push () {
 # Generate SSH
 function ssh_generate_key () {
   local _usage="ssh_generate_key <USER> <HOST> <ID_FILE>";
+  unset _usage;
   local ssh_user;
   local ssh_host;
   local key_name;
@@ -62,13 +69,26 @@ function ssh_generate_key () {
   key_name="${3}";
   key_type="${4:-ed25519}";
   case "${key_type}" in
-    ed25519)   declare -a key_args=( -t ed25519 -a 200 ) ;;
-    rsa)       declare -a key_args=( -t ) ;;
-    *) return 1;;
+    ed25519)
+      declare -a key_args=(
+        -t
+        ed25519
+        -a
+        200
+      );
+    ;;
+    rsa)
+      declare -a key_args=(
+        -t
+      );
+    ;;
+    *)
+      return 1;
+    ;;
   esac
   ssh_keygen_bin="$(require 'ssh-keygen')";
   "${ssh_keygen_bin}" \
-    ${key_args[@]} \
+    "${key_args[@]}" \
     -C "${ssh_user}@${ssh_host}" \
     -f "${HOME}/.ssh/keys/${key_name}";
   return 0;
@@ -77,6 +97,7 @@ function ssh_generate_key () {
 # Send SSH Key to remote server
 function ssh_send_key {
   local _usage="ssh_send_key <USER> <HOST> <ID_FILE> <HOST_PORT>";
+  unset _usage;
   local ssh_user;
   local ssh_host;
   local key_name;
@@ -94,5 +115,4 @@ function ssh_send_key {
     "${ssh_user}@${ssh_host}";
   return 0;
 }
-
 

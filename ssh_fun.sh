@@ -5,6 +5,7 @@ function ssh_fun () {
   local ssh_bin;
   local chmod_bin;
   ssh_bin="$(require 'ssh')";
+
   if [[ ${_KITTY_SSH} == true ]]; then
     TERM='xterm-256color' "${ssh_bin}" "${@:1}";
   elif [[ ${TERM}  == xterm-kitty ]]; then
