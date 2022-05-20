@@ -19,7 +19,7 @@ function bootstrap_user () {
   # __build_glibc "${install_type}";
   __build_rust_cargo "${install_type}";
   install_apps "${install_type}";
-  __build_rust_cargo_tools;
+  __rebuild_rust_cargo_tools;
   __install_node_cli_tools;
   source_configs;
   __clean_home;
@@ -28,30 +28,36 @@ function bootstrap_user () {
 }
 
 function __clean_home () {
-  local remove_dirs _dir;
+  local remove_dirs_arr;
+  local _dir;
   local rm_bin;
+  local path_to_rm;
   rm_bin="$(which_bin 'rm')";
-  declare -a remove_dirs=(
+  declare -a remove_dirs_arr=(
     .vim
     .vimrc
+    .viminfo
     .npm
     .gem
     .sudo_as_admin_successful
-    .bash_history
     .wget-hsts
+    .lesshst
     .python_history
     .subversion
     .mamba
+    .conda
     .Rhistory
     .bash_profile
+    .bash_history
     .zshenv
     .zshrc
   )
-  for _dir in "${remove_dirs[@]}"; do
-    if [[ -f ${HOME}/${_dir} ]]; then
-      "${rm_bin}" "${HOME}/${_dir}";
-    elif [[ -d ${HOME}/${_dir} ]]; then
-      "${rm_bin}" -rf "${HOME}/${_dir}";
+  for _dir in "${remove_dirs_arr[@]}"; do
+    path_to_rm="${HOME}/${_dir}";
+    if [[ -f ${path_to_rm} ]]; then
+      "${rm_bin}" -f "${path_to_rm}";
+    elif [[ -d ${path_to_rm} ]]; then
+      "${rm_bin}" -rf "${path_to_rm}";
     fi
   done;
   return 0;
@@ -62,29 +68,73 @@ function __clean_home () {
 # =============================================================================
 function __build_rust_cargo () {
   local cargo_bin;
+  local curl_bin;
+  local bash_bin;
+  local ln_bin;
+  local install_path;
+  local link_path;
   local cargo_path;
   cargo_bin="$(which_bin 'cargo')";
-  cargo_path="${HOME}/.local/share/cargo/bin/cargo";
-
+  install_path="${HOME}/.local/share/cargo/bin";
+  link_path="${HOME}/.local/bin/cargo";
+  cargo_path="${install_path}/cargo";
   if [[ -z ${cargo_bin} ]]; then
     if [[ ! -f ${cargo_path} ]]; then
-      bash \
-        <(curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs) \
-        --no-modify-path --quiet -y;
+      curl_bin="$(require 'curl')";
+      bash_bin="$(require 'bash')";
+      "${bash_bin}" <(
+        "${curl_bin}" --proto '=https' --tlsv1.2 -sSf 'https://sh.rustup.rs'
+      ) --no-modify-path --quiet -y;
     fi
-    ln -sf \
-      "${HOME}/.local/share/cargo/bin/cargo" \
-      "${HOME}/.bin/cargo"
+    ln_bin="$(require 'ln')";
+    "${ln_bin}" -sf \
+      "${cargo_path}" \
+      "${link_path}";
   fi
   return 0;
 }
 
-function __build_rust_cargo_tools () {
+function __rebuild_rust_source_app () {
+  local _usage="usage: ${0} <CARGO_PKG_NAME> <APP_BINARIY>";
+  unset _usage;
+  local pkg_name;
+  local app_bin;
   local cargo_bin;
+  local ln_bin;
   local install_path;
+  local link_path;
+  pkg_name="${1}";
+  app_bin="${2}";
+  if [[ ${#} -lt 2 ]]; then
+    exit_fun 'This function needs two arguments';
+    return 1;
+  fi
+  cargo_bin="$(require 'cargo')";
+  ln_bin="$(require 'ln')";
+  install_path="${HOME}/.local/opt/apps/temp";
+  link_path="${HOME}/.local/bin"
+  "${cargo_bin}" install --quiet \
+    --root "${install_path}" "${pkg_name}";
+  "${ln_bin}" -sf "${install_path}/bin/${app_bin}" \
+    "${link_path}/${app_bin}";
+  return 0;
+}
+
+function __rebuild_rust_source_tools () {
+  local install_path;
+  local link_path;
   local cargo_arr;
-  local bin_arr;
-  local _bin;
+  local app_bin_arr;
+  local _app_bin;
+  local _app_bin_path;
+  local cargo_bin;
+  local ls_bin;
+  local ln_bin;
+  local check_bin_arr;
+  local _check_name;
+  local _check_bin;
+  local rebuild_arr;
+  local _check_avail;
   declare -a cargo_arr=(
     starship
     exa
@@ -95,11 +145,52 @@ function __build_rust_cargo_tools () {
     hck
   );
   cargo_bin="$(which_bin 'cargo')";
+  ls_bin="$(require 'ls')";
+  ln_bin="$(require 'ln')";
   install_path="${HOME}/.local/opt/apps/temp";
-  if [[]]; then
-    "${cargo_bin}" install --quiet \
-      --root "${install_path}" ${cargo_arr[*]};
+  link_path="${HOME}/.local/bin";
+  declare -a check_bin_arr=(
+    starship
+    exa
+    bat
+    dust
+    fd
+    sd
+    hck
+  );
+  declare -a rebuild_arr=();
+  for _check_name in "${check_bin_arr[@]}"; do
+    _check_bin="$(which_bin "${_check_name}")";
+    if [[ -n ${_check_bin} ]]; then
+      _check_avail="$(
+        "${_check_bin}" -v 2> /dev/null > /dev/null \
+          || builtin echo -ne "${?}"
+      )";
+      if [[ -n ${_check_avail} ]]; then
+        rebuild_arr+=(
+          "${_check_name}"
+        );
+      fi
+    fi
+  done
+  if [[ ${#rebuild_arr[@]} -eq 0 ]]; then
+    builtin echo -ne "No cargo app to rebuild.\n";
+    return 0;
   fi
+  "${cargo_bin}" install \
+    --quiet \
+    --root "${install_path}" \
+    "${cargo_arr[@]}";
+
+  builtin mapfile -t app_bin_arr < <(
+    "${ls_bin}" -A1 "${install_path}/bin"
+  );
+  for _app_bin in "${app_bin_arr[@]}"; do
+    _app_bin_path="${install_path}/bin/${_app_bin}";
+    "${ln_bin}" -sf \
+      "${_app_bin_path}" \
+      "${link_path}/${_app_bin}";
+  done
   return 0;
 }
 
