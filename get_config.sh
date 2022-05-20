@@ -3,13 +3,22 @@
 # Retrieve configuration from
 # + default personal configuration files
 # + Curretly only working with YAML files;
+# @param --priv | -p Search var file on private path.
 function get_config () {
   local cfg_dir;
   local file_base_name;
   local file_ext;
   local var_file;
-  cfg_dir="$(get_config_path)";
-  file_base_name="${1}";
+  local argv;
+  if [[ ${1} == --priv ]] || [[ ${1} == -p ]]; then
+    declare -a argv=("${@:3}");
+    file_base_name="${2}";
+    cfg_dir="$(get_config_path --priv)";
+  else
+    declare -a argv=("${@:2}");
+    file_base_name="${1}";
+    cfg_dir="$(get_config_path)";
+  fi
   file_ext='yaml';
   var_file="${cfg_dir}/vars/${file_base_name}.${file_ext}";
   if [[ ! -f ${var_file} ]]; then
@@ -17,8 +26,9 @@ function get_config () {
     var_file="${cfg_dir}/vars/${file_base_name}.${file_ext}";
   fi
   if [[ ! -f ${var_file} ]]; then
-    builtin echo >&2 -ne "Error: '${var_file}' no such file.\n";
+    exit_fun "Error: '${var_file}' no such file.";
     return 1;
   fi
-  parse_yaml "${var_file}" main "${@:2}";
+  parse_yaml "${var_file}" main "${argv[@]}";
+  return 0;
 }
