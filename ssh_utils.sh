@@ -2,8 +2,12 @@
 
 # Add key to SSH agent
 # + was previously used as alias:
-# + alias ssh='eval $(ssh-agent) && ssh-add';
+# + alias ssha='eval $(ssh-agent) && ssh-add';
+# + Currently being aliased as:
+# + alias ssha='ssha_fun'
 function ssha_fun () {
+  local _usage="usage: ${0} <KEY_FILE_PATH>";
+  unset _usage;
   local ssh_agent_bin;
   local ssh_add_bin;
   local ssha_args;
@@ -28,7 +32,7 @@ function ssha_fun () {
 
 # Generate SSH key and push to server
 function ssh_key_create_and_push () {
-  local _usage="ssh_key_create_and_push <USER> <HOST> <ID_FILE> [<PORT>|22]";
+  local _usage="usage: ${0} <USER> <HOST> <ID_FILE> [<PORT>|22]";
   unset _usage;
   local ssh_user;
   local remote_ip;
@@ -56,7 +60,7 @@ function ssh_key_create_and_push () {
 
 # Generate SSH
 function ssh_generate_key () {
-  local _usage="ssh_generate_key <USER> <HOST> <ID_FILE>";
+  local _usage="usage: ${0} <USER> <HOST> <ID_FILE>";
   unset _usage;
   local ssh_user;
   local ssh_host;
@@ -96,7 +100,7 @@ function ssh_generate_key () {
 
 # Send SSH Key to remote server
 function ssh_send_key {
-  local _usage="ssh_send_key <USER> <HOST> <ID_FILE> <HOST_PORT>";
+  local _usage="usage: ${0} <USER> <HOST> <ID_FILE> <HOST_PORT>";
   unset _usage;
   local ssh_user;
   local ssh_host;

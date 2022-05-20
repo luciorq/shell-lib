@@ -25,21 +25,22 @@ function require () {
   cmd_bin="$(which_bin "${cmd_str}")";
   if [[ -z ${cmd_bin} ]]; then
     exit_fun "'${cmd_str}' can't be found on '\$PATH'";
+    return 1;
   fi
 
   if [[ ${#} -eq 1 ]]; then
     cmd_res="$( "${cmd_bin}" --version 2>&1 || builtin echo -ne '' )";
-    full_cmd="${cmd_str} --version";
+    full_cmd="${cmd_bin} --version";
   else
-    cmd_res="$( "${cmd_bin}" "${*:2}" 2>&1 || builtin echo -ne '' )";
-    full_cmd="${cmd_str} ${*:2}";
+    cmd_res="$( "${cmd_bin}" "${@:2}" 2>&1 || builtin echo -ne '' )";
+    full_cmd="${cmd_bin} ${*:2}";
   fi
 
   if [[ -n ${cmd_res} ]]; then
     builtin echo -ne "${cmd_bin}";
   else
     exit_fun "'${full_cmd}' can't be executed";
+    return 1;
   fi
-  return;
+  return 0;
 }
-
