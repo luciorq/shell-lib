@@ -179,6 +179,8 @@ function __install_app_source () {
 
 # install app in a conda environment, using micromamba, if available
 function __install_app_mamba () {
+  local _usage="Usage: ${0} <--user|--system> <APP_NAME> <BIN_NAME_1> [<BIN_NAME_2> ... <BIN_NAME_N>]";
+  unset _usage;
   local install_path;
   local app_name;
   local install_type;
@@ -190,10 +192,9 @@ function __install_app_mamba () {
   local mkdir_bin;
   local ln_bin;
   local chmod_bin;
+  local touch_bin
   local _exec_bin;
   local exec_file;
-  # local python_url;
-  # local python_latest_version;
   local python_version;
   install_type="${1}";
   app_name="${2}";
@@ -207,6 +208,7 @@ function __install_app_mamba () {
   mkdir_bin="$(which_bin 'mkdir')";
   ln_bin="$(which_bin 'ln')";
   chmod_bin="$(which_bin 'chmod')";
+  touch_bin="$(which_bin 'touch')";
 
   if [[ ${install_type} == "--user" ]]; then
     prefix_path="${XDG_DATA_HOME:-${HOME}/.local/share}/conda";
@@ -234,8 +236,8 @@ function __install_app_mamba () {
     "${mamba_bin}" create \
       --yes \
       --quiet \
-      -c bioconda \
       -c conda-forge \
+      -c bioconda \
       -c defaults \
       --root-prefix "${prefix_path}" \
       --prefix "${envs_path}/${app_name}" \
@@ -247,7 +249,7 @@ function __install_app_mamba () {
   # TODO(luciorq) Search for mamba or conda binaries in the exec_file call
   for _exec_bin in "${@:3}"; do
     exec_file="${install_path}/${_exec_bin}";
-    \touch "${exec_file}";
+    "${touch_bin}" "${exec_file}";
     builtin echo -ne '#!/usr/bin/env bash\n\n' > "${exec_file}";
     builtin echo \
       "${mamba_bin} run -a sdtin -a stdout -a stderr --prefix ${envs_path}/${app_name} ${_exec_bin} \"\${@}\"" \
@@ -260,6 +262,7 @@ function __install_app_mamba () {
 
 function __install_app_conda () {
   __install_app_mamba "${@}";
+  return 0;
 }
 
 # Install app from downloadable tarball binary
@@ -438,6 +441,9 @@ function __install_app () {
   if [[ ${app_type} == null || -z ${app_type} ]]; then
     app_type='binary';
   fi
+  if [[ ${app_type} == 'mamba' ]]; then
+    app_type='conda';
+  fi
   if [[ -n ${app_repo} && -z ${app_url} ]]; then
     app_type="${app_type}_github";
   fi
@@ -466,8 +472,9 @@ function __install_app () {
         | sed "s|{[ ]*install_path[ ]*}|${install_path}|g" \
         | sed "s|{[ ]*lib_path[ ]*}|${lib_path}|g"
   )
-
   if [[ ${exec_path_arr[0]} == null ]]; then
+    declare -a exec_path_arr=();
+    unset exec_path_arr;
     exec_path_arr='';
   fi
   if [[ -z ${exec_path_arr[0]} ]]; then
@@ -490,7 +497,6 @@ function __install_app () {
           ${app_link} == True ]]; then
    app_link='true';
   fi
-
   case "${app_type}" in
     source_github)
       base_url="https://github.com/${app_repo}/releases/download/${app_version}";
@@ -511,7 +517,6 @@ function __install_app () {
       base_url='';
       get_url="${app_url}";
   esac
-
   lib_path="$(__install_path "${install_type}")";
   install_path="${lib_path}/${app_name}/${app_version}";
   missing_install='false';
@@ -528,7 +533,6 @@ function __install_app () {
   if [[ ! -d ${install_path} ]]; then
     "${mkdir_bin}" -p "${install_path}";
   fi
-
   case "${app_type}" in
     source)
       __install_app_source "${install_path}" "${tarball_name}" "${get_url}";
@@ -548,7 +552,6 @@ function __install_app () {
       return 1;
     ;;
   esac
-
   if [[ ! ${app_type} == conda ]]; then
     chmod_bin="$(which_bin 'chmod')";
     "${chmod_bin}" +x "${install_path}/${exec_path_arr[0]}";
@@ -569,11 +572,9 @@ function __install_app () {
     get_config apps apps "${app_num}" extra_cmd 2> /dev/null \
       || builtin echo -ne ''
   )
-
   if [[ -z ${extra_cmd_arr[0]} ]]; then
     extra_cmd_arr[0]='';
   fi
-
   if [[ -n ${extra_cmd_arr[0]} ]]; then
     for _extra_cmd in "${extra_cmd_arr[@]}"; do
       extra_cmd=$(builtin echo "${_extra_cmd}" \
@@ -589,9 +590,7 @@ function __install_app () {
       builtin eval $(echo ${extra_cmd[*]});
     done
   fi
-
   builtin echo -ne \
     "App: '${app_name}' (${app_version}) installed succesfully\n";
   return 0;
 }
-

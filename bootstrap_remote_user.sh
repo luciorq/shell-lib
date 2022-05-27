@@ -16,10 +16,9 @@ function bootstrap_user () {
   __install_yq;
   __build_bash "${install_type}";
   __install_python_cli_tools;
-  # __build_glibc "${install_type}";
   __build_rust_cargo "${install_type}";
   install_apps "${install_type}";
-  __rebuild_rust_cargo_tools;
+  __rebuild_rust_source_tools;
   __install_node_cli_tools;
   source_configs;
   __clean_home;
@@ -27,12 +26,15 @@ function bootstrap_user () {
   return 0;
 }
 
+# Clean dotfiles not XDG base dir spec
+# + compliant in user home dir
 function __clean_home () {
   local remove_dirs_arr;
   local _dir;
   local rm_bin;
   local path_to_rm;
   rm_bin="$(which_bin 'rm')";
+  # TODO(luciorq): Add .mamba, after solving xdg compliance to .mamba/proc/
   declare -a remove_dirs_arr=(
     .vim
     .vimrc
@@ -43,14 +45,16 @@ function __clean_home () {
     .wget-hsts
     .lesshst
     .python_history
+    .radian_history
     .subversion
-    .mamba
     .conda
+    .pki
     .Rhistory
     .bash_profile
     .bash_history
     .zshenv
     .zshrc
+    .kitty-ssh-kitten*
   )
   for _dir in "${remove_dirs_arr[@]}"; do
     path_to_rm="${HOME}/${_dir}";
@@ -63,20 +67,25 @@ function __clean_home () {
   return 0;
 }
 
-# =============================================================================
+# ======================================================================
 # Build Tools from source
-# =============================================================================
+# ======================================================================
+
+# Build Cargo and Rustup
 function __build_rust_cargo () {
   local cargo_bin;
   local curl_bin;
   local bash_bin;
   local ln_bin;
+  local ls_bin;
   local install_path;
   local link_path;
   local cargo_path;
+  local _link_bin;
+  local link_bin_arr;
   cargo_bin="$(which_bin 'cargo')";
   install_path="${HOME}/.local/share/cargo/bin";
-  link_path="${HOME}/.local/bin/cargo";
+  link_path="${HOME}/.local/bin";
   cargo_path="${install_path}/cargo";
   if [[ -z ${cargo_bin} ]]; then
     if [[ ! -f ${cargo_path} ]]; then
@@ -87,13 +96,24 @@ function __build_rust_cargo () {
       ) --no-modify-path --quiet -y;
     fi
     ln_bin="$(require 'ln')";
-    "${ln_bin}" -sf \
-      "${cargo_path}" \
-      "${link_path}";
+    ls_bin="$(require 'ls')";
+    builtin mapfile -t link_bin_arr < <(
+      "${ls_bin}" -A1 "${install_path}"
+    );
+    for _link_bin in "${link_bin_arr[@]}"; do
+      "${ln_bin}" -sf \
+        "${install_path}/${_link_bin}" \
+        "${link_path}/${_link_bin}";
+    done
+  fi
+  rustup_bin="$(which_bin 'rustup')";
+  if [[ -n ${rustup_bin} ]]; then
+    "${rustup_bin}" default stable;
   fi
   return 0;
 }
 
+# Rebuild specific Rust app using local cargo
 function __rebuild_rust_source_app () {
   local _usage="usage: ${0} <CARGO_PKG_NAME> <APP_BINARIY>";
   unset _usage;
@@ -120,6 +140,10 @@ function __rebuild_rust_source_app () {
   return 0;
 }
 
+# Rebuild all Rust app that fails to pass test
+# + Main motivation for this function was that most
+# + pre-compiled binaries available omn GitHub repositories
+# + fail to work on CentOS/RHEL 7 because of older GLIBC
 function __rebuild_rust_source_tools () {
   local install_path;
   local link_path;
@@ -181,7 +205,6 @@ function __rebuild_rust_source_tools () {
     --quiet \
     --root "${install_path}" \
     "${cargo_arr[@]}";
-
   builtin mapfile -t app_bin_arr < <(
     "${ls_bin}" -A1 "${install_path}/bin"
   );
@@ -194,6 +217,7 @@ function __rebuild_rust_source_tools () {
   return 0;
 }
 
+# Check version of the GLIBC library which the OS is built
 function __check_glibc () {
   local glibc_version;
   local ldd_bin;
@@ -222,6 +246,7 @@ function __check_glibc () {
   return 0;
 }
 
+# Build the latest version of GLIBC in a user owned directory
 function __build_glibc () {
   local glibc_right;
   local inst_path;
@@ -245,14 +270,10 @@ function __build_glibc () {
   if [[ ${install_type} == --system ]]; then
     inst_path="/opt/apps/${app_name}";
   fi
-
   app_name='glibc';
-
   if [[ ! ${OSTYPE} =~ "linux" ]]; then
     return 0;
   fi
-
-  # if [[ ${force_version} == latest ]]; then
   if [[ -z ${2} ]]; then
     glibc_right="$(__check_glibc '2.18')";
   else
@@ -261,7 +282,6 @@ function __build_glibc () {
   if [[ ${glibc_right} =~ "true" ]]; then
     return 0;
   fi
-
   rm_bin="$(which_bin 'rm')";
   mkdir_bin="$(which_bin 'mkdir')";
   make_bin="$(which_bin 'gmake')";
@@ -269,7 +289,6 @@ function __build_glibc () {
     make_bin="$(require 'make')";
   fi
   num_threads="$(get_nthreads 8)";
-
   if [[ ${force_version} == latest ]]; then
     mirror_repo='bminor/glibc';
     latest_tag="$(
@@ -291,17 +310,13 @@ function __build_glibc () {
   else
     build_version="${force_version}";
   fi
-
   base_name="${app_name}-${build_version}";
-
   get_url="https://ftp.gnu.org/gnu/glibc/${base_name}.tar.gz";
   build_path="$(create_temp 'glibc-build')";
   download "${get_url}" "${build_path}";
   unpack "${build_path}/${base_name}.tar.gz" "${build_path}";
-
   "${mkdir_bin}" -p "${inst_path}";
   "${mkdir_bin}" -p "${build_path}/${base_name}/build"
-
   (cd "${build_path}/${base_name}/build" && ../configure --prefix="${inst_path}");
   MAKE="$(which make)" "${make_bin}" \
     -C "${build_path}/${base_name}" -j "${num_threads}";
@@ -314,6 +329,7 @@ function __build_glibc () {
   return 0;
 }
 
+# Build latest GIT core from source
 function __build_git () {
   local build_path;
   local inst_path;
@@ -335,7 +351,7 @@ function __build_git () {
   build_path="$(create_temp 'git-inst')";
   download "${get_url}" "${build_path}";
   unpack "${build_path}/main.zip" "${build_path}";
-  "${make_bin}" -C "${build_path}/git-main" configure -j "${num_threads}";
+  "${make_bin}" -C "${build_path}/git-main" configure -j "${num_threads}"
   (cd "${build_path}/git-main" && ./configure --prefix="${inst_path}");
   "${make_bin}" -C "${build_path}/git-main" -j "${num_threads}";
   "${make_bin}" -C "${build_path}/git-main" install -j "${num_threads}";
@@ -345,6 +361,7 @@ function __build_git () {
   return 0;
 }
 
+# Build latest version of BASH from source
 function __build_bash () {
   local latest_tag;
   local latest_release_version;
@@ -356,7 +373,6 @@ function __build_bash () {
   local get_url;
   local rm_bin;
   local make_bin;
-
   rm_bin="$(which_bin 'rm')";
   make_bin="$(which_bin 'gmake')";
   if [[ -z ${make_bin} ]]; then
@@ -399,14 +415,14 @@ function __build_bash () {
     "${build_path}/bash-${build_version}.tar.gz";
   "${rm_bin}" -rf "${build_path}";
   "${inst_path}/bin/bash" --version;
-
   return 0;
 }
 
-
-# =============================================================================
+# ====================================================================
 # Install Pre-compiled binaries
-# =============================================================================
+# ====================================================================
+
+# Install a temporary yq binary to make parse_yaml work
 function __install_yq () {
   local latest_version;
   local gh_repo;
@@ -434,66 +450,86 @@ function __install_yq () {
   "${mkdir_bin}" -p "${inst_path}/yq/temp";
   download "${get_url}" "${inst_path}/yq/temp";
   "${chmod_bin}" +x "${inst_path}/yq/temp/yq_${bin_arch}";
-
   "${ln_bin}" -sf \
       "${inst_path}/yq/temp/yq_${bin_arch}" \
       "${link_inst_path}/yq";
   return 0;
 }
 
-# =============================================================================
+# ===================================================================
 # Bootstrap NodeJs command line tools installation
-# =============================================================================
+# ===================================================================
+
+# Use NPM to install NODEJS-based system tools
 function __install_node_cli_tools () {
   local npm_bin;
   local npm_pkg_arr;
   local _npm_pkg;
   local npm_exec_arr;
   local _npm_exec;
+  local ls_bin;
+  local ln_bin;
+
+  ls_bin="$(which_bin 'ls')";
+  ln_bin="$(which_bin 'ln')";
   npm_bin="$(which_bin 'npm')";
   if [[ -z ${npm_bin} ]]; then
     builtin echo -ne "'npm' is not installed\n";
     return 0;
   fi
   "${npm_bin}" install -g npm;
-  builtin mapfile -t npm_pkg_arr < <(get_config 'node_packages' 'npm');
+  builtin mapfile -t npm_pkg_arr < <(
+    get_config 'node_packages' 'npm'
+  );
   for _npm_pkg in "${npm_pkg_arr[@]}"; do
     "${npm_bin}" install -g "${_npm_pkg}";
   done
   builtin mapfile -t npm_exec_arr < <(
-    \ls -A1 "${HOME}/.local/share/npm/bin"
+    "${ls_bin}" -A1 "${HOME}/.local/share/npm/bin"
   );
   for _npm_exec in "${npm_exec_arr[@]}"; do
-    \ln -sf \
+    "${ln_bin}" -sf \
       "${HOME}/.local/share/npm/bin/${_npm_exec}" \
       "${HOME}/.local/bin/${_npm_exec}";
   done
   return 0;
 }
 
-# =============================================================================
+# ===================================================================
 # Bootstrap Python command line tools installation
-# =============================================================================
+# ===================================================================
+
+# Install Python Packages in the Mamba based latest Python installation
 function __install_python_cli_tools () {
-  local py_bin;
-  local pipx_bin;
-  local pipx_pkg_arr;
-  local _pipx_pkg;
-  local ln_bin;
+  # local py_bin;
+  # local pipx_bin;
+  # local pip_pkg_arr;
+  # local _pip_pkg;
+  # local ln_bin;
   __install_app --user 'micromamba';
   __install_app --user 'python';
-  __install_app --user 'pipx';
+  # __install_app --user 'pipx';
+  # py_bin="$(which_bin 'python3')";
+  # ln_bin="$(which_bin 'ln')";
+  # pipx_bin="$(require 'pipx')";
   py_bin="$(which_bin 'python3')";
-  ln_bin="$(which_bin '')";
-  pipx_bin="$(require 'pipx')";
-  builtin mapfile -t pipx_pkg_arr < <(get_config 'python_packages' 'pipx');
-  for _pipx_pkg in "${pipx_pkg_arr[@]}"; do
-    "${pipx_bin}" install "${_pipx_pkg}";
+  if [[ -z ${py_bin} ]]; then
+    py_bin="$(which_bin 'python')";
+  fi
+  builtin mapfile -t pip_pkg_arr < <(
+    get_config 'python_packages' 'pip'
+  );
+  for _pip_pkg in "${pip_pkg_arr[@]}"; do
+    "${py_bin}" -m pip install --quiet "${_pip_pkg}";
   done
   return 0;
 }
 
-# =============================================================================
+# ===================================================================
 # Bootstrap R environment
-# =============================================================================
+# ===================================================================
 
+# Install R packages to local installation of R
+#function __install_rstats_packages () {
+# return 0;
+#}
