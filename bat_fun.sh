@@ -15,7 +15,7 @@ function bat_fun () {
   fi
   cat_bin="$(which_bin 'cat')";
   if [[ -n ${bat_bin} && -z ${bat_avail} ]]; then
-    "${bat_bin}" "${@}";
+    "${bat_bin}" "${@}" --theme 'gruvbox-dark';
   else
     "${cat_bin}";
   fi
