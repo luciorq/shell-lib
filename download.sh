@@ -10,8 +10,14 @@ function download () {
   }
   if [[ $# -eq 0 ]]; then download_usage; unset download_usage; return 1; fi
   unset download_usage;
-  local get_url dir_output thread_num output_filename output_basename;
-  local aria_bin wget_bin curl_bin;
+  local get_url;
+  local dir_output;
+  local thread_num;
+  local output_filename;
+  local output_basename;
+  local wget_bin;
+  local curl_bin;
+  local aria_bin;
   local cache_path;
   get_url="${1}";
   dir_output="${2}";
@@ -27,24 +33,11 @@ function download () {
   output_filename="${dir_output}/${output_basename}";
   cache_path="${XDG_CACHE_HOME:-${HOME}/.cache}";
 
-  aria_bin="$(which_bin 'aria2c')";
   wget_bin="$(which_bin 'wget')";
   curl_bin="$(which_bin 'curl')";
+  aria_bin="$(which_bin 'aria2c')";
 
-  if [[ -n ${aria_bin} ]]; then
-    "${aria_bin}" \
-      --continue=true \
-      -s "${thread_num}" \
-      -x "${thread_num}" \
-      -j 1 \
-      -k 1M \
-      -d "${dir_output}"\
-      --out="${output_basename}" \
-      --quiet=true \
-      --check-integrity=true \
-      --check-certificate=false \
-      "${get_url}";
-  elif [[ -n ${curl_bin} ]]; then
+  if [[ -n ${curl_bin} ]]; then
     "${curl_bin}" \
       -f -s -S -L \
       --create-dirs \
@@ -63,8 +56,21 @@ function download () {
       --no-check-certificate \
       --output-document="${output_filename}" \
       "${get_url}";
+  elif [[ -n ${aria_bin} ]]; then
+    "${aria_bin}" \
+      --continue=true \
+      -s "${thread_num}" \
+      -x "${thread_num}" \
+      -j 1 \
+      -k 1M \
+      -d "${dir_output}"\
+      --out="${output_basename}" \
+      --quiet=true \
+      --check-integrity=true \
+      --check-certificate=false \
+      "${get_url}";
   else
-    builtin echo >&2 -ne "No download method available.\n";
+    exit_fun 'No download method available';
     return 1;
   fi
   return 0;

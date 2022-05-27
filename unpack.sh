@@ -72,7 +72,7 @@ function unpack () {
       ;;
     esac
   else
-    builtin echo >&2 -ne "'${zip_path}' is not a valid file.\n";
+    exit_fun "'${zip_path}' is not a valid file";
     return 1;
   fi
 }
