@@ -13,8 +13,8 @@ function sudo_fun () {
   if [[ -z ${sudo_bin} ]]; then
     exit_fun "'sudo' is not available ...";
   fi
-  if [[ ${1} == '--help' || ${1} == '-h' ]]; then
-    "${sudo_bin}" --help;
+  if [[ ${1} == '--help' || ${1} == '-h' || ${1} == '--version' || ${1} == '-V' ]]; then
+    "${sudo_bin}" "${1}";
     return;
   fi
 
