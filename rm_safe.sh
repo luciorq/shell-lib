@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# rm with safe measures by default
+# Remove file or directory, with some safe measures by default
 function rm_safe () {
   local rm_bin;
   local safe_dirs_arr _safe_dir;
@@ -8,6 +8,10 @@ function rm_safe () {
   local _arg;
   local path_arg;
   rm_bin="$(which_bin 'rm')";
+  if [[ -z ${rm_bin} ]]; then
+    exit_fun "'rm' command not available on \${PATH}";
+    return 1;
+  fi
   declare -a safe_dirs_arr=(
     "${HOME}"
     "${HOME}/Documents"
@@ -30,7 +34,9 @@ function rm_safe () {
     path_arg="$(realpath 2> /dev/null "${_arg}" || builtin echo -ne '')";
     if [[ -n ${path_arg} ]]; then
       for _safe_dir in "${safe_dirs_arr[@]}"; do
-        safe_path="$(realpath 2> /dev/null "${_safe_dir}" || builtin echo -ne '')";
+        safe_path="$(
+          realpath 2> /dev/null "${_safe_dir}" || builtin echo -ne ''
+        )";
         if [[ ${safe_path} == "${path_arg}" ]]; then
           builtin echo -ne \
             "Error: '${safe_path}' is a **protected** directory. Don't delete it!\n";
@@ -40,4 +46,5 @@ function rm_safe () {
     fi
   done
   "${rm_bin}" "${@}";
+  return 0;
 }
