@@ -12,15 +12,19 @@ function ssha_fun () {
   local ssh_add_bin;
   local ssha_args;
   local key_path;
+  local os_type;
 
   key_path="${1}";
 
   ssh_agent_bin="$(require 'ssh-agent')";
   ssh_add_bin="$(require 'ssh-add')";
-  declare -a ssha_args=(
-    --apple-use-keychain
-  );
-
+  declare -a ssh_args=();
+  os_type="$(get_os_type)";
+  if [[ ${os_type} == darwin ]]; then
+    declare -a ssha_args=(
+      --apple-use-keychain
+    );
+  fi
   builtin eval "$("${ssh_agent_bin}")" \
     && "${ssh_add_bin}" "${ssha_args[@]}" "${key_path}";
   return 0;
