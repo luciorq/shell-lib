@@ -21,9 +21,9 @@ function ssh_fun () {
         "${HOME}/.local/share/kitty-ssh-kitten/shell-integration/bash/kitty.bash" \
         || builtin echo -ne '';
     fi
-    kitty +kitten ssh "${@:1}";
+    kitty +kitten ssh -A "${@:1}";
   else
-    _SSH_VAR='true' TERM='xterm-256color' "${ssh_bin}" "${@:1}";
+    _SSH_VAR='true' TERM='xterm-256color' "${ssh_bin}" -A "${@:1}";
   fi
   set +x;
   return 0;
