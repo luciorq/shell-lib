@@ -43,7 +43,7 @@ install-bundle:
 
 
 install-mac-launchers:
-  #!/usr/bin/env bash -i
+  #!/usr/bin/env -S bash -i
   set -euxo pipefail
   for _app in $(\ls -A1 "{{lib_tools_path}}/inst/"*.command); do
     inst_path="/usr/local/bin/$(basename ${_app})";
@@ -53,12 +53,12 @@ install-mac-launchers:
   done
 
 test:
-  #!/usr/bin/env bash -i
+  #!/usr/bin/env -S bash -i
   set -euxo pipefail;
   bats -x tests/;
 
 init:
-  #!/usr/bin/env bash -i
+  #!/usr/bin/env -S bash -i
   set -euxo pipefail
   bashly init
   bashly add yaml
@@ -67,7 +67,7 @@ init:
 super-lint:
   #!/usr/bin/env bash
   set -euxo pipefail
-   docker pull github/super-linter:latest
+  docker pull github/super-linter:latest
   docker run -e RUN_LOCAL=true -v {{ justfile_directory() }}:/tmp/lint github/super-linter
 
 
