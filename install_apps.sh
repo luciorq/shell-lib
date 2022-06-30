@@ -55,9 +55,12 @@ function __get_gh_latest_release () {
   local repo;
   local release_url;
   local latest_version;
+  local curl_bin;
   repo="${1}";
+  curl_bin="$(which_bin 'curl')";
   release_url="$(
-    curl -fsSL -I -o /dev/null -w '%{url_effective}' \
+    "${curl_bin}" -fsSL \
+      --insecure -I -o /dev/null -w '%{url_effective}' \
       "https://github.com/${repo}/releases/latest"
   )";
   latest_version="${release_url//http*\/tag\//}";
@@ -75,11 +78,17 @@ function __get_gh_latest_tag () {
   local cat_bin;
   local sed_bin;
   local grep_bin;
+  local curl_bin;
   repo="${1}";
   grep_bin="$(require 'grep')";
   sed_bin="$(require 'sed')";
   cat_bin="$(which_bin 'cat')";
-  latest_tag=$(curl -fsSL "https://api.github.com/repos/${repo}/tags");
+  curl_bin="$(which_bin 'curl')";
+  latest_tag="$(
+    "${curl_bin}" -fsSL \
+      --insecure \
+      "https://api.github.com/repos/${repo}/tags"
+  )";
   builtin mapfile -t latest_tag_arr < <(
     builtin echo -ne "${latest_tag}" \
       | "${grep_bin}" '"name": ' \
@@ -224,14 +233,15 @@ function __install_app_mamba () {
   python_version="$(
     "${mamba_bin}" search \
       --quiet \
-      -c bioconda \
       -c conda-forge \
+      -c bioconda \
       python \
         | grep 'cpython' \
         | head -n 1 \
         | sed -e 's/[[:space:]]python[[:space:]]//g' \
         | sed 's/[[:space:]].*$//g'
   )";
+  # python="${python_version}" \
   if [[ ! -d ${envs_path}/${app_name} ]]; then
     "${mamba_bin}" create \
       --yes \
@@ -241,7 +251,6 @@ function __install_app_mamba () {
       -c defaults \
       --root-prefix "${prefix_path}" \
       --prefix "${envs_path}/${app_name}" \
-      python="${python_version}" \
       "${app_name}";
   fi
 
