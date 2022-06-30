@@ -21,6 +21,12 @@ export ACKRC="${XDG_CONFIG_HOME}/ack/ackrc"
 # Atom
 export ATOM_HOME="${XDG_DATA_HOME}/atom";
 
+# Visual Studio Code - vscode - Portable
+export VSCODE_PORTABLE="${XDG_DATA_HOME}/vscode"
+if [[ ! -d ${VSCODE_PORTABLE} ]]; then
+  \mkdir -p "${VSCODE_PORTABLE}";
+fi
+
 # AWS CLI
 export AWS_SHARED_CREDENTIALS_FILE="${XDG_CONFIG_HOME}/aws/credentials";
 export AWS_CONFIG_FILE="${XDG_CONFIG_HOME}/aws/config";
@@ -66,6 +72,11 @@ export LESSHISTFILE="${XDG_STATE_HOME}/less/history";
 # GNU Screen
 export SCREENRC="${XDG_CONFIG_HOME}/screen/screenrc";
 
+# Mozilla Firefox third-party tools
+export MOZILLA_CONFIG="${XDG_STATE_HOME}/mozilla";
+if [[ ! -d ${XDG_STATE_HOME}/mozilla ]]; then
+  \mkdir -p "${XDG_STATE_HOME}/mozilla";
+fi
 
 # Mathematica
 export MATHEMATICA_USERBASE="${XDG_CONFIG_HOME}/Mathematica";
@@ -93,7 +104,6 @@ export PGSERVICEFILE="${XDG_CONFIG_HOME}/postgres/service.conf"
 
 # SQLite
 export SQLITE_HISTORY="${XDG_DATA_HOME}/sqlite_history"
-
 
 # Readline
 export INPUTRC="${XDG_CONFIG_HOME}/readline/inputrc"
@@ -125,6 +135,8 @@ alias wget='wget --hsts-file="${XDG_CACHE_HOME}/wget/wget-hsts"';
 
 # java openjdk
 export _JAVA_OPTIONS="-Djava.util.prefs.userRoot=${XDG_CONFIG_HOME}/java";
+# gradle build tools
+export GRADLE_USER_HOME="${XDG_DATA_HOME}/gradle";
 
 # python / jupyter
 export IPYTHONDIR="${XDG_CONFIG_HOME}/jupyter";
