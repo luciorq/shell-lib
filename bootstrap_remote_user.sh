@@ -55,6 +55,15 @@ function __clean_home () {
     .zshenv
     .zshrc
     .kitty-ssh-kitten*
+    .thunderbird
+    .TinyTeX
+    .gnome
+    .nextflow
+    .fluffy
+    .mozilla
+    .groovy
+    .openjfx
+    .emacs
   )
   for _dir in "${remove_dirs_arr[@]}"; do
     path_to_rm="${HOME}/${_dir}";
@@ -292,7 +301,7 @@ function __build_glibc () {
   if [[ ${force_version} == latest ]]; then
     mirror_repo='bminor/glibc';
     latest_tag="$(
-      curl -fsSL "https://api.github.com/repos/${mirror_repo}/tags"
+      \curl -fsSL --insecure "https://api.github.com/repos/${mirror_repo}/tags"
     )";
     latest_version="$(
     builtin echo "${latest_tag[@]}" \
@@ -385,7 +394,7 @@ function __build_bash () {
   fi
   mirror_repo='bminor/bash';
   latest_tag="$(
-    curl -fsSL "https://api.github.com/repos/${mirror_repo}/tags"
+    \curl -fsSL --insecure "https://api.github.com/repos/${mirror_repo}/tags"
   )";
   latest_release_version="$(
     builtin echo "${latest_tag[@]}" \
