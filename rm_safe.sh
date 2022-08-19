@@ -3,7 +3,8 @@
 # Remove file or directory, with some safe measures by default
 function rm_safe () {
   local rm_bin;
-  local safe_dirs_arr _safe_dir;
+  local safe_dirs_arr;
+  local _safe_dir;
   local safe_path;
   local _arg;
   local path_arg;

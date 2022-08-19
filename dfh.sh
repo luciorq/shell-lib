@@ -12,7 +12,6 @@ function dfh () {
   ls_bin="$(which_bin 'ls')";
   df_bin="$(which_bin 'df')";
   grep_bin="$(which_bin 'grep')";
-  column_bin="$(which_bin 'column')";
   "${ls_bin}" /data/* /home 2> /dev/null 1> /dev/null \
     || builtin echo -ne '';
   body_str="$(

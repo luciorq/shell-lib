@@ -1,5 +1,3 @@
-# shellcheck shell=bash
-
 prj_name := 'shell-lib'
 lib_home := env_var_or_default('XDG_LIB_HOME', env_var('HOME') + '/' + '.local/lib')
 
@@ -25,7 +23,7 @@ build:
   # for _i in "$(\ls -A1 src/)"; do
   #  _function_name="$(basename ${_i%%.*})";
   #  bashly generate --wrap ${_function_name};
-  #done
+  # done
   bashly add comp script share/completions.bash --force
   bashly add comp function --force
   bashly generate --upgrade --env production --wrap "${_tool_name}"

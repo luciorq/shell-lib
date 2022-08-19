@@ -114,16 +114,20 @@ function __user_remove () {
 }
 
 
-# TODO(luciorq): Finish setting replacte_pw function
+# TODO(luciorq): Finish setting replicate_pw function
 # Replicate hashed user password
 # + from one remote host to another
 function __replicate_pw_server () {
   local _usage="Usage: {0} <USER_NAME> <HOST_FROM> <HOST_TO>";
   unset _usage;
   local user_name;
-  local host_from;
-  local host_to;
+  local host_control_plane;
+  local host_targets;
+
   user_name="${1}";
+
+  host_control_plane="${2}";
+  host_targets=( "${@:3}" );
 
   return 0;
 }
