@@ -2,7 +2,7 @@
 
 # Create user with specific user ID and password
 function __user_create () {
-  local _usage="$0: __create_user <USER_NAME> <USER_UID> [<PW>]"
+  local _usage="$0: __create_user <USER_NAME> <USER_UID> [<PW|PW_HASH>]"
   unset _usage;
   local user_name;
   local user_uid;
@@ -16,6 +16,9 @@ function __user_create () {
   local mkpw_bin;
   local dirname_bin;
   local useradd_bin;
+  local grep_bin;
+  local sudo_bin;
+  local is_hashed_pw;
   user_name="${1}";
   if [[ -z ${1} ]]; then
     exit_fun 'User name can not be empty';
@@ -26,11 +29,12 @@ function __user_create () {
     exit_fun 'User UID need to be provided';
     return 1;
   fi
+  grep_bin="$(which_bin 'grep')";
   uid_avail="$(
-    grep -v '^#' /etc/passwd \
+    "${grep_bin}" -v '^#' /etc/passwd \
       | cut -d':' -f 3 \
       | sort -nr \
-      | grep "${user_uid}" \
+      | "${grep_bin}" "${user_uid}" \
       || builtin echo -ne ''
   )";
   _hostname="$(get_hostname)";
@@ -45,14 +49,24 @@ function __user_create () {
   mkpw_bin="$(which_bin 'mkpasswd')";
   dirname_bin="$(which_bin 'dirname')";
   useradd_bin="$(which_bin 'useradd')";
+  sudo_bin="$(which_bin 'sudo')";
   if [[ -n ${3} ]]; then
     user_pw="${3}";
   else
     user_pw="$("${mkpw_bin}" ...)";
   fi
   home_path="$("${dirname_bin}" "${HOME}")";
-  user_hash_pw="$("${mkpw_bin}" -m sha-512 "${user_pw}")";
-  sudo "${useradd_bin}" \
+
+  is_hashed_pw="$(
+    builtin echo -ne "${user_pw}" \
+      |"${grep_bin}" '\$[0-9]\$'
+  )";
+  if [[ -z ${is_hashed_pw} ]]; then
+    user_hash_pw="$("${mkpw_bin}" -m sha-512 "${user_pw}")";
+  else
+    user_hash_pw="${user_pw}";
+  fi
+  "${sudo_bin}" "${useradd_bin}" \
     -m \
     -d "${home_path}/${user_name}" \
     -u "${user_uid}" \
