@@ -204,7 +204,7 @@ function __install_app_mamba () {
   local touch_bin
   local _exec_bin;
   local exec_file;
-  local python_version;
+  # local python_version;
   install_type="${1}";
   app_name="${2}";
   mamba_bin="$(which_bin 'micromamba')";
@@ -213,6 +213,10 @@ function __install_app_mamba () {
   fi
   if [[ -z ${mamba_bin} ]]; then
     mamba_bin="$(which_bin 'conda')";
+  fi
+  if [[ -z ${mamba_bin} ]]; then
+    exit_fun '{mamba} is not available for ';
+    return 1;
   fi
   mkdir_bin="$(which_bin 'mkdir')";
   ln_bin="$(which_bin 'ln')";
@@ -230,22 +234,13 @@ function __install_app_mamba () {
     install_path="/opt/apps/${app_name}/bin";
     link_path='/usr/local/bin';
   fi
-  python_version="$(
-    "${mamba_bin}" search \
-      --quiet \
-      -c conda-forge \
-      -c bioconda \
-      python \
-        | grep 'cpython' \
-        | head -n 1 \
-        | sed -e 's/[[:space:]]python[[:space:]]//g' \
-        | sed 's/[[:space:]].*$//g'
-  )";
-  # python="${python_version}" \
+
   if [[ ! -d ${envs_path}/${app_name} ]]; then
     "${mamba_bin}" create \
       --yes \
       --quiet \
+      --no-rc \
+      --no-env \
       -c conda-forge \
       -c bioconda \
       -c defaults \
@@ -255,6 +250,8 @@ function __install_app_mamba () {
   fi
 
   "${mkdir_bin}" -p "${install_path}";
+
+  # TODO(luciorq) Add link option check before creating _exec_bin file
   # TODO(luciorq) Search for mamba or conda binaries in the exec_file call
   for _exec_bin in "${@:3}"; do
     exec_file="${install_path}/${_exec_bin}";
@@ -556,8 +553,8 @@ function __install_app () {
       __install_app_mamba "${install_type}" "${app_name}" "${exec_path_arr[@]}";
     ;;
     *)
-      builtin echo >&2 \
-        -ne "Error: Unknown installation type: '${app_type}'.\n";
+      #builtin echo >&2 -ne \
+      exit_fun "Error: Unknown installation type: '${app_type}'.";
       return 1;
     ;;
   esac
