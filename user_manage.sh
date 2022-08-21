@@ -123,11 +123,51 @@ function __replicate_pw_server () {
   local user_name;
   local host_control_plane;
   local host_targets;
-
+  local grep_bin;
+  local sed_bin;
+  local res_str;
+  local pw_str;
+  local _host;
+  local _host_str;
+  local _host_pw;
   user_name="${1}";
-
   host_control_plane="${2}";
-  host_targets=( "${@:3}" );
+  # host_targets=( "${@:3}" );
+
+  grep_bin="$(require 'grep')";
+  sed_bin="$(require 'sed')";
+  res_str="$(
+    exec_remote bioinfo@"${host_control_plane}" \
+      'sudo cat /etc/shadow' 2> /dev/null \
+      | "${grep_bin}" "${user_name}" 2> /dev/null
+  )";
+  pw_str="$(
+    builtin echo "${res_str}" \
+    | "${grep_bin}" "${user_name}" \
+    | "${sed_bin}" -e 's/^\w*://g' \
+    | "${sed_bin}" -e 's/:[[:digit:]]*:[[:digit:]]:[[:digit:]]*:[[:digit:]]::://g'
+  )";
+
+  for _host in "${@:3}"; do
+    _host_str="$(
+      exec_remote bioinfo@"${_host}" \
+        sudo cat /etc/shadow 2> /dev/null \
+        | grep "${user_name}" 2> /dev/null
+    )";
+    _host_pw="$(
+      builtin echo "${_host_str}" \
+      | "${grep_bin}" "${user_name}" \
+      | "${sed_bin}" -e 's/^\w*://g' \
+      | "${sed_bin}" -e \
+        's/:[[:digit:]]*:[[:digit:]]:[[:digit:]]*:[[:digit:]]::://g'
+    )";
+    echo "${_host}";
+    if [[ -z ${_host_pw} ]]; then
+      builtin echo -ne \
+        "User {${user_name}}";
+    fi
+    echo "${_host_pw}";
+  done
 
   return 0;
 }
