@@ -6,7 +6,6 @@ function __user_create () {
   unset _usage;
   local user_name;
   local user_uid;
-  # local user_comment;
   local user_pw;
   local user_hash_pw;
   local home_path;
@@ -161,12 +160,12 @@ function __replicate_pw_server () {
       | "${sed_bin}" -e \
         's/:[[:digit:]]*:[[:digit:]]:[[:digit:]]*:[[:digit:]]::://g'
     )";
-    echo "${_host}";
+    echo "Host: ${_host}";
     if [[ -z ${_host_pw} ]]; then
       builtin echo -ne \
-        "User {${user_name}}";
+        "User {${user_name}} is not available at host {${_host}}\n";
     fi
-    echo "${_host_pw}";
+    echo "PW: ${_host_pw}";
   done
 
   return 0;

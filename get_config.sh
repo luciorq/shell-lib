@@ -5,6 +5,8 @@
 # + Curretly only working with YAML files;
 # @param --priv | -p Search var file on private path.
 function get_config () {
+  local _usage="Usage: ${0} <{--priv|-p]>";
+  unset _usage;
   local cfg_dir;
   local file_base_name;
   local file_ext;

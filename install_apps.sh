@@ -173,7 +173,13 @@ function __install_app_source () {
   );
   build_path="${dl_path}/${build_arr[0]}";
   # make -C "${build_path}/bash-${build_version}" configure -j ${num_threads};
-  (cd "${build_path}" && ./configure --prefix="${install_path}");
+  function __build_app () {
+    (
+      builtin cd "${build_path}" \
+        || builtin return 1;
+      ./configure --prefix="${install_path}";
+    )
+  };
   "${make_bin}" \
     -C "${build_path}" \
     -j "${num_threads}";

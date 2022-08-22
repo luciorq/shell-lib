@@ -270,6 +270,10 @@ function __build_glibc () {
   local rm_bin;
   local mkdir_bin;
   local make_bin;
+  local grep_bin;
+  local sed_bin;
+  local sort_bin;
+  local curl_bin;
   local build_path;
   local install_type;
   local force_version;
@@ -293,6 +297,10 @@ function __build_glibc () {
   fi
   rm_bin="$(which_bin 'rm')";
   mkdir_bin="$(which_bin 'mkdir')";
+  grep_bin="$(which_bin 'grep')";
+  sed_bin="$(which_bin 'sed')";
+  sort_bin="$(which_bin 'sort')";
+  curl_bin="$(which_bin 'curl')";
   make_bin="$(which_bin 'gmake')";
   if [[ -z ${make_bin} ]]; then
     make_bin="$(require 'make')";
@@ -301,19 +309,20 @@ function __build_glibc () {
   if [[ ${force_version} == latest ]]; then
     mirror_repo='bminor/glibc';
     latest_tag="$(
-      \curl -fsSL --insecure "https://api.github.com/repos/${mirror_repo}/tags"
+      "${curl_bin}" -fsSL --insecure \
+        "https://api.github.com/repos/${mirror_repo}/tags"
     )";
     latest_version="$(
     builtin echo "${latest_tag[@]}" \
-      | sed 's/\(\"name\"\):/\n\1/g' \
-      | grep '"name"' \
-      | sed -e 's/\"name\"[[:space:]]\"\(.*\)/\1/g' \
-      | sed -e 's/\",//g' \
-      | grep -v '\-rc\|\-beta\|\-alpha\|devel' \
-      | grep -v '\.9...$' \
-      | grep -v '\.9.$' \
-      | sed -e 's/glibc\-//g' \
-      | sort -rV
+      | "${sed_bin}" 's/\(\"name\"\):/\n\1/g' \
+      | "${grep_bin}" '"name"' \
+      | "${sed_bin}" -e 's/\"name\"[[:space:]]\"\(.*\)/\1/g' \
+      | "${sed_bin}" -e 's/\",//g' \
+      | "${grep_bin}" -v '\-rc\|\-beta\|\-alpha\|devel' \
+      | "${grep_bin}" -v '\.9...$' \
+      | "${grep_bin}" -v '\.9.$' \
+      | "${sed_bin}" -e 's/glibc\-//g' \
+      | "${sort_bin}" -rV
     )";
     build_version="${latest_version/[[:space:]]*/}";
   else
@@ -325,8 +334,16 @@ function __build_glibc () {
   download "${get_url}" "${build_path}";
   unpack "${build_path}/${base_name}.tar.gz" "${build_path}";
   "${mkdir_bin}" -p "${inst_path}";
-  "${mkdir_bin}" -p "${build_path}/${base_name}/build"
-  (cd "${build_path}/${base_name}/build" && ../configure --prefix="${inst_path}");
+  "${mkdir_bin}" -p "${build_path}/${base_name}/build";
+  function __build_app () {
+    (
+      builtin cd "${build_path}/${base_name}/build" \
+        || return 1;
+      ../configure --prefix="${inst_path}"
+    )
+  };
+  __build_app;
+  unset __build_app;
   MAKE="$(which make)" "${make_bin}" \
     -C "${build_path}/${base_name}" -j "${num_threads}";
   MAKE="$(which make)" "${make_bin}" \
@@ -361,7 +378,16 @@ function __build_git () {
   download "${get_url}" "${build_path}";
   unpack "${build_path}/main.zip" "${build_path}";
   "${make_bin}" -C "${build_path}/git-main" configure -j "${num_threads}"
-  (cd "${build_path}/git-main" && ./configure --prefix="${inst_path}");
+  local __build_app;
+  function __build_app () {
+    (
+      builtin cd "${build_path}/git-main" \
+        || return 1;
+      ./configure --prefix="${inst_path}";
+    )
+  };
+  __build_app;
+  unset __build_app;
   "${make_bin}" -C "${build_path}/git-main" -j "${num_threads}";
   "${make_bin}" -C "${build_path}/git-main" install -j "${num_threads}";
   "${rm_bin}" -rf "${build_path}/git-main" "${build_path}/main.zip";
@@ -382,7 +408,16 @@ function __build_bash () {
   local get_url;
   local rm_bin;
   local make_bin;
+  local curl_bin;
+  local grep_bin;
+  local sed_bin;
+  local sort_bin;
+
   rm_bin="$(which_bin 'rm')";
+  sort_bin="$(which_bin 'sort')";
+  sed_bin="$(which_bin 'sed')";
+  grep_bin="$(which_bin 'grep')";
+  curl_bin="$(which_bin 'curl')";
   make_bin="$(which_bin 'gmake')";
   if [[ -z ${make_bin} ]]; then
     make_bin="$(require 'make')";
@@ -394,18 +429,19 @@ function __build_bash () {
   fi
   mirror_repo='bminor/bash';
   latest_tag="$(
-    \curl -fsSL --insecure "https://api.github.com/repos/${mirror_repo}/tags"
+    "${curl_bin}" -fsSL --insecure \
+      "https://api.github.com/repos/${mirror_repo}/tags"
   )";
   latest_release_version="$(
     builtin echo "${latest_tag[@]}" \
-      | sed 's/\(\"name\"\):/\n\1/g' \
-      | grep '"name"' \
-      | sed -e 's/\"name\"[[:space:]]\"\(.*\)/\1/g' \
-      | sed -e 's/\",//g' \
-      | grep -v '\-rc\|\-beta\|\-alpha\|devel' \
-      | grep 'bash' \
-      | sed 's/bash\-//g' \
-      | sort -rV
+      | "${sed_bin}" 's/\(\"name\"\):/\n\1/g' \
+      | "${grep_bin}" '"name"' \
+      | "${sed_bin}" -e 's/\"name\"[[:space:]]\"\(.*\)/\1/g' \
+      | "${sed_bin}" -e 's/\",//g' \
+      | "${grep_bin}" -v '\-rc\|\-beta\|\-alpha\|devel' \
+      | "${grep_bin}" 'bash' \
+      | "${sed_bin}" 's/bash\-//g' \
+      | "${sort_bin}" -rV
   )";
   build_version="${latest_release_version/[[:space:]]*/}";
   num_threads="$(get_nthreads 8)";
@@ -413,8 +449,16 @@ function __build_bash () {
   build_path="$(create_temp bash-inst)";
   download "${get_url}" "${build_path}";
   unpack "${build_path}/bash-${build_version}.tar.gz" "${build_path}";
-  # "${make_bin}" -C "${build_path}/bash-${build_version}" configure -j ${num_threads};
-  (cd "${build_path}/bash-${build_version}" && ./configure --prefix="${inst_path}");
+  local __build_app;
+  function __build_app () {
+    (
+      builtin cd "${build_path}/bash-${build_version}" \
+        || return 1;
+      ./configure --prefix="${inst_path}";
+    )
+  };
+  __build_app;
+  unset __build_app;
   "${make_bin}" \
     -C "${build_path}/bash-${build_version}" -j "${num_threads}";
   "${make_bin}" \
