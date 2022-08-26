@@ -16,7 +16,7 @@ function rstats::boostrap_quarto_install () {
   local quarto_bin;
   quarto_bin="$(which_bin 'quarto')";
   if [[ -z ${quarto_bin} ]]; then
-    exit_fun "{quarto} CLI is not installed."
+    exit_fun '{quarto} CLI is not installed.';
     return 1;
   fi
   "${quarto_bin}" install tool tinytex;
@@ -25,30 +25,152 @@ function rstats::boostrap_quarto_install () {
 }
 
 # Install R Packages
-rstats::install_pkg () {
-  local _usage="Usage: ${0} <> [cran|gh|local|bioc]";
+# TODO: '--force' flag not implemented yet
+function rstats::install_pkg () {
+  local _usage="Usage: ${0} <PKG_NAME> [cran|gh|github|local|bioc*|universe] [--force]";
   unset _usage;
   local pkg_name;
-  local pkg_type
+  local pkg_type;
   local r_bin;
   local num_threads;
   local install_str;
+  local pak_str;
   local script_str;
+  local is_pak_available;
   pkg_name="${1}";
+  if [[ -z ${pkg_name} ]]; then
+    exit_fun 'Package name is not provided.';
+    return 1;
+  fi
   pkg_type="${2:-cran}";
   r_bin="$(require 'R')";
   case ${pkg_type} in
-    cran)      install_str='install.packages'           ;;
-    gh)        install_str='remotes::install_github'    ;;
-    local)     install_str='remotes::install_local'     ;;
-    bioc*)     install_str='BiocManager::install'       ;;
+    cran)
+      install_str='install.packages';
+      pak_str='';
+    ;;
+    gh|github)
+      install_str='remotes::install_github';
+      pak_str='github::';
+    ;;
+    local)
+      install_str='remotes::install_local';
+      pak_str='local::~/projects/';
+    ;;
+    bioc*)
+      install_str='BiocManager::install';
+      pak_str='bioc::';
+    ;;
+    universe)
+      install_str='install.packages';
+      pak_str='';
+    ;;
     *)
-      builtin echo >&2 -ne "'${pkg_type}' not available as a Source.\n";
+      exit_fun "'${pkg_type}' not available as a Source.";
       return 1;
     ;;
   esac
-  num_threads="$(get_nthreads 24)";
-  script_str="if(isFALSE(base::requireNamespace('${pkg_name}',quietly=TRUE))){${install_str}('${pkg_name}',Ncpus=${num_threads})}";
+
+  is_pak_available="$(
+    "${r_bin}" -q -s -e \
+      "cat(isTRUE(requireNamespace('pak', quietly=TRUE)))"
+  )";
+
+  if [[ ${is_pak_available} == 'TRUE' ]]; then
+    script_str="pak::pkg_install('${pak_str}${pkg_name}', upgrade = TRUE, ask = FALSE)";
+  else
+    num_threads="$(get_nthreads 24)";
+    script_str="if(isFALSE(base::requireNamespace('${pkg_name}',quietly=TRUE))){${install_str}('${pkg_name}',Ncpus=${num_threads})}";
+  fi
+  "${r_bin}" -q -s -e \
+    "${script_str}";
+  return 0;
+}
+
+# Update R language installation to the latest release version
+# + only works correctly with devel, release, next
+function rstats::install_rstats_version () {
+  local rig_bin;
+  local os_type;
+  local rstats_version;
+
+  rig_bin="$(require 'rig')";
+  if [[ -z ${rig_bin} ]]; then
+    exit_fun '{rig} CLI is not installed.';
+    return 1;
+  fi
+  rstats_version="${1-release}";
+  os_type="$(get_os_type)";
+  "${rig_bin}" add "${rstats_version}";
+  "${rig_bin}" default "${rstats_version}";
+  if [[ ${os_type} == darwin ]]; then
+    "${rig_bin}" system  fix-permissions;
+    "${rig_bin}" sysreqs add pkgconfig;
+    "${rig_bin}" sysreqs add tidy-html5;
+  fi
+  "${rig_bin}" system setup-user-lib;
+  "${rig_bin}" system add-pak;
+  "${rig_bin}" system make-links;
+  return 0;
+}
+
+# Update current installed R versions
+# + devel, release, next
+function rstats::update_rstats_version () {
+  rstats::install_rig;
+  rstats::install_rstats_version release;
+  rstats::install_rstats_version devel;
+  rstats::install_rstats_version next;
+  return 0;
+}
+
+# Install RIG - R installation manager
+function rstats::install_rig () {
+  local rig_bin;
+  rig_bin="$(which_bin 'rig')";
+  if [[ -z ${rig_bin} ]]; then
+    __install_app rig;
+  fi
+  return 0;
+}
+
+# Install / update all packages from config file
+function rstats::install_all_pkgs () {
+  local pkg_type_arr;
+  local _pkg_type;
+  local _pkg_name;
+  local _pkg_name_arr;
+
+  declare -a pkg_type_arr=(
+    'cran'
+    'gh'
+    'github'
+    'local'
+    'bioc'
+    'universe'
+  );
+  for _pkg_type in "${pkg_type_arr[@]}"; do
+    builtin mapfile -t _pkg_name_arr < <(
+      get_config rstats_packages "${_pkg_type}_packages"
+    );
+    for _pkg_name in "${_pkg_name_arr[@]}"; do
+      rstats::install_pkg "${_pkg_name}" "${pkg_type}";
+    done
+    unset _pkg_name_arr;
+  done
+  return 0;
+}
+
+# Remove installed R package
+function rstats::remove_pkg () {
+  local r_bin;
+  local pkg_name;
+  local script_str;
+  r_bin="$(require 'R')";
+  pkg_name="${1}";
+
+  script_str="utils::remove.packages('${pkg_name}')";
+
   "${r_bin}" -q -s -e \
     "${script_str}";
   return 0;
