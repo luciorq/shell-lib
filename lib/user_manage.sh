@@ -13,6 +13,7 @@ function __user_create () {
   local uid_avail;
   local _hostname;
   local mkpw_bin;
+  local gopass_bin;
   local dirname_bin;
   local useradd_bin;
   local grep_bin;
@@ -30,7 +31,7 @@ function __user_create () {
   fi
   grep_bin="$(which_bin 'grep')";
   uid_avail="$(
-    "${grep_bin}" -v '^#' /etc/passwd \
+    "${grep_bin}" -v '^#' '/etc/passwd' \
       | cut -d':' -f 3 \
       | sort -nr \
       | "${grep_bin}" "${user_uid}" \
@@ -46,13 +47,22 @@ function __user_create () {
     user_shell='/bin/bash';
   fi
   mkpw_bin="$(which_bin 'mkpasswd')";
+  gopass_bin="$(which_bin 'gopass')";
   dirname_bin="$(which_bin 'dirname')";
   useradd_bin="$(which_bin 'useradd')";
   sudo_bin="$(which_bin 'sudo')";
+
   if [[ -n ${3} ]]; then
     user_pw="${3}";
   else
-    user_pw="$("${mkpw_bin}" ...)";
+    if [[ -z ${gopass_bin} ]]; then
+      user_pw="$("${mkpw_bin}" ...)";
+    else
+      user_pw="$(
+        "${gopass_bin}" pwgen --symbols -1 28 \
+          | head -1
+      )";
+    fi
   fi
   home_path="$("${dirname_bin}" "${HOME}")";
 

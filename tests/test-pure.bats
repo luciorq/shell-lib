@@ -1,10 +1,10 @@
 #!/usr/bin/env bats
 
 function setup () {
-  source dirname_pure.sh;
-  source cat_pure.sh;
-  source head_pure.sh;
-  source sleep_pure.sh;
+  source lib/dirname_pure.sh;
+  source lib/cat_pure.sh;
+  source lib/head_pure.sh;
+  source lib/sleep_pure.sh;
 }
 
 @test "'dirname_pure' - Compare with GNU dirname" {

@@ -63,7 +63,10 @@ function encrypt_str () {
   str_value="${1}";
   #base64_bin="$(require 'base64')";
 
-  #PASSWD=`cat secret.txt | openssl enc -aes-256-cbc -md sha512 -a -d -pbkdf2 -iter 100000 -salt -pass pass:Secret@123#`
+  #PASSWD=`cat secret.txt \
+  #  | openssl enc -aes-256-cbc \
+  #    -md sha512 -a -d -pbkdf2 -iter 100000 \
+  #    -salt -pass pass:Secret@123#`;
 
   return 0;
 }

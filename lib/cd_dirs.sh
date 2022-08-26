@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# TODO: Why those functions exists? Should be removed? Why not just 'builtin cd'
+
 # Functions to change predefined paths
 
 function cd_prj () {
@@ -17,11 +19,14 @@ function cd_cfg () {
 function __cd_dir () {
   local dir_arg;
   local dir_path;
+  local dir_path_arr;
   local realpath_bin;
   dir_arg=("$@");
-  builtin mapfile -t dir_path < <( builtin eval builtin echo -ne ${dir_arg} );
+  builtin mapfile -t dir_path_arr < <(
+    builtin eval builtin echo -ne "${dir_arg[*]}"
+  );
 
-  dir_path="${dir_path[0]}";
+  dir_path="${dir_path_arr[0]}";
   realpath_bin="$(which_bin 'realpath')";
   if [[ -n ${realpath_bin} ]]; then
     dir_path=( $("${realpath_bin}" "${dir_path}") );

@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 function setup () {
-  source exit_fun.sh
+  source lib/exit_fun.sh
 }
 
 @test "'exit_fun' - Exit from outer function call" {

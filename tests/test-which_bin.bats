@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 function setup () {
-  source which_bin.sh
+  source lib/which_bin.sh
 }
 
 @test "'which_bin' - Finds ls binary" {

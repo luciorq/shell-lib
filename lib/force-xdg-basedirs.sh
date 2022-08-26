@@ -8,6 +8,7 @@
 # - Hex
 # - Mix
 # - NV
+# Main xdg basedirs spec variables
 [[ -z ${XDG_CACHE_HOME} ]] && export XDG_CACHE_HOME="${HOME}/.cache";
 [[ -z ${XDG_CONFIG_DIRS} ]] && export XDG_CONFIG_DIRS="/etc/xdg";
 [[ -z ${XDG_CONFIG_HOME} ]] && export XDG_CONFIG_HOME="${HOME}/.config";
@@ -57,7 +58,7 @@ if [[ ! -d ${XDG_DATA_HOME}/gnupg ]]; then
   \chmod 0700 "${XDG_DATA_HOME}/gnupg";
 fi
 if [[ ! -L ${GNUPGHOME}/gpg.conf ]]; then
-  ln -s "${XDG_CONFIG_HOME}/gnupg/gpg.conf" "${GNUPGHOME}/gpg.conf";
+  \ln -s "${XDG_CONFIG_HOME}/gnupg/gpg.conf" "${GNUPGHOME}/gpg.conf";
 fi
 if [[ ! -L ${GNUPGHOME}/gpg-agent.conf ]]; then
   \ln -sf \
@@ -127,7 +128,7 @@ export WGETRC="${XDG_CONFIG_HOME}/wget/wgetrc";
 if [[ ! -d ${XDG_CACHE_HOME}/wget ]]; then
   \mkdir -p "${XDG_CACHE_HOME}/wget";
 fi
-alias wget='wget --hsts-file="${XDG_CACHE_HOME}/wget/wget-hsts"';
+builtin alias wget='wget --hsts-file="${XDG_CACHE_HOME}/wget/wget-hsts"';
 
 # =============================================================================
 # Programming Languages
@@ -195,7 +196,7 @@ export ADB_VENDOR_KEYS="${XDG_CONFIG_HOME}/adb/adbkey";
 
 # Subversion (svn) - some homebrew formulas used it
 \mkdir -p "${XDG_CONFIG_HOME}/subversion";
-alias svn='svn --config-dir "${XDG_CONFIG_HOME}/subversion" ';
+builtin alias svn='svn --config-dir "${XDG_CONFIG_HOME}/subversion" ';
 
 # TeamSpeak
 export TS3_CONFIG_DIR="${XDG_CONFIG_HOME}/ts3client";
@@ -232,7 +233,7 @@ if [[ ! -f "${NPM_CONFIG_USERCONFIG}" ]]; then
   \touch "${NPM_CONFIG_USERCONFIG}";
 fi
 # subversion - svn
-alias svn='svn --config-dir "${XDG_CONFIG_HOME}"/subversion';
+builtin alias svn='svn --config-dir "${XDG_CONFIG_HOME}"/subversion';
 
 # Anaconda / Conda / Mamba
 export CONDARC="${XDG_CONFIG_HOME}/conda/condarc"
@@ -261,4 +262,5 @@ fi
 if [[ ! -f "${XDG_CONFIG_HOME}/dockstore/config" ]]; then
   \touch "${XDG_CONFIG_HOME}/dockstore/config";
 fi
-alias dockstore='dockstore --script --config "${HOME}/.config/dockstore/config"'
+builtin alias \
+  dockstore='dockstore --script --config "${HOME}/.config/dockstore/config"';

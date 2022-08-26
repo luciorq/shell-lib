@@ -1,8 +1,8 @@
 #!/usr/bin/env bats
 
 function setup () {
-  source which_bin.sh
-  source parse_yaml.sh
+  source lib/which_bin.sh
+  source lib/parse_yaml.sh
 }
 
 @test "'parse_yaml' - missing key on list" {

@@ -13,7 +13,7 @@ install-separate:
   #!/usr/bin/env bash
   set -euxo pipefail
   mkdir -p {{dest_dir}}
-  funs=($(ls *.sh))
+  funs=($(ls lib/*.sh))
   for i in ${funs[@]}; do cp {{lib_path}}/"${i}" {{dest_dir}}/; done
 
 build:

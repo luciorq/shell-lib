@@ -1,9 +1,9 @@
 #!/usr/bin/env bats
 
 function setup () {
-  source which_bin.sh;
-  source exit_fun.sh;
-  source sudo_fun.sh;
+  source lib/which_bin.sh;
+  source lib/exit_fun.sh;
+  source lib/sudo_fun.sh;
   alias ls='exa -g';
   _target_path="$(dirname $(dirname "${BATS_TEST_FILENAME}"))";
   sudo_bin="$(which sudo)";

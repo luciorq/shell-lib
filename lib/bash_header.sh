@@ -8,6 +8,8 @@ function bash_header () {
   builtin echo -ne '#!/usr/bin/env bash\n';
   builtin echo -ne '# shellcheck shell=bash\n\n';
   builtin echo -ne "# Description for ${fn_name}\n";
+  builtin echo -ne "# TODO: replace \n";
+  builtin echo -ne "# + \n";
   builtin echo -ne "function ${fn_name} () {\n";
   builtin echo -ne '  set -o errexit;\n';
   builtin echo -ne '  set -o pipefail;\n';

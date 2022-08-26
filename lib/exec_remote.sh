@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 
-# Description for exec_remote
+# Run a command on a remote host through ssh
 function exec_remote () {
+  local _usage="${0} <HOST> '<COMMAND>'";
+  unset _usage;
   local _debug_var="${DEBUG:-false}";
   [[ "${_debug_var}" == true ]] && set -o xtrace;
-  local _usage="${0} <HOST> '<COMMAND>'";
   local host_target;
   local ssh_bin;
   local var_res;

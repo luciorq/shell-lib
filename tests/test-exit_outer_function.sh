@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source exit_fun.sh
+source lib/exit_fun.sh
 
 function test_exit () {
   builtin echo "Normal output";

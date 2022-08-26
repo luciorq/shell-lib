@@ -1,11 +1,11 @@
 #!/usr/bin/env bats
 
 function setup () {
-  source which_bin.sh
-  source exit_fun.sh
-  source is_available.sh
-  source require.sh
-  source color_cmds.sh
+  source lib/which_bin.sh
+  source lib/exit_fun.sh
+  source lib/is_available.sh
+  source lib/require.sh
+  source lib/color_cmds.sh
 }
 
 @test "'type' - Syntax highlight" {
