@@ -22,10 +22,10 @@ export ACKRC="${XDG_CONFIG_HOME}/ack/ackrc"
 export ATOM_HOME="${XDG_DATA_HOME}/atom";
 
 # Visual Studio Code - vscode - Portable
-export VSCODE_PORTABLE="${XDG_DATA_HOME}/vscode"
-if [[ ! -d ${VSCODE_PORTABLE} ]]; then
-  \mkdir -p "${VSCODE_PORTABLE}";
-fi
+# export VSCODE_PORTABLE="${XDG_DATA_HOME}/vscode"
+# if [[ ! -d ${VSCODE_PORTABLE} ]]; then
+#  \mkdir -p "${VSCODE_PORTABLE}";
+# fi
 
 # AWS CLI
 export AWS_SHARED_CREDENTIALS_FILE="${XDG_CONFIG_HOME}/aws/credentials";
