@@ -20,3 +20,35 @@ function scan_ssh_ports () {
   builtin echo -ne "${output_str}";
   return 0;
 }
+
+
+# Scan for open TCP ports
+# + can accept a range of ports separated by a dash, e.g. '20-80';
+# + NOTE: For scanning UDP ports add '-u' do nc command
+function scan_port () {
+  local _usage="Usage: ${0} <HOST> <PORTS>";
+  unset _usage;
+  local host_ports;
+  local host_name;
+  local nc_bin;
+  local timeout_bin;
+  local bash_bin;
+  local _port;
+  # 1st method: nc
+  nc_bin="$(require 'nc')";
+  host_name="${1}";
+  host_ports="${2}";
+  "${nc_bin}" -z -v \
+    "${host_name}" \
+    "${host_ports}";
+
+  # 2nd method: through devices redirection
+  # + replace 'tcp' to 'udp' in the device string to test UDP ports
+  for _port in {20..80}; do
+    "${timeout_bin}" 1 \
+      "${bash_bin}" -c "</dev/tcp/10.42.0.92/${_port}" \
+      &>/dev/null \
+      && builtin echo -ne "Port: ${_port} - open\n" \
+      || builtin echo -ne "Port: ${_port} - closed\n";
+  done
+}
