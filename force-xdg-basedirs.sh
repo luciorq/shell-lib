@@ -252,3 +252,13 @@ export MAMBA_ENVS_PATH="${XDG_DATA_HOME}/conda/envs";
 if [[ ! -d ${XDG_STATE_HOME}/ssh/cm ]]; then
   \mkdir -p "${XDG_STATE_HOME}/ssh/cm";
 fi
+
+# Dockstore CLI - Partial support, only config file
+# + working as version 1.12.2
+if [[ ! -d "${XDG_CONFIG_HOME}/dockstore" ]]; then
+  \mkdir -p "${XDG_CONFIG_HOME}/dockstore";
+fi
+if [[ ! -f "${XDG_CONFIG_HOME}/dockstore/config" ]]; then
+  \touch "${XDG_CONFIG_HOME}/dockstore/config";
+fi
+alias dockstore='dockstore --script --config "${HOME}/.config/dockstore/config"'
