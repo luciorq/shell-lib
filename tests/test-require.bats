@@ -19,6 +19,6 @@ function setup () {
   # output="$(PATH='' require 'ls' 2>&1)";
   # status="$?";
   PATH='' run require 'ls';
-  [[ ${output} =~ "not found in executable \${PATH}" ]];
   [ "${status}" -eq 1 ];
+  [[ ${output} =~ "executable not found in '\${PATH}'" ]];
 }

@@ -12,12 +12,12 @@ function setup () {
   run test_exit_fun 'First arg';
   [ "${status}" -eq 0 ];
   [ "${output}" = 'First arg: OK' ];
-  unset status
-  unset output
+  unset status;
+  unset output;
   run test_exit_fun;
-  echo "$output"
+  echo "$output";
   [ "${status}" -eq 1 ];
-  [[ ${output} = 'exit_fun.sh: line 5: Error: Empty arg' ]];
+  [[ ${output} =~ 'Error: Empty arg' ]];
   [[ ! ${output} =~ ': OK' ]];
 }
 

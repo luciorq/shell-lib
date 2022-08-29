@@ -7,13 +7,10 @@ global:
   sample_input:
     -  { property1: value1, property2: value2 }
     -  { property1: "value 3", property2: 'value 4' }
-  licence: |
+  license: |
+   oss-license
+  license_string: >
     this is published under
     open source license
-    in the hope that it would 
-    be useful
-  licence_string: >
-    this is published under
-    open source license
-    in the hope that it would 
+    in the hope that it would
     be useful
