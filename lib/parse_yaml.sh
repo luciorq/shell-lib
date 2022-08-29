@@ -13,7 +13,7 @@ function parse_yaml () {
   py_bin="$(which_bin 'python')";
   file_path="${1}";
   if [[ ! -f ${file_path} ]]; then
-    builtin echo >&2 -ne "Error: file '${file_path}' does not exist\n";
+    exit_fun "File '${file_path}' does not exist";
     return 1;
   fi
   method='';
@@ -29,8 +29,7 @@ function parse_yaml () {
     ruby)   __parse_yaml_ruby "${@}";;
     python) __parse_yaml_python "${@}";;
     *)
-      builtin echo >&2 -ne \
-        "No method available for parsing YAML.\n";
+      exit_fun 'No method available for parsing YAML.';
       return 1;
     ;;
   esac
@@ -102,6 +101,12 @@ function __parse_yaml_python () {
   if [[ -z ${py_bin} ]]; then
     py_bin="$(which_bin 'python')";
   fi
+
+  if [[ -z ${py_bin} ]]; then
+    exit_fun "'python' is not available.";
+    return 1;
+  fi
+
   yaml_path="${1}";
   levels_str='';
   int_regex='^[0-9]+$';
@@ -114,7 +119,7 @@ function __parse_yaml_python () {
   done
   module_res=$("${py_bin}" -c 'import yaml' 2> /dev/null);
   if [[ $? -eq 1 ]]; then
-    builtin echo >&2 -ne 'Error: Python {yaml} module is not installed.\n';
+    exit_fun 'Python {yaml} module is not installed.';
     return 1;
   fi
   py_script="import yaml;x = yaml.safe_load(open('${yaml_path}', 'r'))";

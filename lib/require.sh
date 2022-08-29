@@ -24,7 +24,7 @@ function require () {
   cmd_str="${1}";
   cmd_bin="$(which_bin "${cmd_str}")";
   if [[ -z ${cmd_bin} ]]; then
-    exit_fun "'${cmd_str}' can't be found on '\$PATH'";
+    exit_fun "'${cmd_str}' executable not found in '\${PATH}'";
     return 1;
   fi
 

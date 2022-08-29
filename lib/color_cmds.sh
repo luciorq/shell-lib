@@ -20,6 +20,9 @@ function cat_color () {
   local cat_bin;
   local _arg;
   cat_bin="$(require 'cat')";
+  if [[ -z ${cat_bin} ]]; then
+    return 1;
+  fi
   bat_bin="$(which_bin 'bat')";
   if [[ -z ${bat_bin} ]]; then
     "${cat_bin}" "${@}";
