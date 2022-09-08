@@ -28,27 +28,32 @@ function scan_ssh_ports () {
 function scan_port () {
   local _usage="Usage: ${0} <HOST> <PORTS>";
   unset _usage;
-  local host_ports;
+  local host_port;
+  local host_port_end;
   local host_name;
   local nc_bin;
   local timeout_bin;
   local bash_bin;
   local _port;
-  # 1st method: nc
   nc_bin="$(require 'nc')";
-  host_name="${1}";
-  host_ports="${2}";
+  timeout_bin="$(require 'timeout')";
+  bash_bin="$(require 'bash')";
+  host_name="${1:-localhost}";
+  host_port="${2:-80}";
+  host_port_end="${3:-${host_port}}";
+
+  # 1st method: nc
   "${nc_bin}" -z -v \
     "${host_name}" \
-    "${host_ports}";
+    "${host_port}-${host_port_end}";
 
   # 2nd method: through devices redirection
   # + replace 'tcp' to 'udp' in the device string to test UDP ports
-  for _port in {20..80}; do
-    "${timeout_bin}" 1 \
-      "${bash_bin}" -c "</dev/tcp/10.42.0.92/${_port}" \
-      &>/dev/null \
+  for _port in $(seq "${host_port}" "${host_port_end}"); do
+    "${timeout_bin}" 1 "${bash_bin}" -c \
+        "</dev/tcp/${host_name}/${_port}" &>/dev/null \
       && builtin echo -ne "Port: ${_port} - open\n" \
       || builtin echo -ne "Port: ${_port} - closed\n";
   done
+  return 0;
 }
