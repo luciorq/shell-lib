@@ -503,9 +503,12 @@ function __install_yq () {
   "${mkdir_bin}" -p "${inst_path}/yq/temp";
   download "${get_url}" "${inst_path}/yq/temp";
   "${chmod_bin}" +x "${inst_path}/yq/temp/yq_${bin_arch}";
+  if [[ ! -d ${link_inst_path} ]]; then
+    "${mkdir_bin}" -p "${link_inst_path}";
+  fi
   "${ln_bin}" -sf \
-      "${inst_path}/yq/temp/yq_${bin_arch}" \
-      "${link_inst_path}/yq";
+    "${inst_path}/yq/temp/yq_${bin_arch}" \
+    "${link_inst_path}/yq";
   return 0;
 }
 
@@ -554,17 +557,13 @@ function __install_node_cli_tools () {
 
 # Install Python Packages in the Mamba based latest Python installation
 function __install_python_cli_tools () {
-  # local py_bin;
-  # local pipx_bin;
-  # local pip_pkg_arr;
-  # local _pip_pkg;
-  # local ln_bin;
+  local py_bin;
+  local pip_pkg_arr;
+  local _pip_pkg;
+  local ln_bin;
   __install_app --user 'micromamba';
   __install_app --user 'python';
-  # __install_app --user 'pipx';
-  # py_bin="$(which_bin 'python3')";
-  # ln_bin="$(which_bin 'ln')";
-  # pipx_bin="$(require 'pipx')";
+  ln_bin="$(which_bin 'ln')";
   py_bin="$(which_bin 'python3')";
   if [[ -z ${py_bin} ]]; then
     py_bin="$(which_bin 'python')";
@@ -573,7 +572,8 @@ function __install_python_cli_tools () {
     get_config 'python_packages' 'pip'
   );
   for _pip_pkg in "${pip_pkg_arr[@]}"; do
-    "${py_bin}" -m pip install --quiet "${_pip_pkg}";
+    "${py_bin}" -m pip install "${_pip_pkg}";
+    
   done
   return 0;
 }
