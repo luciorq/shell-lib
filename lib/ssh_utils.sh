@@ -18,7 +18,7 @@ function ssha_fun () {
 
   ssh_agent_bin="$(require 'ssh-agent')";
   ssh_add_bin="$(require 'ssh-add')";
-  declare -a ssh_args=();
+  declare -a ssha_args=();
   os_type="$(get_os_type)";
   if [[ ${os_type} == darwin ]]; then
     declare -a ssha_args=(
