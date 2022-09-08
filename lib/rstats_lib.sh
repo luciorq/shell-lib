@@ -19,15 +19,77 @@ function rstats::boostrap_quarto_install () {
     exit_fun '{quarto} CLI is not installed.';
     return 1;
   fi
-  "${quarto_bin}" install tool tinytex;
-  "${quarto_bin}" install tool chromium;
+  "${quarto_bin}" install tool --no-prompt tinytex;
+  "${quarto_bin}" install tool --no-prompt chromium;
+  return 0;
+}
+
+# Install / update all packages from config file
+# TODO: luciorq Actually implment the universe parsing
+function rstats::install_all_pkgs () {
+  local pkg_type_arr;
+  local _pkg_type;
+  local _pkg_name;
+  local _pkg_name_arr;
+  local pkg_name_str;
+  local r_bin;
+  local sed_bin;
+  r_bin="$(require 'R')";
+  sed_bin="$(require 'sed')";
+  declare -a pkg_type_arr=(
+    'cran'
+    'bioc'
+    'universe'
+    'gh'
+    'github'
+    'local'
+  );
+  pkg_name_str='';
+  for _pkg_type in "${pkg_type_arr[@]}"; do
+    builtin mapfile -t _pkg_name_arr < <(
+      get_config rstats_packages "${_pkg_type}_packages"
+    );
+    for _pkg_name in "${_pkg_name_arr[@]}"; do
+      if [[ -n ${_pkg_name} ]]; then
+      case ${_pkg_type} in
+        cran)
+          pkg_name_str="${pkg_name_str}'${_pkg_name}',";
+        ;;
+        gh|github)
+          pkg_name_str="${pkg_name_str}'github::${_pkg_name}',";
+        ;;
+        local)
+          pkg_name_str="${pkg_name_str}'local::${_pkg_name}',";
+        ;;
+        bioc*)
+          pkg_name_str="${pkg_name_str}'bioc::${_pkg_name}',";
+        ;;
+        universe|runiverse)
+          pkg_name_str="${pkg_name_str}'universe::${_pkg_name}',";
+        ;;
+        *)
+          exit_fun "'${pkg_type}' not available as a Source.";
+          return 1;
+        ;;
+      esac
+      # rstats::install_pkg "${_pkg_name}" "${_pkg_type}";
+      fi
+    done
+    unset _pkg_name_arr;
+  done
+  pkg_name_str="$("${sed_bin}" 's/,$//' <<< "${pkg_name_str}")";
+  pkg_name_str="c(${pkg_name_str})";
+  echo "pak::pkg_install(pkg=${pkg_name_str},upgrade=TRUE,ask=FALSE)";
+  "${r_bin}" -q -s -e \
+    "pak::pkg_install(pkg=${pkg_name_str},upgrade=TRUE,ask=FALSE)";
   return 0;
 }
 
 # Install R Packages
 # TODO: '--force' flag not implemented yet
+# TODO: 'universe' source not implemented yet
 function rstats::install_pkg () {
-  local _usage="Usage: ${0} <PKG_NAME> [cran|gh|github|local|bioc*|universe] [--force]";
+  local _usage="Usage: ${0} <PKG_NAME> [cran|gh|github|local|bioc*|[r]universe] [--force]";
   unset _usage;
   local pkg_name;
   local pkg_type;
@@ -37,6 +99,7 @@ function rstats::install_pkg () {
   local pak_str;
   local script_str;
   local is_pak_available;
+  local force_flag;
   pkg_name="${1}";
   if [[ -z ${pkg_name} ]]; then
     exit_fun 'Package name is not provided.';
@@ -44,6 +107,11 @@ function rstats::install_pkg () {
   fi
   pkg_type="${2:-cran}";
   r_bin="$(require 'R')";
+
+  if [[ -z ${pkg_name} ]]; then
+    exit_fun "Package name is not provided.";
+    return 1;
+  fi
   case ${pkg_type} in
     cran)
       install_str='install.packages';
@@ -61,7 +129,7 @@ function rstats::install_pkg () {
       install_str='BiocManager::install';
       pak_str='bioc::';
     ;;
-    universe)
+    universe|runiverse)
       install_str='install.packages';
       pak_str='';
     ;;
@@ -131,33 +199,6 @@ function rstats::install_rig () {
   if [[ -z ${rig_bin} ]]; then
     __install_app rig;
   fi
-  return 0;
-}
-
-# Install / update all packages from config file
-function rstats::install_all_pkgs () {
-  local pkg_type_arr;
-  local _pkg_type;
-  local _pkg_name;
-  local _pkg_name_arr;
-
-  declare -a pkg_type_arr=(
-    'cran'
-    'gh'
-    'github'
-    'local'
-    'bioc'
-    'universe'
-  );
-  for _pkg_type in "${pkg_type_arr[@]}"; do
-    builtin mapfile -t _pkg_name_arr < <(
-      get_config rstats_packages "${_pkg_type}_packages"
-    );
-    for _pkg_name in "${_pkg_name_arr[@]}"; do
-      rstats::install_pkg "${_pkg_name}" "${pkg_type}";
-    done
-    unset _pkg_name_arr;
-  done
   return 0;
 }
 
