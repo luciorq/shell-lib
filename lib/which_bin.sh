@@ -26,4 +26,3 @@ function which_bin () {
   builtin echo -ne "${cmd_bin}";
   builtin return 0;
 }
-

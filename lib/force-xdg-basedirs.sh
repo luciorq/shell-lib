@@ -134,17 +134,23 @@ builtin alias wget='wget --hsts-file="${XDG_CACHE_HOME}/wget/wget-hsts"';
 # Programming Languages
 # =============================================================================
 
+# JAVA =======================================================================
 # java openjdk
 export _JAVA_OPTIONS="-Djava.util.prefs.userRoot=${XDG_CONFIG_HOME}/java";
+if [[ ! -d "${XDG_CONFIG_HOME}/java" ]]; then
+  \mkdir -p "${XDG_CONFIG_HOME}/java";
+fi
 # gradle build tools
 export GRADLE_USER_HOME="${XDG_DATA_HOME}/gradle";
 
+# Python =====================================================================
 # python / jupyter
 export IPYTHONDIR="${XDG_CONFIG_HOME}/jupyter";
 export JUPYTER_CONFIG_DIR="${XDG_CONFIG_HOME}/jupyter";
 export PYLINTHOME="${XDG_CACHE_HOME}/pylint";
 export PYTHON_EGG_CACHE="${XDG_CACHE_HOME}/python-eggs";
 
+# Ruby =======================================================================
 # Gems - Ruby Gems
 export GEM_HOME="${XDG_DATA_HOME}/gem";
 export GEM_SPEC_CACHE="${XDG_CACHE_HOME}/gem";
@@ -153,24 +159,28 @@ export BUNDLE_USER_CONFIG="${XDG_CONFIG_HOME}/bundle";
 export BUNDLE_USER_CACHE="${XDG_CACHE_HOME}/bundle";
 export BUNDLE_USER_PLUGIN="${XDG_DATA_HOME}/bundle/plugin";
 
+# RUST =======================================================================
 # Rustup
 export RUSTUP_HOME="${XDG_DATA_HOME}/rustup";
 
 # Cargo - rust cargo
 export CARGO_HOME="${XDG_DATA_HOME}/cargo";
 
+# GO =========================================================================
 # Golang
 export GOPATH="${XDG_DATA_HOME}/go";
 
+# JULIA ======================================================================
 # Julia Programming Language
 export JULIA_DEPOT_PATH="${XDG_DATA_HOME}/julia:${JULIA_DEPOT_PATH}";
 
+# R ==========================================================================
 # Make R language (rstats) respect XDG base dirs spec
 export R_ENVIRON_USER="${XDG_CONFIG_HOME}/R/Renviron"
 export R_PROFILE_USER="${XDG_CONFIG_HOME}/R/Rprofile"
 export R_MAKEVARS_USER="${XDG_CONFIG_HOME}/R/Makevars"
 export R_HISTFILE="${XDG_DATA_HOME}/R/Rhistory"
-if [[ ! -d ${XDG_DATA_HOME}/R ]]; then
+if [[ ! -d "${XDG_DATA_HOME}/R" ]]; then
   \mkdir -p "${XDG_DATA_HOME}/R";
 fi
 if [[ ! -f ${R_HISTFILE} ]]; then
@@ -244,13 +254,15 @@ export CONDA_ENVS_PATH="${XDG_DATA_HOME}/conda/envs";
 if [[ ! -d "$(dirname "${CONDA_ENVS_PATH}")" ]]; then
   \mkdir -p "$(dirname "${CONDA_ENVS_PATH}")";
 fi
+\mkdir -p "$(dirname "${CONDA_ENVS_PATH}")/envs";
+\mkdir -p "$(dirname "${CONDA_ENVS_PATH}")/pkgs";
 export CONDA_ROOT_PREFIX="${XDG_DATA_HOME}/conda";
 export MAMBA_ROOT_PREFIX="${XDG_DATA_HOME}/conda";
 export MAMBA_ENVS_PATH="${XDG_DATA_HOME}/conda/envs";
 
 # OpenSSH
 # + control masters
-if [[ ! -d ${XDG_STATE_HOME}/ssh/cm ]]; then
+if [[ ! -d "${XDG_STATE_HOME}/ssh/cm" ]]; then
   \mkdir -p "${XDG_STATE_HOME}/ssh/cm";
 fi
 

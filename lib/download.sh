@@ -63,7 +63,7 @@ function download () {
       -x "${thread_num}" \
       -j 1 \
       -k 1M \
-      -d "${dir_output}"\
+      -d "${dir_output}" \
       --out="${output_basename}" \
       --quiet=true \
       --check-integrity=true \
