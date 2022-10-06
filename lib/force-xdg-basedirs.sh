@@ -276,3 +276,9 @@ if [[ ! -f "${XDG_CONFIG_HOME}/dockstore/config" ]]; then
 fi
 builtin alias \
   dockstore='dockstore --script --config "${HOME}/.config/dockstore/config"';
+
+# Zellij - session manager
+export ZELLIJ_CONFIG_DIR="${XDG_CONFIG_HOME}/zellij";
+if [[ ! -d "${ZELLIJ_CONFIG_DIR}" ]]; then
+  \mkdir -p "${ZELLIJ_CONFIG_DIR}";
+fi
