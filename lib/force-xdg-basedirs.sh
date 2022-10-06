@@ -246,7 +246,7 @@ fi
 builtin alias svn='svn --config-dir "${XDG_CONFIG_HOME}"/subversion';
 
 # Anaconda / Conda / Mamba
-export CONDARC="${XDG_CONFIG_HOME}/conda/condarc"
+export CONDARC="${XDG_CONFIG_HOME}/conda/condarc";
 if [[ ! -d "$(dirname "${CONDARC}")" ]]; then
   \mkdir -p "$(dirname "${CONDARC}")";
 fi

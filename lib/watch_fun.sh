@@ -10,7 +10,7 @@ function watch_fun () {
   fi
   while true; do
     clear_pure;
-    # TODO(luciorq): Add 'date' output to the right side of header
+    # TODO: @luciorq Add 'date' output to the right side of header
     # + in the following format: Thu May 19 15:01:05 2022;
     builtin echo -ne "Every ${sleep_time}s: ${*}\n\n";
     "${bash_bin}" \

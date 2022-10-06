@@ -49,6 +49,7 @@ function unpack () {
   local basename_bin;
   local unzip_bin;
   local gzip_bin;
+  local unrar_bin;
   zip_path="${1}";
   dir_output="${2}";
   rm_bin="$(which_bin 'rm')";
@@ -59,7 +60,7 @@ function unpack () {
   basename_bin="$(which_bin 'basename')";
   unzip_bin="$(which_bin 'unzip')";
   gzip_bin="$(which_bin 'gzip')";
-
+  unrar_bin="$(which_bin 'unrar')";
   if [[ -z ${dir_output} ]]; then
     dir_output="$("${realpath_bin}" ./)";
   fi
@@ -78,6 +79,7 @@ function unpack () {
       *.tbz2)     "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"         ;;
       *.bz2)      "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"         ;;
       *.zip)      "${unzip_bin}" -qq -o "${zip_path}" -d "${dir_output}"     ;;
+      *.rar)      "${unrar_bin}" x -y "${zip_path}" "${dir_output}"             ;;
       *.gz)
         "${gzip_bin}" -q -dkc < "${zip_path}" > "${output_file_path/.gz/}";
       ;;

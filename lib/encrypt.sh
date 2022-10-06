@@ -56,7 +56,7 @@ function unencrypt_file () {
 # Encrypt Variable string content
 # + Currently only works with `openssl`.
 # + If using `libressl` the encryption method is not going to be the same.
-# TODO(luciorq): Add `libressl` checking
+# TODO: @luciorq Add `libressl` checking
 function encrypt_str () {
   local str_value;
   #local base64_bin;

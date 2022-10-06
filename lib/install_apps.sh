@@ -57,7 +57,7 @@ function __install_path () {
     local latest_version;
     local curl_bin;
     repo="${1}";
-    curl_bin="$(which_bin 'curl')";
+    curl_bin="$(require 'curl')";
     release_url="$(
       "${curl_bin}" -fsSL \
         --insecure -I -o /dev/null -w '%{url_effective}' \
@@ -263,8 +263,8 @@ function __install_path () {
 
     "${mkdir_bin}" -p "${install_path}";
 
-    # TODO(luciorq) Add link option check before creating _exec_bin file
-    # TODO(luciorq) Search for mamba or conda binaries in the exec_file call
+    # TODO: @luciorq Add link option check before creating _exec_bin file
+    # TODO: @luciorq Search for mamba or conda binaries in the exec_file call
     for _exec_bin in "${@:3}"; do
       exec_file="${install_path}/${_exec_bin}";
       "${touch_bin}" "${exec_file}";

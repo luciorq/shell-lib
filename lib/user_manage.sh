@@ -123,7 +123,7 @@ function __user_remove () {
 }
 
 
-# TODO(luciorq): Finish setting replicate_pw function
+# TODO: @luciorq Finish setting replicate_pw function
 # Replicate hashed user password
 # + from one remote host to another
 function __replicate_pw_server () {

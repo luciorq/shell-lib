@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # Check if text is present in file
-# TODO luciorq finish implementing check string in file
-# TODO luciorq Implement find and replace, based on check in file
+# TODO: @luciorq finish implementing check string in file
+# TODO: @luciorq Implement find and replace, based on check in file
 function check_in_file () {
   local str_to_search;
   local file_to_search;

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# TODO luciorq
+# TODO: @luciorq
 function replace_in_file () {
   local replace_str;
   local search_regex;

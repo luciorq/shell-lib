@@ -9,7 +9,7 @@ function is_available () {
   if [[ -n "${cmd_bin}" ]]; then
     builtin echo -ne 'true';
   else
-    # TODO(luciorq): Check for colored output for command name,
+    # TODO: @luciorq Check for colored output for command name,
     # + like cli_* functionality in R.
     # + Color 'cmd_str' as path and PATH as variable.
     builtin echo >&2 -ne "'${cmd_str}' not found in executable \${PATH}.\n";

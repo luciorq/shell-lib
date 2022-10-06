@@ -59,7 +59,7 @@ function __clean_home () {
   local rm_bin;
   local path_to_rm;
   rm_bin="$(which_bin 'rm')";
-  # TODO(luciorq): Add .mamba, after solving xdg compliance to .mamba/proc/
+  # TODO: @luciorq Add .mamba, after solving xdg compliance to .mamba/proc/
   declare -a remove_dirs_arr=(
     .vim
     .vimrc
@@ -598,7 +598,6 @@ function __install_python_cli_tools () {
   );
   for _pip_pkg in "${pip_pkg_arr[@]}"; do
     "${py_bin}" -m pip install "${_pip_pkg}";
-    
   done
   return 0;
 }
@@ -607,6 +606,7 @@ function __install_python_cli_tools () {
 # Bootstrap R environment
 # ===================================================================
 
+# TODO: @luciorq Check rstats::install_all_pkgs
 # Install R packages to local installation of R
 #function __install_rstats_packages () {
 # return 0;
