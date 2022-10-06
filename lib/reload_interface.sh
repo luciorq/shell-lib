@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-
 # Reload interface elements and configurations
 function reload_interface () {
   builtin local sys_os;
@@ -15,6 +14,7 @@ function reload_interface () {
     __reload_spacebar;
     __reload_yabai;
   fi
+  return 0;
 }
 
 # =============================================================================
@@ -26,20 +26,20 @@ function __reload_spacebar () {
   local user_id;
   user_id=$(id -u);
   launchctl kickstart -k "gui/${user_id}/homebrew.mxcl.spacebar";
+  return 0;
 }
+
 # Reload Yabai - Tiling Window manager
 function __reload_yabai () {
   local user_id;
-  local sa_exit;
+  local sudo_bin;
+  local yabai_bin;
   user_id=$(id -u);
-  sa_exit="$(sudo yabai --check-sa; echo $?)";
-  if [[ ! ${sa_exit} == 0 ]]; then
-    builtin echo -ne "Yabai Scripting Addition needs to be reinstalled.\n";
-    sudo yabai --uninstall-sa;
-    sudo yabai --install-sa;
-    builtin echo -ne "Scripting Addition reinstalled.\n";
-  fi
+  sudo_bin="$(require 'sudo')";
+  yabai_bin="$(require 'yabai')";
+  "${sudo_bin}" "${yabai_bin}" --load-sa;
   launchctl kickstart -k "gui/${user_id}/homebrew.mxcl.yabai";
+  return 0;
 }
 
 # Reload SKHD - Keybinding manager
@@ -48,10 +48,13 @@ function __reload_skhd () {
   user_id=$(id -u);
   # skhd --reload;
   launchctl kickstart -k "gui/${user_id}/homebrew.mxcl.skhd";
+  return 0;
 }
+
 # Reload Karabiner - Keyboard manager - deprecated
 function __reload_karabiner () {
   local user_id;
   user_id=$(id -u);
   launchctl kickstart -k "gui/${user_id}/org.pqrs.karabiner.karabiner_console_user_server";
+  return 0;
 }
