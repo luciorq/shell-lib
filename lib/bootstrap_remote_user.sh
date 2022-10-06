@@ -12,6 +12,10 @@ function bootstrap_user () {
   "${mkdir_bin}" -p "${HOME}/.local/bin";
   "${mkdir_bin}" -p "${HOME}/.local/lib";
   "${mkdir_bin}" -p "${HOME}/.local/opt/apps";
+
+  # TODO: @luciorq Finish adding required tools
+  __check_req_cli_tools;
+
   __build_git "${install_type}";
   __install_yq;
   __build_bash "${install_type}";
@@ -25,6 +29,27 @@ function bootstrap_user () {
   __update_configs;
   return 0;
 }
+
+# Check for required system tools
+function __check_req_cli_tools () {
+  local cli_arr;
+  local _cli;
+  local cli_bin;
+  declare -a cli_arr=(
+    curl
+    gcc
+    npm
+    git
+  )
+  for _cli in "${cli_arr[@]}"; do
+    cli_bin=$(require "${_cli}");
+    if [[ -z ${cli_bin} ]]; then
+      builtin echo -ne "Install '${_cli}' to continue.\n";
+    fi
+  done
+  return 0;
+}
+
 
 # Clean dotfiles not XDG base dir spec
 # + compliant in user home dir
