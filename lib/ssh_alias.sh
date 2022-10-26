@@ -13,7 +13,7 @@ function ssh_alias () {
   host_name="${1}";
   host_info_avail="$(get_config --priv host_info "${host_name}")";
   if [[ -z ${host_info_avail} ]]; then
-    ssh_fun "${host_name}";
+    ssh_fun "${@}";
     return 0;
   fi
   key_name="$(get_config --priv host_info "${host_name}" key)";
@@ -41,6 +41,7 @@ function ssh_alias () {
   else
     host_str="${host_ip}";
   fi
+  __sync_user_config "${host_str}" "${host_port}" "${key_name}";
   ssh_fun "${key_arg_arr[@]}" -p "${host_port}" "${host_str}";
   return 0;
 }

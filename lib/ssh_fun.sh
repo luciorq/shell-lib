@@ -3,28 +3,68 @@
 # Kitten Aware SSH connection
 function ssh_fun () {
   local ssh_bin;
-  local chmod_bin;
   ssh_bin="$(require 'ssh' '-V')";
-  chmod_bin="$(require 'chmod')";
   set -x;
-  if [[ ${_KITTY_SSH} == true ]]; then
-    TERM='xterm-256color' "${ssh_bin}" "${@:1}";
-  elif [[ ${TERM}  == xterm-kitty ]]; then
-    if [[ -d ${HOME}/.local/share/kitty-ssh-kitten ]]; then
-      "${chmod_bin}" a+x \
-        "${HOME}/.local/share/kitty-ssh-kitten/kitty/bin/kitty" \
-        || builtin echo -ne '';
-      "${chmod_bin}" -R a+x \
-        "${HOME}/.local/share/kitty-ssh-kitten" \
-        || builtin echo -ne '';
-      "${chmod_bin}" a+x \
-        "${HOME}/.local/share/kitty-ssh-kitten/shell-integration/bash/kitty.bash" \
-        || builtin echo -ne '';
-    fi
-    kitty +kitten ssh -A "${@:1}";
-  else
-    _SSH_VAR='true' TERM='xterm-256color' "${ssh_bin}" -A "${@:1}";
-  fi
+  "${ssh_bin}" -A "${@:1}";
   set +x;
+  return 0;
+}
+
+# Sync User config over SSH
+function __sync_user_config () {
+  local _usage;
+  _usage="Usage: ${0} [USER@]HOST [PORT] [KEY_PATH]";
+  unset _usage;
+  local ssh_bin;
+  local rsync_bin;
+  local sync_path_arr;
+
+  local remote_host;
+  local host_port;
+  local key_path;
+  local id_flag;
+  remote_host="${1}";
+  host_port="${2:-22}";
+
+  if [[ -z ${remote_host} ]]; then
+    exit_fun 'No remote host provided.';
+    return 1;
+  fi
+  if [[ -n ${3} ]]; then
+    if [[ -f ${HOME}/.ssh/keys/${3} ]]; then
+      id_flag=" -i";
+      key_path="${HOME}/.ssh/keys/${3}";
+    elif [[ -f ${3} ]]; then
+      id_flag=" -i";
+      key_path="${3}";
+    else
+      id_flag='';
+      key_path='';
+    fi
+  fi
+  ssh_bin="$(require 'ssh' '-V')";
+  rsync_bin="$(require 'rsync')";
+  if [[ -z ${rsync_bin} ]]; then
+    exit_fun "'rsync' is not installed";
+    return 1;
+  fi
+  builtin mapfile -t sync_path_arr < <(
+    get_config 'config_sync' 'paths'
+  );
+  # -o PrintBanner=No
+  "${rsync_bin}" \
+      -e "ssh -p ${host_port}${id_flag}${key_path} -o LogLevel=error" \
+      --delete \
+      --relative \
+      --recursive \
+      -az \
+      --exclude '.git' \
+      --exclude '.gitignore' \
+      --exclude '.gitmodules' \
+      --exclude '.gitattributes' \
+      --exclude '.gitconfig' \
+      --exclude '.github' \
+      "${sync_path_arr[@]/#/${HOME}\/.\/}" \
+      "${remote_host}":;
   return 0;
 }
