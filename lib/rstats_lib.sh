@@ -99,7 +99,7 @@ function rstats::install_pkg () {
   local pak_str;
   local script_str;
   local is_pak_available;
-  local force_flag;
+  # local force_flag;
   pkg_name="${1}";
   if [[ -z ${pkg_name} ]]; then
     exit_fun 'Package name is not provided.';
@@ -197,7 +197,7 @@ function rstats::install_rig () {
   local rig_bin;
   rig_bin="$(which_bin 'rig')";
   if [[ -z ${rig_bin} ]]; then
-    __install_app rig;
+    __install_app 'rig';
   fi
   return 0;
 }
@@ -209,9 +209,7 @@ function rstats::remove_pkg () {
   local script_str;
   r_bin="$(require 'R')";
   pkg_name="${1}";
-
   script_str="utils::remove.packages('${pkg_name}')";
-
   "${r_bin}" -q -s -e \
     "${script_str}";
   return 0;

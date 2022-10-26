@@ -5,6 +5,7 @@ function dfh () {
   local df_bin;
   local grep_bin;
   local sed_bin;
+  local column_bin;
   local header_str;
   local align_str;
   local body_str;
@@ -14,6 +15,7 @@ function dfh () {
   df_bin="$(which_bin 'df')";
   grep_bin="$(which_bin 'grep')";
   sed_bin="$(which_bin 'sed')";
+  column_bin="$(which_bin 'column')";
   # Force NFS to mount prior to df execution
   "${ls_bin}" /data/* /home 2> /dev/null 1> /dev/null \
     || builtin echo -ne '';
@@ -30,6 +32,7 @@ function dfh () {
     | bat_fun -l csv -pp --color=always \
     | "${sed_bin}" 's/,/ | /g' \
     | "${sed_bin}" 's/^/| /g' \
-    | "${sed_bin}" 's/$/ |/g';
+    | "${sed_bin}" 's/$/ |/g' \
+    | "${column_bin}" -t;
   return 0;
 }
