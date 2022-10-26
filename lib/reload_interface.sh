@@ -3,7 +3,7 @@
 # Reload interface elements and configurations
 function reload_interface () {
   builtin local sys_os;
-  sys_os=${OSTYPE}
+  sys_os="${OSTYPE}";
   if [[ -z ${OSTYPE} ]]; then
     sys_os="$(uname -s)";
   fi
@@ -11,15 +11,25 @@ function reload_interface () {
   if [[ ${sys_os} =~ darwin ]]; then
     __reload_skhd;
     # __reload_karabiner;
-    __reload_spacebar;
+    # Replaced spacebar with sketchybar
+    # + __reload_spacebar;
+    __reload_sketchybar;
     __reload_yabai;
   fi
   return 0;
 }
 
 # =============================================================================
-# MAcOS interface utilitiess
+# MAcOS interface utilities
 # =============================================================================
+
+# Reload SketchyBar - Top Bar replacement
+function __reload_sketchybar () {
+  local user_id;
+  user_id=$(id -u);
+  launchctl kickstart -k "gui/${user_id}/homebrew.mxcl.sketchybar";
+  return 0;
+}
 
 # Reload Spacebar - Top Bar replacement
 function __reload_spacebar () {
@@ -55,6 +65,7 @@ function __reload_skhd () {
 function __reload_karabiner () {
   local user_id;
   user_id=$(id -u);
-  launchctl kickstart -k "gui/${user_id}/org.pqrs.karabiner.karabiner_console_user_server";
+  launchctl kickstart \
+    -k "gui/${user_id}/org.pqrs.karabiner.karabiner_console_user_server";
   return 0;
 }
