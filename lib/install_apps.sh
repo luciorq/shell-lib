@@ -543,14 +543,20 @@ function __install_path () {
         missing_install='true';
       fi
     done
+
+    local skip_download_step;
+    skip_download_step='false';
+    local skip_link_step;
+    skip_link_step='false';
     if [[ ${app_type} != cargo && ${app_type} != conda && ${missing_install} == false ]]; then
-      return 0;
+      skip_download_step='true;';
     fi
 
     # Main ----------------------------------------------------------------------
     if [[ ! -d ${install_path} ]]; then
       "${mkdir_bin}" -p "${install_path}";
     fi
+    if [[ ${skip_download_step} == false ]]; then
     case "${app_type}" in
       source)
         __install_app_source "${install_path}" "${tarball_name}" "${get_url}";
@@ -569,6 +575,11 @@ function __install_path () {
         return 1;
       ;;
   esac
+  fi
+  if [[ ! -d ${link_inst_path} ]]; then
+    "${mkdir_bin}" -p "${link_inst_path}";
+  fi
+  if [[ ${skip_link_step} == false ]]; then
   if [[ ! ${app_type} == conda ]]; then
     chmod_bin="$(which_bin 'chmod')";
     "${chmod_bin}" +x "${install_path}/${exec_path_arr[0]}";
@@ -584,6 +595,7 @@ function __install_path () {
           "${link_inst_path}/$(basename "${exec_path}")";
       done
     fi
+  fi
   fi
   builtin mapfile -t extra_cmd_arr < <(
     get_config apps apps "${app_num}" extra_cmd \
