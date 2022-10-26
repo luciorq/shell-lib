@@ -57,12 +57,16 @@ if [[ ! -d ${XDG_DATA_HOME}/gnupg ]]; then
   \mkdir -p "${XDG_DATA_HOME}/gnupg";
   \chmod 0700 "${XDG_DATA_HOME}/gnupg";
 fi
-if [[ ! -L ${GNUPGHOME}/gpg.conf ]]; then
-  \ln -s "${XDG_CONFIG_HOME}/gnupg/gpg.conf" "${GNUPGHOME}/gpg.conf";
-fi
-if [[ ! -L ${GNUPGHOME}/gpg-agent.conf ]]; then
+if [[ ! -L ${GNUPGHOME}/gpg.conf \
+      && -f ${XDG_CONFIG_HOME}/gnupg/gpg.conf ]]; then
   \ln -sf \
-    "${XDG_CONFIG_HOME}/gnupg/gpg-agent.conf" \
+    "../../../.config/gnupg/gpg.conf" \
+    "${GNUPGHOME}/gpg.conf";
+fi
+if [[ ! -L ${GNUPGHOME}/gpg-agent.conf \
+      && -f ${XDG_CONFIG_HOME}/gnupg/gpg-agent.conf ]]; then
+  \ln -sf \
+    "../../../.config/gnupg/gpg-agent.conf" \
     "${GNUPGHOME}/gpg-agent.conf";
 fi
 
