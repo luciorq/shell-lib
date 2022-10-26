@@ -55,6 +55,14 @@ test:
   set -euxo pipefail;
   bats -x tests/;
 
+is-interactive:
+  #!/usr/bin/env -S bash -i
+  set -euxo pipefail;
+  echo "$-"
+  echo "$TERM"
+  echo "$SHELL"
+  env
+
 init:
   #!/usr/bin/env -S bash -i
   set -euxo pipefail
@@ -63,7 +71,7 @@ init:
 
 
 super-lint:
-  #!/usr/bin/env bash
+  #!/usr/bin/env bash -S -i
   set -euxo pipefail
   docker pull github/super-linter:latest
   docker run -e RUN_LOCAL=true -v {{ justfile_directory() }}:/tmp/lint github/super-linter

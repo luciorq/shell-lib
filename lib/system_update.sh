@@ -11,5 +11,5 @@ function __update_configs () {
   if [[ -n ${bat_bin} ]]; then
     "${bat_bin}" cache --build;
   fi
-
+  return 0;
 }
