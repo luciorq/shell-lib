@@ -80,6 +80,7 @@ function unpack () {
       *.bz2)      "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"         ;;
       *.zip)      "${unzip_bin}" -qq -o "${zip_path}" -d "${dir_output}"     ;;
       *.rar)      "${unrar_bin}" x -y "${zip_path}" "${dir_output}"             ;;
+      *.tar)      "${tar_bin}" -C "${dir_output}" -xf "${zip_path}"         ;;
       *.gz)
         "${gzip_bin}" -q -dkc < "${zip_path}" > "${output_file_path/.gz/}";
       ;;
