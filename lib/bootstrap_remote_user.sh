@@ -21,6 +21,7 @@ function bootstrap_user () {
   __build_bash "${install_type}";
   __install_python_cli_tools;
   __build_rust_cargo "${install_type}";
+  __clean_home;
   install_apps "${install_type}";
   __rebuild_rust_source_tools;
   __install_node_cli_tools;
@@ -40,6 +41,7 @@ function __check_req_cli_tools () {
     gcc
     npm
     git
+    rsync
   )
   for _cli in "${cli_arr[@]}"; do
     cli_bin=$(require "${_cli}");
@@ -73,6 +75,7 @@ function __clean_home () {
     .radian_history
     .subversion
     .conda
+    .mamba
     .pki
     .Rhistory
     .bash_profile
@@ -221,7 +224,7 @@ function __rebuild_rust_source_tools () {
     _check_bin="$(which_bin "${_check_name}")";
     if [[ -n ${_check_bin} ]]; then
       _check_avail="$(
-        "${_check_bin}" -v 2> /dev/null > /dev/null \
+        "${_check_bin}" --version 2> /dev/null > /dev/null \
           || builtin echo -ne "${?}"
       )";
       if [[ -n ${_check_avail} ]]; then
@@ -302,6 +305,7 @@ function __build_glibc () {
   local build_path;
   local install_type;
   local force_version;
+  local __build_app_glibc;
   install_type="${1:---user}";
   force_version="${2:-latest}";
   inst_path="${HOME}/.local/opt/apps/${app_name}";
@@ -360,15 +364,15 @@ function __build_glibc () {
   unpack "${build_path}/${base_name}.tar.gz" "${build_path}";
   "${mkdir_bin}" -p "${inst_path}";
   "${mkdir_bin}" -p "${build_path}/${base_name}/build";
-  function __build_app () {
+  function __build_app_glibc () {
     (
       builtin cd "${build_path}/${base_name}/build" \
         || return 1;
       ../configure --prefix="${inst_path}"
     )
   };
-  __build_app;
-  unset __build_app;
+  __build_app_glibc;
+  unset __build_app_glibc;
   MAKE="$(which make)" "${make_bin}" \
     -C "${build_path}/${base_name}" -j "${num_threads}";
   MAKE="$(which make)" "${make_bin}" \
@@ -386,7 +390,9 @@ function __build_git () {
   local inst_path;
   local num_threads;
   local get_url;
-  local rm_bin make_bin;
+  local rm_bin;
+  local make_bin;
+  local __build_app_git;
   rm_bin="$(which_bin 'rm')";
   make_bin="$(which_bin 'gmake')";
   if [[ -z ${make_bin} ]]; then
@@ -403,16 +409,15 @@ function __build_git () {
   download "${get_url}" "${build_path}";
   unpack "${build_path}/main.zip" "${build_path}";
   "${make_bin}" -C "${build_path}/git-main" configure -j "${num_threads}"
-  local __build_app;
-  function __build_app () {
+  function __build_app_git () {
     (
       builtin cd "${build_path}/git-main" \
         || return 1;
       ./configure --prefix="${inst_path}";
     )
   };
-  __build_app;
-  unset __build_app;
+  __build_app_git;
+  unset __build_app_git;
   "${make_bin}" -C "${build_path}/git-main" -j "${num_threads}";
   "${make_bin}" -C "${build_path}/git-main" install -j "${num_threads}";
   "${rm_bin}" -rf "${build_path}/git-main" "${build_path}/main.zip";
@@ -474,16 +479,16 @@ function __build_bash () {
   build_path="$(create_temp bash-inst)";
   download "${get_url}" "${build_path}";
   unpack "${build_path}/bash-${build_version}.tar.gz" "${build_path}";
-  local __build_app;
-  function __build_app () {
+  local __build_app_bash;
+  function __build_app_bash () {
     (
       builtin cd "${build_path}/bash-${build_version}" \
         || return 1;
       ./configure --prefix="${inst_path}";
     )
   };
-  __build_app;
-  unset __build_app;
+  __build_app_bash;
+  unset __build_app_bash;
   "${make_bin}" \
     -C "${build_path}/bash-${build_version}" -j "${num_threads}";
   "${make_bin}" \
