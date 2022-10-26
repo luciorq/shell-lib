@@ -255,14 +255,14 @@ if [[ ! -d "$(dirname "${CONDARC}")" ]]; then
   \mkdir -p "$(dirname "${CONDARC}")";
 fi
 export CONDA_ENVS_PATH="${XDG_DATA_HOME}/conda/envs";
-if [[ ! -d "$(dirname "${CONDA_ENVS_PATH}")" ]]; then
-  \mkdir -p "$(dirname "${CONDA_ENVS_PATH}")";
+if [[ ! -d ${CONDA_ENVS_PATH} ]]; then
+  \mkdir -p "${CONDA_ENVS_PATH}";
 fi
 \mkdir -p "$(dirname "${CONDA_ENVS_PATH}")/envs";
 \mkdir -p "$(dirname "${CONDA_ENVS_PATH}")/pkgs";
 export CONDA_ROOT_PREFIX="${XDG_DATA_HOME}/conda";
-export MAMBA_ROOT_PREFIX="${XDG_DATA_HOME}/conda";
-export MAMBA_ENVS_PATH="${XDG_DATA_HOME}/conda/envs";
+export MAMBA_ROOT_PREFIX="${XDG_DATA_HOME}/mamba";
+export MAMBA_ENVS_PATH="${XDG_DATA_HOME}/mamba/envs";
 
 # OpenSSH
 # + control masters
