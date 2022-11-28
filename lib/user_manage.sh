@@ -2,7 +2,7 @@
 
 # Create user with specific user ID and password
 function __user_create () {
-  local _usage="$0: __create_user <USER_NAME> <USER_UID> [<PW|PW_HASH>]"
+  local _usage="Usage: ${0} <USER_NAME> <USER_UID> [<PW|PW_HASH>]"
   unset _usage;
   local user_name;
   local user_uid;
@@ -99,12 +99,12 @@ function __user_add_group () {
   user_name="${1}";
   usermod_bin="$(require 'usermod' '-h')";
   sudo_bin="$(require 'sudo')";
-  builtin mapfile -t args_arr < <("${@}");
+  builtin mapfile -t args_arr < <(builtin echo "${@}");
   groups_to_add="$(
     builtin echo "${args_arr[@]:1}" \
       | sed -r 's|\s+|,|g'
   )";
-  "${sudo_bin}" "${usermod_bin}" -a -G "${groups_to_add}" "${user_name}";
+  "${sudo_bin}" "${usermod_bin}" -a -G "${groups_to_add[@]}" "${user_name}";
   return 0;
 }
 
@@ -126,8 +126,8 @@ function __user_remove () {
 # TODO: @luciorq Finish setting replicate_pw function
 # Replicate hashed user password
 # + from one remote host to another
-function __replicate_pw_server () {
-  local _usage="Usage: {0} <USER_NAME> <HOST_FROM> <HOST_TO>";
+function __user_replicate_pw_server () {
+  local _usage="Usage: ${0} <USER_NAME> <HOST_FROM> <HOST_TO>";
   unset _usage;
   local user_name;
   local host_control_plane;
@@ -178,5 +178,50 @@ function __replicate_pw_server () {
     echo "PW: ${_host_pw}";
   done
 
+  return 0;
+}
+
+# Create directory structure on `/data` storages
+function __create_data_storage_user () {
+  local _usage="Usage: ${0} <USER_NAME>";
+  unset _usage;
+  local user_name;
+  local host_name;
+  local user_dir;
+  local mkdir_bin;
+  local chown_bin;
+  local sudo_bin;
+  user_name="${1}";
+  mkdir_bin="$(require 'mkdir')";
+  chown_bin="$(require 'chown')";
+  sudo_bin="$(require 'sudo')";
+  if [[ $(sudo_check) == false ]]; then
+    exit_fun 'Need to be run as super user.';
+    return 1;
+  fi
+  if [[ -z ${user_name} ]]; then
+    exit_fun "'user_name' can not be empty";
+    return 1;
+  fi
+  host_name="${HOSTNAME%%.*}";
+  if [[ -d /data ]]; then
+    user_dir="/data/${host_name}/${user_name}";
+    "${sudo_bin}" "${mkdir_bin}" -p "${user_dir}";
+    "${sudo_bin}" "${chown_bin}" \
+      -R "${user_name}":"${user_name}" "${user_dir}";
+  fi
+  return 0;
+}
+
+# Create `/data` storage for all users on host
+function __create_data_storage_all () {
+  local _user_name;
+  local _user_home;
+  if [[ -d /home ]]; then
+    for _user_home in /home/*; do
+      _user_name="${_user_home##*/}";
+      __create_data_storage_user "${_user_name}";
+    done
+  fi
   return 0;
 }
