@@ -9,7 +9,7 @@ function dfh () {
   local header_str;
   local align_str;
   local body_str;
-  header_str="FS,Type,Size,Used,Available,Usega(%),MountPath\n";
+  header_str="FS,Type,Size,Used,Available,Usage(%),MountPath\n";
   align_str="---,---,---,---,---,---,---\n";
   ls_bin="$(which_bin 'ls')";
   df_bin="$(which_bin 'df')";
