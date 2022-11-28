@@ -214,3 +214,23 @@ function rstats::remove_pkg () {
     "${script_str}";
   return 0;
 }
+
+# ==============================================================================
+# Package Development Functions
+# ==============================================================================
+
+# Check R package
+function rstats::check_pkg () {
+  local r_bin;
+  r_bin="$(require 'R')";
+
+  return 0;
+}
+
+# Build R package
+function rstats::build_pkg () {
+  local r_bin;
+  r_bin="$(require 'R')";
+
+  return 0;
+}

@@ -15,6 +15,8 @@ function radian_fun () {
   _IS_RADIAN=true "${py_bin}" -m radian \
     --r-binary="${r_bin}" \
     --profile="${HOME}/.config/radian/profile" \
-    --global-history --quiet;
+    --global-history \
+    --quiet \
+    "${@}";
   return 0;
 }

@@ -69,15 +69,14 @@ init:
   bashly init
   bashly add yaml
 
-
 super-lint:
   #!/usr/bin/env bash -S -i
   set -euxo pipefail
   docker pull github/super-linter:latest
   docker run -e RUN_LOCAL=true -v {{ justfile_directory() }}:/tmp/lint github/super-linter
 
-
 # needs to be root user
 install_apps_system:
+  #!/usr/bin/env bash -S -i
   sudo su;
-  (export _LOCAL_CONFIG=/home/luciorq/.config/lrq; cd /home/luciorq/.local/lib/shell-lib; for _i in $(ls -A1 /home/luciorq/.local/lib/shell-lib/*.sh); do source $_i; done; install_apps --system;)
+  (export _LOCAL_CONFIG=/home/luciorq/.config/lrq; builtin cd /home/luciorq/.local/lib/shell-lib; for _i in $(ls -A1 /home/luciorq/.local/lib/shell-lib/*.sh); do source $_i; done; install_apps --system;)
