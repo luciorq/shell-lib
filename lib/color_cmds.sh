@@ -37,6 +37,10 @@ function cat_color () {
       );
     fi
   done
+  if [[ -d ${1} ]]; then
+    "${cat_bin}" "${@}";
+    return 0;
+  fi
   "${cat_bin}" "${@}" \
     | bat_fun \
       -p --paging 'never' \
