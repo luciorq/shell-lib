@@ -25,6 +25,11 @@ function sudo_fun () {
     return;
   fi
 
+  if [[ -d ${1} ]]; then
+    exit_fun "'${1}' is a directory.";
+    return 1;
+  fi
+
   bash_bin="$(which_bin 'bash')";
 
   cmd_prep="shopt -s expand_aliases; _SUDO_FUN=true; TERM=xterm-256color; ";
