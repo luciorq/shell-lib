@@ -2,6 +2,9 @@
 
 # Extract variables from YAML a file
 function parse_yaml () {
+  local _usage;
+  _usage="Usage: ${0} <FILE_NAME> [<KEY_1>...<KEY_N>]";
+  unset _usage;
   local yq_bin;
   local ruby_bin;
   local py3_bin py_bin;
@@ -124,7 +127,7 @@ function __parse_yaml_python () {
   fi
   py_script="import yaml;x = yaml.safe_load(open('${yaml_path}', 'r'))";
   py_script="${py_script}${levels_str}";
-  py_script="${py_script}; print(x) if isinstance(x, str) else print(*x, sep ='\n') if isinstance(x, list) else print(yaml.dump(x)) if isinstance(x, dict) else False;";
+  py_script="${py_script}; print(x) if isinstance(x, str) else [print(yaml.dump(i)) for i in x] if isinstance(x, list) else print(yaml.dump(x)) if isinstance(x, dict) else False;";
   module_res=$( "${py_bin}" -c "${py_script}" 2>&1 );
   if [[ ${module_res} =~ KeyError: ]]; then
     builtin echo -ne '\n';
