@@ -336,7 +336,7 @@ function __install_path () {
   # Install Application to a local user path or system wide
   function __install_app () {
     # Variable declaration ------------------------------------------------------
-    local _usage="usage: $0 [--user|--system] <APP_NUM>";
+    local _usage="usage: $0 [--user|--system] <APP_NUM/APP_NAME>";
     local sed_bin rm_bin;
     # local cp_bin;
     local mkdir_bin ln_bin chmod_bin;

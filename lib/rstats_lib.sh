@@ -25,9 +25,10 @@ function rstats::boostrap_quarto_install () {
 }
 
 # Install / update all packages from config file
-# TODO: luciorq Actually implment the universe parsing
+# TODO: @luciorq Actually implement the universe parsing
 function rstats::install_all_pkgs () {
   local pkg_type_arr;
+  local pkg_name_arr;
   local _pkg_type;
   local _pkg_name;
   local _pkg_name_arr;
@@ -45,10 +46,14 @@ function rstats::install_all_pkgs () {
     'local'
   );
   pkg_name_str='';
+  builtin declare -a pkg_name_arr;
   for _pkg_type in "${pkg_type_arr[@]}"; do
     builtin mapfile -t _pkg_name_arr < <(
       get_config rstats_packages "${_pkg_type}_packages"
     );
+    if [[ -n ${_pkg_name_arr[*]} ]]; then
+      pkg_name_arr+=("${_pkg_name_arr[@]}");
+    fi
     for _pkg_name in "${_pkg_name_arr[@]}"; do
       if [[ -n ${_pkg_name} ]]; then
       case ${_pkg_type} in

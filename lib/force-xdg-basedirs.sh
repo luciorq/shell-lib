@@ -147,7 +147,8 @@ builtin alias wget='wget --hsts-file="${XDG_CACHE_HOME}/wget/wget-hsts"';
 
 # JAVA =======================================================================
 # java openjdk
-export _JAVA_OPTIONS="-Djava.util.prefs.userRoot=${XDG_CONFIG_HOME}/java";
+# NOTE: @luciorq _JAVA_OPTIONS is breaking java inside conda environments.
+# export _JAVA_OPTIONS="-Djava.util.prefs.userRoot=${XDG_CONFIG_HOME}/java";
 if [[ ! -d "${XDG_CONFIG_HOME}/java" ]]; then
   \mkdir -p "${XDG_CONFIG_HOME}/java";
 fi
@@ -220,6 +221,9 @@ fi
 # Android (ADB)
 export ADB_VENDOR_KEYS="${XDG_CONFIG_HOME}/adb/adbkey";
 
+# Android Studio
+export ANDROID_HOME="${XDG_DATA_HOME}/android";
+
 # Subversion (svn) - some homebrew formulas used it
 \mkdir -p "${XDG_CONFIG_HOME}/subversion";
 builtin alias svn='svn --config-dir "${XDG_CONFIG_HOME}/subversion" ';
@@ -250,7 +254,9 @@ fi
 # X11
 export XAUTHORITY="${XDG_CONFIG_HOME}/X11/Xauthority";
 export XINITRC="${XDG_CONFIG_HOME}/X11/xinitrc";
-#NPM
+
+# JavaScript
+# NPM
 export NPM_CONFIG_USERCONFIG="${XDG_CONFIG_HOME}/npm/npmrc";
 if [[ ! -d "$(dirname "${NPM_CONFIG_USERCONFIG}")" ]]; then
   \mkdir -p "$(dirname "${NPM_CONFIG_USERCONFIG}")";
@@ -258,8 +264,17 @@ fi
 if [[ ! -f "${NPM_CONFIG_USERCONFIG}" ]]; then
   \touch "${NPM_CONFIG_USERCONFIG}";
 fi
+# Yarn
+alias yarn='yarn --use-yarnrc "${XDG_CONFIG_HOME}/yarn/config"';
+if [[ ! -d "${XDG_CONFIG_HOME}/yarn" ]]; then
+  \mkdir -p "${XDG_CONFIG_HOME}/yarn";
+fi
+if [[ ! -f "${XDG_CONFIG_HOME}/yarn/config" ]]; then
+  \touch "${XDG_CONFIG_HOME}/yarn/config";
+fi
+
 # subversion - svn
-builtin alias svn='svn --config-dir "${XDG_CONFIG_HOME}"/subversion';
+builtin alias svn='svn --config-dir "${XDG_CONFIG_HOME}/subversion"';
 
 # Anaconda / Conda / Mamba
 export CONDARC="${XDG_CONFIG_HOME}/conda/condarc";

@@ -65,7 +65,6 @@ function __user_create () {
     fi
   fi
   home_path="$("${dirname_bin}" "${HOME}")";
-
   is_hashed_pw="$(
     builtin echo -ne "${user_pw}" \
       |"${grep_bin}" '\$[0-9]\$'
@@ -122,7 +121,6 @@ function __user_remove () {
   return 0;
 }
 
-
 # TODO: @luciorq Finish setting replicate_pw function
 # Replicate hashed user password
 # + from one remote host to another
@@ -142,7 +140,6 @@ function __user_replicate_pw_server () {
   user_name="${1}";
   host_control_plane="${2}";
   # host_targets=( "${@:3}" );
-
   grep_bin="$(require 'grep')";
   sed_bin="$(require 'sed')";
   res_str="$(
@@ -156,7 +153,6 @@ function __user_replicate_pw_server () {
     | "${sed_bin}" -e 's/^\w*://g' \
     | "${sed_bin}" -e 's/:[[:digit:]]*:[[:digit:]]:[[:digit:]]*:[[:digit:]]::://g'
   )";
-
   for _host in "${@:3}"; do
     _host_str="$(
       exec_remote bioinfo@"${_host}" \
@@ -177,7 +173,6 @@ function __user_replicate_pw_server () {
     fi
     echo "PW: ${_host_pw}";
   done
-
   return 0;
 }
 
