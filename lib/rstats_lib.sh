@@ -80,11 +80,28 @@ function rstats::install_all_pkgs () {
       # rstats::install_pkg "${_pkg_name}" "${_pkg_type}";
       fi
     done
-    unset _pkg_name_arr;
   done
+
+  builtin echo -ne "${pkg_name_arr[*]}";
+
   pkg_name_str="$("${sed_bin}" 's/,$//' <<< "${pkg_name_str}")";
   pkg_name_str="c(${pkg_name_str})";
-  echo "pak::pkg_install(pkg=${pkg_name_str},upgrade=TRUE,ask=FALSE)";
+
+  if [[ -n ${CONDA_DEFAULT_ENV} ]]; then
+    local conda_bin;
+    local conda_env_name;
+    local pkg_conda_deps;
+    conda_bin="$(get_conda_bin)";
+    conda_env_name="${CONDA_DEFAULT_ENV}";
+    pkg_conda_deps="$(rstats::get_pkg_deps "${}")";
+    "${conda_bin}" install \
+      -n "${conda_env_name}" \
+      "${pkg_conda_deps}";
+  fi
+  unset _pkg_name_arr;
+
+  builtin echo -ne \
+    "pak::pkg_install(pkg=${pkg_name_str},upgrade=TRUE,ask=FALSE)";
   "${r_bin}" -q -s -e \
     "pak::pkg_install(pkg=${pkg_name_str},upgrade=TRUE,ask=FALSE)";
   return 0;
@@ -215,7 +232,8 @@ function rstats::remove_pkg () {
   r_bin="$(require 'R')";
   pkg_name="${1}";
   script_str="utils::remove.packages('${pkg_name}')";
-  "${r_bin}" -q -s -e \
+  "${r_bin}" \
+    -q -s -e \
     "${script_str}";
   return 0;
 }
