@@ -92,6 +92,15 @@ function __clean_home () {
     .groovy
     .openjfx
     .emacs
+    .android
+    .docker
+    .git-credentials
+    .minikube
+    .mini-kube
+    .terminfo
+    .Xauthority
+    .yarnrc
+    .yarn
   )
   for _dir in "${remove_dirs_arr[@]}"; do
     path_to_rm="${HOME}/${_dir}";
@@ -101,6 +110,7 @@ function __clean_home () {
       "${rm_bin}" -rf "${path_to_rm}";
     fi
   done;
+
   return 0;
 }
 
