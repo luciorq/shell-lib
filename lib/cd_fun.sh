@@ -5,13 +5,10 @@
 function cd_fun () {
   local zoxide_bin;
   zoxide_bin="$(which_bin 'zoxide')";
-  if [[ -z ${zoxide_bin} ]]; then
-    builtin cd "${@}";
-  fi
-
-  if [[ $(type -t z) == function ]]; then
+  if [[ -n ${zoxide_bin} ]] && [[ $(builtin type -t z) == function ]]; then
     z "${@}";
+  else
+    builtin cd "${@}" || return 1;
   fi
-  # TODO: @luciorq check if `z` function is defined
   builtin return 0;
 }
