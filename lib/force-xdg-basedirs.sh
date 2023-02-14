@@ -156,6 +156,11 @@ export IPYTHONDIR="${XDG_CONFIG_HOME}/jupyter";
 export JUPYTER_CONFIG_DIR="${XDG_CONFIG_HOME}/jupyter";
 export PYLINTHOME="${XDG_CACHE_HOME}/pylint";
 export PYTHON_EGG_CACHE="${XDG_CACHE_HOME}/python-eggs";
+export PYTHONSTARTUP="${XDG_CONFIG_HOME}/python/pythonrc";
+if [[ ! -d "${XDG_CONFIG_HOME}/python" ]]; then
+  \mkdir -p "${XDG_CONFIG_HOME}/python";
+fi
+
 
 # Ruby =======================================================================
 # Gems - Ruby Gems
