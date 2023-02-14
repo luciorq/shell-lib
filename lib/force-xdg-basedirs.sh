@@ -294,3 +294,19 @@ export ZELLIJ_CONFIG_DIR="${XDG_CONFIG_HOME}/zellij";
 if [[ ! -d "${ZELLIJ_CONFIG_DIR}" ]]; then
   \mkdir -p "${ZELLIJ_CONFIG_DIR}";
 fi
+
+# Google Cloud Platform SDK ---
+# + gsutil uses BOTO_CONFIG and
+# # [Boto]
+# + state_dir = "$XDG_DATA_HOME"/gsutil
+# + [GSUtil]
+# + state_dir = "$XDG_DATA_HOME"/gsutil
+# + state_dir = ~/.local/cache/gsutil
+# + needs to be set within BOTO_CONFIG file.
+export BOTO_CONFIG="${XDG_CONFIG_HOME}/gsutil/config";
+if [[ ! -d "${XDG_CONFIG_HOME}/gsutil" ]]; then
+  \mkdir -p "${XDG_CONFIG_HOME}/gsutil";
+fi
+if [[ ! -d "${XDG_DATA_HOME}/gsutil" ]]; then
+  \mkdir -p "${XDG_DATA_HOME}/gsutil";
+fi
