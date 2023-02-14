@@ -1,3 +1,5 @@
+#!/usr/bin/env just --justfile
+
 prj_name := 'shell-lib'
 lib_home := env_var_or_default('XDG_LIB_HOME', env_var('HOME') + '/' + '.local/lib')
 
@@ -70,13 +72,15 @@ init:
   bashly add yaml
 
 super-lint:
-  #!/usr/bin/env bash -S -i
+  #!/usr/bin/env -S bash -i
   set -euxo pipefail
   docker pull github/super-linter:latest
   docker run -e RUN_LOCAL=true -v {{ justfile_directory() }}:/tmp/lint github/super-linter
 
+user_name := env_var('USER')
 # needs to be root user
 install_apps_system:
-  #!/usr/bin/env bash -S -i
-  sudo su;
-  (export _LOCAL_CONFIG=/home/luciorq/.config/lrq; builtin cd /home/luciorq/.local/lib/shell-lib; for _i in $(ls -A1 /home/luciorq/.local/lib/shell-lib/*.sh); do source $_i; done; install_apps --system;)
+  #!/usr/bin/env -S bash -i
+  echo 'for _i in $(\ls -A1 /home/{{ user_name }}/projects/shell-lib/lib/*.sh); do source "${_i}"; done;';
+  echo 'source /home/{{ user_name }}/.bashrc;';
+  echo '_LOCAL_CONFIG=/home/{{ user_name }}/.config/lrq install_apps --system;';
