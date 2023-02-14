@@ -16,6 +16,10 @@
 [[ -z ${XDG_DATA_HOME} ]] && export XDG_DATA_HOME="${HOME}/.local/share";
 [[ -z ${XDG_STATE_HOME} ]] && export XDG_STATE_HOME="${HOME}/.local/state";
 
+# Terminfo - ncurses
+export TERMINFO="${XDG_DATA_HOME}/terminfo";
+export TERMINFO_DIRS="${XDG_DATA_HOME}/terminfo":/usr/share/terminfo;
+
 # Ack
 export ACKRC="${XDG_CONFIG_HOME}/ack/ackrc"
 
