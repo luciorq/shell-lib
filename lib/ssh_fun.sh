@@ -3,6 +3,9 @@
 # Kitten Aware SSH connection
 function ssh_fun () {
   local ssh_bin;
+  local _usage;
+  _usage="Usage: ${0} <[SSH_ARGS]>";
+  unset _usage;
   ssh_bin="$(require 'ssh' '-V')";
   set -x;
   "${ssh_bin}" -A "${@:1}";
