@@ -48,6 +48,9 @@ export DOCKER_CONFIG="${XDG_CONFIG_HOME}/docker";
 # Docker Machine
 export MACHINE_STORAGE_PATH="${XDG_DATA_HOME}/docker/machine";
 
+# Minikube
+export MINIKUBE_HOME="${XDG_DATA_HOME}/minikube";
+
 # GnuPG
 export GNUPGHOME="${XDG_DATA_HOME}/gnupg";
 if [[ ! -d ${XDG_CONFIG_HOME}/gnupg ]]; then
