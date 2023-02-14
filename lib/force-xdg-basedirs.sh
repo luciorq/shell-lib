@@ -269,8 +269,8 @@ fi
 \mkdir -p "$(dirname "${CONDA_ENVS_PATH}")/envs";
 \mkdir -p "$(dirname "${CONDA_ENVS_PATH}")/pkgs";
 export CONDA_ROOT_PREFIX="${XDG_DATA_HOME}/conda";
-export MAMBA_ROOT_PREFIX="${XDG_DATA_HOME}/mamba";
-export MAMBA_ENVS_PATH="${XDG_DATA_HOME}/mamba/envs";
+export MAMBA_ROOT_PREFIX="${XDG_DATA_HOME}/conda";
+export MAMBA_ENVS_PATH="${XDG_DATA_HOME}/conda/envs";
 
 # OpenSSH
 # + control masters
