@@ -193,10 +193,10 @@ export JULIA_DEPOT_PATH="${XDG_DATA_HOME}/julia:${JULIA_DEPOT_PATH}";
 
 # R ==========================================================================
 # Make R language (rstats) respect XDG base dirs spec
-export R_ENVIRON_USER="${XDG_CONFIG_HOME}/R/Renviron"
-export R_PROFILE_USER="${XDG_CONFIG_HOME}/R/Rprofile"
-export R_MAKEVARS_USER="${XDG_CONFIG_HOME}/R/Makevars"
-export R_HISTFILE="${XDG_DATA_HOME}/R/Rhistory"
+export R_ENVIRON_USER="${XDG_CONFIG_HOME}/R/Renviron";
+export R_PROFILE_USER="${XDG_CONFIG_HOME}/R/Rprofile";
+export R_MAKEVARS_USER="${XDG_CONFIG_HOME}/R/Makevars";
+export R_HISTFILE="${XDG_DATA_HOME}/R/Rhistory";
 if [[ ! -d "${XDG_DATA_HOME}/R" ]]; then
   \mkdir -p "${XDG_DATA_HOME}/R";
 fi

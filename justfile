@@ -39,12 +39,12 @@ build:
 
 install-bundle:
   #!/usr/bin/env bash
-  set -euxo pipefail
+  set -euxo pipefail;
 
 
 install-mac-launchers:
   #!/usr/bin/env -S bash -i
-  set -euxo pipefail
+  set -euxo pipefail;
   for _app in $(\ls -A1 "{{lib_tools_path}}/inst/"*.command); do
     inst_path="/usr/local/bin/$(basename ${_app})";
     [[ -f ${inst_path} ]] && \sudo rm "${inst_path}";
