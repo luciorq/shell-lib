@@ -13,16 +13,17 @@ default:
 # integrate functions from source lib
 install-separate:
   #!/usr/bin/env bash
-  set -euxo pipefail
-  mkdir -p {{dest_dir}}
-  funs=($(ls lib/*.sh))
-  for i in ${funs[@]}; do cp {{lib_path}}/"${i}" {{dest_dir}}/; done
+  set -euxo pipefail;
+  mkdir -p "{{dest_dir}}";
+  for _i in lib/*.sh; do
+    \cp {{lib_path}}/"${_i}" "{{dest_dir}}/";
+  done;
 
 build:
   #!/usr/bin/env bash
-  set -euxo pipefail
-  bashly generate
-  # for _i in "$(\ls -A1 src/)"; do
+  set -euxo pipefail;
+  bashly generate;
+  # for _i in src; do
   #  _function_name="$(basename ${_i%%.*})";
   #  bashly generate --wrap ${_function_name};
   # done
