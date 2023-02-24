@@ -9,7 +9,7 @@ function install_apps () {
   local apps_length;
   local app_num_arr;
   local app_num;
-  if [[ $# -eq 0 ]]; then
+  if [[ ${#} -eq 0 ]]; then
     install_type='--user';
   fi
   for _arg in "${@}"; do
@@ -258,6 +258,7 @@ function __install_path () {
         -c defaults \
         --root-prefix "${prefix_path}" \
         --prefix "${envs_path}/${app_name}" \
+        -n "${app_name}" \
         "${app_name}";
     fi
 
