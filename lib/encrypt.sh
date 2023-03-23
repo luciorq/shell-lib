@@ -1,9 +1,50 @@
 #!/usr/bin/env bash
 
+# Encrypt file using password
+function encrypt_file_password () {
+  local file_name;
+  local gpg_bin;
+  gpg_bin="$(which_bin 'gpg')";
+  if [[ -z "${gpg_bin}" ]]; then
+    gpg_bin="$(which_bin 'gpg2')";
+  fi
+  if [[ -z "${gpg_bin}" ]]; then
+    exit_fun "{gpg} is not installed.";
+    return 1;
+  fi
+  file_name="${1}";
+  "${gpg_bin}" \
+    -R \
+    --encrypt \
+    --symmetric \
+    --openpgp \
+    --cipher-algo AES256 \
+    "${file_name}";
+  return 0;
+}
+
+# Unencrypt file using a password
+function unencrypt_file_password () {
+  local file_name;
+  local gpg_bin;
+  gpg_bin="$(which_bin 'gpg')";
+  if [[ -z "${gpg_bin}" ]]; then
+    gpg_bin="$(which_bin 'gpg2')";
+  fi
+  if [[ -z "${gpg_bin}" ]]; then
+    exit_fun "{gpg} is not installed.";
+    return 1;
+  fi
+  file_name="${1}";
+  file_name="${file_name%\.gpg}"
+  "${gpg_bin}" -d "${file_name}.gpg" > "${file_name}";
+  return 0;
+}
+
 # Encrypt Files using the GPG key
 # + Note: Recipient is the username/email associated
 # + with key
-function encrypt_file () {
+function encrypt_file_key () {
   local key_user;
   local gpg_bin;
   local input_file;
@@ -29,7 +70,7 @@ function encrypt_file () {
 }
 
 # Unencrypt files using GPG key
-function unencrypt_file () {
+function unencrypt_file_key () {
   local key_user;
   local gpg_bin;
   local input_file;
