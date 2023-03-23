@@ -8,7 +8,8 @@ function download () {
   function download_usage () {
     builtin echo >&2 -ne "usage: download <URL> [<OUTPUT_DIR>] [<THREADS>]\n";
   }
-  if [[ $# -eq 0 ]]; then download_usage; unset download_usage; return 1; fi
+  if [[ ${#} -eq 0 ]]; then download_usage; unset download_usage; return 1; fi
+  if [[ ${1} == '-h'  ]]; then download_usage; unset download_usage; return 0; fi
   unset download_usage;
   local get_url;
   local dir_output;
@@ -25,7 +26,7 @@ function download () {
   if [[ -z ${dir_output} ]]; then
     dir_output="$(realpath ./)";
   fi
-  thread_num="$(get_nthreads 8)";
+  thread_num="$(get_nthreads '8')";
   if [[ ! -d ${dir_output} ]]; then
     "$(which_bin mkdir)" -p "${dir_output}";
   fi
@@ -52,6 +53,8 @@ function download () {
       -L \
       -nv \
       -q \
+      -np \
+      -nH \
       --hsts-file="${cache_path}" \
       --no-check-certificate \
       --output-document="${output_filename}" \
