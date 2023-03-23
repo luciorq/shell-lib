@@ -77,6 +77,7 @@ function __clean_home () {
     .conda
     .mamba
     .pki
+    .rnd
     .Rhistory
     .bash_profile
     .bash_history
@@ -94,6 +95,8 @@ function __clean_home () {
     .emacs
     .android
     .docker
+    .spack
+    .dockstore
     .git-credentials
     .minikube
     .mini-kube
