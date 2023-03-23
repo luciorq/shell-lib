@@ -217,6 +217,11 @@ if [[ ! -f ${HISTFILE} ]]; then
   \touch "${HISTFILE}";
 fi
 
+# Nvidia CUDA
+export CUDA_CACHE_PATH="${XDG_CACHE_HOME}/nv";
+if [[ ! -d "${CUDA_CACHE_PATH}" ]]; then
+  \mkdir -p "${CUDA_CACHE_PATH}";
+fi
 # =============================================================================
 # Android (ADB)
 export ADB_VENDOR_KEYS="${XDG_CONFIG_HOME}/adb/adbkey";
