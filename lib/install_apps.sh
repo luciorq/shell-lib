@@ -236,18 +236,20 @@ function __install_path () {
     touch_bin="$(which_bin 'touch')";
 
     if [[ ${install_type} == "--user" ]]; then
-      prefix_path="${XDG_DATA_HOME:-${HOME}/.local/share}/conda";
+      # prefix_path="${XDG_DATA_HOME:-${HOME}/.local/share}/conda";
       envs_path="${HOME}/.local/opt/apps/${app_name}/envs";
       install_path="${HOME}/.local/opt/apps/${app_name}/bin";
       link_path="${HOME}/.local/bin";
     elif [[ ${install_type} == "--system" ]]; then
-      prefix_path="/opt/apps/conda";
+      #prefix_path="/opt/apps/conda";
       envs_path="/opt/apps/${app_name}/envs";
       install_path="/opt/apps/${app_name}/bin";
       link_path='/usr/local/bin';
     fi
-
+    \mkdir -p "${envs_path}";
     if [[ ! -d ${envs_path}/${app_name} ]]; then
+      # --root-prefix "${prefix_path}" \
+      # -n "${app_name}" \
       "${mamba_bin}" create \
         --yes \
         --quiet \
@@ -256,9 +258,7 @@ function __install_path () {
         -c conda-forge \
         -c bioconda \
         -c defaults \
-        --root-prefix "${prefix_path}" \
         --prefix "${envs_path}/${app_name}" \
-        -n "${app_name}" \
         "${app_name}";
     fi
 
@@ -269,6 +269,10 @@ function __install_path () {
     for _exec_bin in "${@:3}"; do
       exec_file="${install_path}/${_exec_bin}";
       "${touch_bin}" "${exec_file}";
+      # TODO: See if --prefix is a better approach for system installation
+      # + "--prefix ${envs_path}/${app_name}"
+      # + This is to force root install to just look to the root environment
+      # + also to isolate the env in the directory of the app installation
       builtin echo -ne '#!/usr/bin/env bash\n\n' > "${exec_file}";
       builtin echo \
         "${mamba_bin} run --prefix ${envs_path}/${app_name} ${_exec_bin} \"\${@}\"" \
