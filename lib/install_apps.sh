@@ -19,17 +19,14 @@ function install_apps () {
       install_type='--user';
     fi
   done
-
   apps_length="$(get_config apps apps | grep -c '^name:')";
   builtin mapfile -t app_num_arr < <(
     seq 0 $(( apps_length - 1 ))
   );
-
   for app_num in "${app_num_arr[@]}"; do
     builtin echo -ne "Installing App: '${app_num}':\n";
     __install_app "${install_type}" "${app_num}";
   done
-
   builtin echo -ne "Completed 'install_apps'\n";
   return 0;
 }
