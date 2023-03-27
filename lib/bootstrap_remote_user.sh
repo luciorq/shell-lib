@@ -101,6 +101,7 @@ function __clean_home () {
     .minikube
     .mini-kube
     .terminfo
+    .keras
     .Xauthority
     .yarnrc
     .yarn
