@@ -2,8 +2,17 @@
 
 # Retrieve Running or complete job details
 function slurm_check_job () {
-  SACCT_FORMAT="JobID%20,JobName,User,Partition,NodeList,Elapsed,State,ExitCode,MaxRSS,AllocTRES%32" \
-    sacct -j "${@}";
+  local sacct_bin;
+  local format_string;
+  sacct_bin="$(require 'sacct')";
+  format_string="JobID%20,JobName%20,User,Partition,NodeList,Elapsed,State,ExitCode,MaxRSS,AllocTRES%32";
+  if [[ ${#} -eq 0 ]]; then
+    SACCT_FORMAT="${format_string}" \
+      "${sacct_bin}" -u "${USER}";
+  else
+    SACCT_FORMAT="${format_string}" \
+      "${sacct_bin}" -j "${@}";
+  fi
   return 0;
 }
 
