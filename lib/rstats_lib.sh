@@ -82,7 +82,7 @@ function rstats::install_all_pkgs () {
     done
   done
 
-  builtin echo -ne "${pkg_name_arr[*]}";
+  # builtin echo -ne "${pkg_name_arr[*]}";
 
   pkg_name_str="$("${sed_bin}" 's/,$//' <<< "${pkg_name_str}")";
   pkg_name_str="c(${pkg_name_str})";
@@ -93,10 +93,13 @@ function rstats::install_all_pkgs () {
     local pkg_conda_deps;
     conda_bin="$(get_conda_bin)";
     conda_env_name="${CONDA_DEFAULT_ENV}";
-    pkg_conda_deps="$(rstats::get_pkg_deps "${}")";
-    "${conda_bin}" install \
-      -n "${conda_env_name}" \
-      "${pkg_conda_deps}";
+
+    # TODO: Check if r-env or base have R installed
+
+    #  pkg_conda_deps="$(rstats::get_pkg_deps "${}")";
+    # "${conda_bin}" install \
+    #  -n "${conda_env_name}" \
+    #   "${pkg_conda_deps}";
   fi
   unset _pkg_name_arr;
 
@@ -195,6 +198,7 @@ function rstats::install_rstats_version () {
   "${rig_bin}" default "${rstats_version}";
   if [[ ${os_type} == darwin ]]; then
     "${rig_bin}" system  fix-permissions;
+    "${rig_bin}" sysreqs add gfortran;
     "${rig_bin}" sysreqs add pkgconfig;
     "${rig_bin}" sysreqs add tidy-html5;
   fi
@@ -208,9 +212,9 @@ function rstats::install_rstats_version () {
 # + devel, release, next
 function rstats::update_rstats_version () {
   rstats::install_rig;
-  rstats::install_rstats_version release;
   rstats::install_rstats_version devel;
   rstats::install_rstats_version next;
+  rstats::install_rstats_version release;
   return 0;
 }
 
@@ -241,6 +245,9 @@ function rstats::remove_pkg () {
 # ==============================================================================
 # Package Development Functions
 # ==============================================================================
+
+
+# TODO: Work in progress for checking and building source R packages
 
 # Check R package
 function rstats::check_pkg () {
