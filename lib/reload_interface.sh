@@ -20,7 +20,7 @@ function reload_interface () {
 }
 
 # =============================================================================
-# MAcOS interface utilities
+# MacOS interface utilities
 # =============================================================================
 
 # Reload SketchyBar - Top Bar replacement
@@ -67,5 +67,25 @@ function __reload_karabiner () {
   user_id=$(id -u);
   launchctl kickstart \
     -k "gui/${user_id}/org.pqrs.karabiner.karabiner_console_user_server";
+  return 0;
+}
+
+# =============================================================================
+# Reload signatures
+# =============================================================================
+
+# reload yabai signatures after reinstall
+function __reload_yabai_code_signature () {
+  # check_macos();
+  require 'codesign';
+  codesign -fs 'yabai-cert' $(which_bin 'yabai');
+  return 0;
+}
+
+# reload yabai signatures after reinstall
+function __reload_skhd_code_signature () {
+  # check_macos();
+  require 'codesign';
+  codesign -fs 'yabai-cert' $(which_bin 'skhd');
   return 0;
 }
