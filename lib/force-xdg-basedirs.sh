@@ -258,8 +258,14 @@ if [[ ! -d ${XDG_CONFIG_HOME}/luarocks ]]; then
 fi
 # X11
 export XAUTHORITY="${XDG_CONFIG_HOME}/X11/Xauthority";
+if [[ ! -d ${XDG_CONFIG_HOME}/X11 ]]; then
+  \mkdir -p "${XDG_CONFIG_HOME}/X11";
+fi
+if [[ -f ${HOME}/.Xauthority ]]; then
+  \cp "${HOME}/.Xauthority" "${XAUTHORITY}";
+  \chmod 0600 "${XAUTHORITY}";
+fi
 export XINITRC="${XDG_CONFIG_HOME}/X11/xinitrc";
-
 # JavaScript
 # NPM
 export NPM_CONFIG_USERCONFIG="${XDG_CONFIG_HOME}/npm/npmrc";
