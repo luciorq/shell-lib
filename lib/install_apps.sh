@@ -45,70 +45,97 @@ function __install_path () {
     base_path="${HOME}/.local/opt/apps";
   fi
   builtin echo -ne "${base_path}";
-    return 0;
-  }
+  return 0;
+}
 
-  function __get_gh_latest_release () {
-    local repo;
-    local release_url;
-    local latest_version;
-    local curl_bin;
-    repo="${1}";
-    curl_bin="$(require 'curl')";
-    release_url="$(
-      "${curl_bin}" -fsSL \
-        --insecure -I -o /dev/null -w '%{url_effective}' \
-        "https://github.com/${repo}/releases/latest"
-    )";
-    latest_version="${release_url//http*\/tag\//}";
-    latest_version="${latest_version//http*\/releases/}";
-    builtin echo -ne "${latest_version}";
-    return 0;
-  }
+function __get_gh_latest_release () {
+  local repo;
+  local release_url;
+  local latest_version;
+  local curl_bin;
+  repo="${1}";
+  curl_bin="$(require 'curl')";
+  release_url="$(
+    "${curl_bin}" -fsSL \
+      --insecure -I -o /dev/null -w '%{url_effective}' \
+      "https://github.com/${repo}/releases/latest"
+  )";
+  latest_version="${release_url//http*\/tag\//}";
+  latest_version="${latest_version//http*\/releases/}";
+  builtin echo -ne "${latest_version}";
+  return 0;
+}
 
-  function __get_gh_latest_tag () {
-    local repo;
-    local latest_tag;
-    local tag_arr;
-    local tag_sort_arr;
-    local final_tag;
-    local cat_bin;
-    local sed_bin;
-    local grep_bin;
-    local curl_bin;
-    repo="${1}";
-    grep_bin="$(require 'grep')";
-    sed_bin="$(require 'sed')";
-    cat_bin="$(which_bin 'cat')";
-    curl_bin="$(which_bin 'curl')";
-    latest_tag="$(
-      "${curl_bin}" -fsSL \
-        --insecure \
-        "https://api.github.com/repos/${repo}/tags"
-    )";
-    builtin mapfile -t latest_tag_arr < <(
-      builtin echo -ne "${latest_tag}" \
-        | "${grep_bin}" '"name": ' \
-        | "${grep_bin}" -v "\-rc\|\-beta\|\-alpha\|devel"
-    )
-    builtin mapfile -t tag_arr < <(
-      builtin echo "${latest_tag_arr[@]}" \
-        | "${sed_bin}" 's|\"name\":||g' \
-        | sed 's|\"||g' \
-        | sed 's|\\s+||g' \
-        | sed 's|\,||g'
-    )
-    builtin mapfile -t tag_sort_arr < <(
-      "${cat_bin}" <(
-        for _i in ${tag_arr[@]}; do builtin echo -ne "${_i}\n"; done;
-      ) \
-        | grep '^v*[0-9]' \
-        | sort -rV
-    )
-    final_tag="${tag_sort_arr[0]}";
-    builtin echo -ne "${final_tag}\n";
-    return 0;
-  }
+function __get_gh_latest_tag () {
+  local repo;
+  local latest_tag;
+  local tag_arr;
+  local tag_sort_arr;
+  local final_tag;
+  local cat_bin;
+  local sed_bin;
+  local grep_bin;
+  local curl_bin;
+  local sort_bin;
+  repo="${1}";
+  # Check required commands
+  local required_commands=("grep" "sed" "cat" "curl" "sort");
+  local cmd;
+  for cmd in "${required_commands[@]}"; do
+    builtin command -v "${cmd}" >/dev/null 2>&1 || {
+      builtin echo -ne "Error: '${cmd}' command not found\n";
+      return 1;
+    }
+  done
+  grep_bin="$(require 'grep')";
+  sed_bin="$(require 'sed')";
+  sort_bin="$(require 'sort')";
+  cat_bin="$(which_bin 'cat')";
+  curl_bin="$(which_bin 'curl')";
+  latest_tag="$(
+    "${curl_bin}" -fsSL \
+      --insecure \
+      "https://api.github.com/repos/${repo}/tags" 2>/dev/null
+  )";
+  # Validate response and extract tags
+  if [[ -z "${latest_tag}" ]]; then
+    builtin echo -ne "Error: Failed to fetch tags from GitHub API\n";
+    return 1
+  fi
+  builtin mapfile -t latest_tag_arr < <(
+    builtin echo -ne "${latest_tag}" \
+      | "${grep_bin}" '"name": ' \
+      | "${grep_bin}" -v "\-rc\|\-beta\|\-alpha\|devel"
+  )
+  builtin mapfile -t tag_arr < <(
+    builtin echo "${latest_tag_arr[@]}" \
+      | "${sed_bin}" 's|\"name\":||g' \
+      | sed 's|\"||g' \
+      | sed 's|\\s+||g' \
+      | sed 's|\,||g'
+  )
+  # Sort tags
+  if [[ ${#tag_arr[@]} -eq 0 ]]; then
+    builtin echo -ne "Error: No valid tags found\n";
+    return 1;
+  fi
+  builtin mapfile -t tag_sort_arr < <(
+    "${cat_bin}" <(
+      for _i in ${tag_arr[@]}; do builtin echo -ne "${_i}\n"; done;
+    ) \
+      | grep '^v*[0-9]' \
+      | sort -rV
+  )
+  #builtin mapfile -t tag_sort_arr < <(
+  #  builtin printf '%s\n' "${tag_arr[@]}" \
+  #    | grep '^v*[0-9]' \
+  #    | sort -rV
+  #)
+
+  final_tag="${tag_sort_arr[0]}";
+  builtin echo -ne "${final_tag}\n";
+  return 0;
+}
 
   # Retrieve app_num from app_namw
   function __get_app_num_from_app_name () {
@@ -145,54 +172,65 @@ function __install_path () {
 
   # Install apps utils ----------------------------------------------------------
 
-  # Install app from downloadable tarball source code
-  function __install_app_source () {
-    local install_path;
-    local tarball_name;
-    local get_url;
-    local dl_path;
-    local build_arr;
-    local build_path;
-    local rm_bin;
-    local ls_bin;
-    local make_bin;
-    local num_threads;
-    install_path="${1}";
-    tarball_name="${2}";
-    get_url="${3}";
-    rm_bin="$(which_bin 'rm')";
-    ls_bin="$(which_bin 'ls')";
-    make_bin="$(which_bin 'gmake')";
-    if [[ -z ${make_bin} ]]; then
-      make_bin="$(require 'make')";
-    fi
-    num_threads="$(get_nthreads 8)";
-    dl_path="$(create_temp 'install_app')";
-    download "${get_url}" "${dl_path}";
-    unpack "${dl_path}/${tarball_name}" "${dl_path}";
-    "${rm_bin}" -rf "${dl_path}/${tarball_name}";
-    builtin mapfile -t build_arr < <(
-      "${ls_bin}" -A1 "${dl_path}"
-    );
-    build_path="${dl_path}/${build_arr[0]}";
-    # make -C "${build_path}/bash-${build_version}" configure -j ${num_threads};
-    function __build_app () {
-      (
-        builtin cd "${build_path}" \
-          || builtin return 1;
-        ./configure --prefix="${install_path}";
-      )
-    };
-    "${make_bin}" \
-      -C "${build_path}" \
-      -j "${num_threads}";
-    "${make_bin}" \
-      -C "${build_path}" install \
-      -j "${num_threads}";
-    "${rm_bin}" -rf "${build_path}";
-    "${rm_bin}" -rf "${dl_path}";
-    return 0;
-  }
+# Install app from downloadable tarball source code
+function __install_app_source () {
+  local install_path;
+  local tarball_name;
+  local get_url;
+  local dl_path;
+  local build_arr;
+  local build_path;
+  local rm_bin;
+  local ls_bin;
+  local make_bin;
+  local num_threads;
+  install_path="${1}";
+  tarball_name="${2}";
+  get_url="${3}";
+  rm_bin="$(which_bin 'rm')";
+  ls_bin="$(which_bin 'ls')";
+  make_bin="$(which_bin 'gmake')";
+  if [[ -z ${make_bin} ]]; then
+    make_bin="$(require 'make')";
+  fi
+  num_threads="$(get_nthreads 8)";
+  dl_path="$(create_temp 'install_app')";
+  download "${get_url}" "${dl_path}";
+  unpack "${dl_path}/${tarball_name}" "${dl_path}";
+  "${rm_bin}" -rf "${dl_path}/${tarball_name}";
+  builtin mapfile -t build_arr < <(
+    "${ls_bin}" -A1 "${dl_path}"
+  );
+  build_path="${dl_path}/${build_arr[0]}";
+
+  # make -C "${build_path}/bash-${build_version}" configure -j ${num_threads};
+  function __build_app () {
+    local build_path="${1}";
+    local install_path="${2}";
+    (
+      builtin cd "${build_path}" \
+        || {
+          builtin echo -ne "Error: Failed to change directory to '${build_path}'\n";
+          builtin return 1;
+        };
+      ./configure --prefix="${install_path}" \
+        || {
+          builtin echo -ne "Error: Failed to execute 'configure' script\n";
+          builtin return 1;
+        }
+    )
+  };
+  __build_app "${build_path}" "${install_path}";
+  "${make_bin}" \
+    -C "${build_path}" \
+    -j "${num_threads}";
+  "${make_bin}" \
+    -C "${build_path}" install \
+    -j "${num_threads}";
+  "${rm_bin}" -rf "${build_path}";
+  "${rm_bin}" -rf "${dl_path}";
+  return 0;
+}
 
 
   # install app in a conda environment, using micromamba, if available
@@ -311,7 +349,7 @@ function __install_path () {
     local app_name;
     local app_url;
     local git_var;
-    cargo_bin=$(which_bin 'cargo');
+    cargo_bin="$(which_bin 'cargo')";
     if [[ -z ${cargo_bin} ]]; then
       exit_fun "'{cargo}' is not available for installing rust apps.";
       return 1;
@@ -330,15 +368,21 @@ function __install_path () {
       --all-features \
       --root "${install_path}" \
       ${git_var}${app_name};
-    return 0;
-  }
+
+  local exit_code="$?";
+  if [[ ${exit_code} -ne 0 ]]; then
+    builtin echo "Error: Failed to install rust app";
+    return 1;
+  fi
+  return 0;
+}
 
   # Install App -----------------------------------------------------------------
 
   # Install Application to a local user path or system wide
   function __install_app () {
     # Variable declaration ------------------------------------------------------
-    local _usage="usage: $0 [--user|--system] <APP_NUM/APP_NAME>";
+    local _usage="usage: ${0} [--user|--system] <APP_NUM/APP_NAME>";
     local sed_bin rm_bin;
     # local cp_bin;
     local mkdir_bin ln_bin chmod_bin;
