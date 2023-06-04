@@ -1,0 +1,56 @@
+build:
+  - bat_fun
+  - cat_color
+  - cd_fun
+  - exa_fun
+  - conda_priv_fun
+  - create_log
+  - create_temp
+  - dfh
+  - exit_fun
+  - download
+  - unpack
+  - install_app
+  - bootstrap_user
+  - exec_remote
+  - follow_logs
+  - get_nthreads
+  - parse_yaml
+  - reload_interface
+  - require
+  - which_bin
+  - rm_safe
+  - source_remote
+  - ssh_forget
+  - ssh_alias
+  - ssh_fun
+  - ssh_generate_key
+  - ssh_key_create_and_push
+  - ssha_fun
+  - sudo_check
+  - sudo_fun
+  - type_color
+  - type_fun
+  - yc
+  - get_os_arch
+  - get_os_type
+  - get_hostname
+  - scan_port
+  - scan_ssh_ports
+  - radian_fun
+
+  # Slurm functions
+  - slurm_check_gpus
+  - slurm_check_job
+  - slurm_check_limits
+  - slurm_check_nodes
+  - slurm_check_partitions
+  - slurm_check_queue
+  - slurm_interactive_gpu_session
+  - slurm_interactive_session
+    
+  # pure bash functions
+  - cat_pure
+  - clear_pure
+  - head_pure
+  - sleep_pure 
