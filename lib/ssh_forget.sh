@@ -7,7 +7,7 @@ function ssh_forget () {
   rm_bin="$(which_bin 'rm')";
   keygen_bin="$(require 'ssh-keygen')";
 
-  if [[ -z ${} ]]; then
+  if [[ -z ${keygen_bin} ]]; then
     exit_fun '`ssh-keygen` is not available on PATH';
     return 1;
   fi

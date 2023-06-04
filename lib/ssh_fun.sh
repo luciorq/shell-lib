@@ -8,7 +8,7 @@ function ssh_fun () {
   unset _usage;
   ssh_bin="$(require 'ssh' '-V')";
   set -x;
-  "${ssh_bin}" -A "${@:1}";
+  "${ssh_bin}" -A -X -Y "${@:1}";
   set +x;
   return 0;
 }
