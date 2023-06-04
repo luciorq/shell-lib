@@ -54,7 +54,7 @@ install-mac-launchers:
   done
 
 test:
-  #!/usr/bin/env -S bash -i
+  #!/usr/bin/env bash
   set -euxo pipefail;
   bats -x tests/;
 
@@ -85,3 +85,6 @@ install_apps_system:
   echo 'for _i in $(\ls -A1 /home/{{ user_name }}/projects/shell-lib/lib/*.sh); do source "${_i}"; done;';
   echo 'source /home/{{ user_name }}/.bashrc;';
   echo '_LOCAL_CONFIG=/home/{{ user_name }}/.config/lrq install_apps --system;';
+
+test-conda-env:
+  conda activate test-env;
