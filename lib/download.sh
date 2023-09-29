@@ -9,22 +9,25 @@ function download () {
     builtin echo >&2 -ne "usage: download <URL> [<OUTPUT_DIR>] [<THREADS>]\n";
   }
   if [[ ${#} -eq 0 ]]; then download_usage; unset download_usage; return 1; fi
-  if [[ ${1} == '-h'  ]]; then download_usage; unset download_usage; return 0; fi
+  if [[ ${1:-} == '-h'  ]]; then download_usage; unset download_usage; return 0; fi
   unset download_usage;
   local get_url;
   local dir_output;
   local thread_num;
   local output_filename;
   local output_basename;
+  local realpath_bin;
   local wget_bin;
   local curl_bin;
   local aria_bin;
   local cache_path;
-  get_url="${1}";
-  dir_output="${2}";
+  get_url="${1:-}";
+  dir_output="${2:-}";
+
+  realpath_bin="$(require 'realpath')";
 
   if [[ -z ${dir_output} ]]; then
-    dir_output="$(realpath ./)";
+    dir_output="$("${realpath_bin}" ./)";
   fi
   thread_num="$(get_nthreads '8')";
   if [[ ! -d ${dir_output} ]]; then

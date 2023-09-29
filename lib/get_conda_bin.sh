@@ -31,7 +31,7 @@ function conda_priv_fun () {
   if [[ ${1} =~ activate ]]; then
     env_name="${2-}";
     if [[ "${conda_bin}" =~ micromamba$ ]]; then
-      conda_env_exports="$("${conda_bin}" shell --shell bash activate "${env_name}")";
+      conda_env_exports="$("${conda_bin}" shell "${env_name}" activate --shell bash)";
     else
       conda_env_exports="$("${conda_bin}" shell.posix activate "${env_name}")";
     fi

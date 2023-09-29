@@ -2,14 +2,14 @@
 
 # Kitten Aware SSH connection
 function ssh_fun () {
-  local ssh_bin;
-  local _usage;
+  builtin local ssh_bin;
+  builtin local _usage;
   _usage="Usage: ${0} <[SSH_ARGS]>";
-  unset _usage;
+  builtin unset -v _usage;
   ssh_bin="$(require 'ssh' '-V')";
-  set -x;
+  builtin set -x;
   "${ssh_bin}" -A -X -Y "${@:1}";
-  set +x;
+  builtin set +x;
   return 0;
 }
 
@@ -17,7 +17,7 @@ function ssh_fun () {
 function __sync_user_config () {
   local _usage;
   _usage="Usage: ${0} [USER@]HOST [PORT] [KEY_PATH]";
-  unset _usage;
+  unset -v _usage;
   local ssh_bin;
   local rsync_bin;
   local sync_path_arr;

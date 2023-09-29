@@ -236,7 +236,7 @@ function __install_app_source () {
   # install app in a conda environment, using micromamba, if available
   function __install_app_mamba () {
     local _usage="Usage: ${0} <--user|--system> <APP_NAME> <BIN_NAME_1> [<BIN_NAME_2> ... <BIN_NAME_N>]";
-    unset _usage;
+    unset -v _usage;
     local install_path;
     local app_name;
     local install_type;
@@ -538,7 +538,7 @@ function __install_app_source () {
     )
     if [[ ${exec_path_arr[0]} == null ]]; then
       declare -a exec_path_arr=();
-      unset exec_path_arr;
+      unset -v exec_path_arr;
       exec_path_arr='';
     fi
     if [[ -z ${exec_path_arr[0]} ]]; then
