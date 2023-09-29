@@ -1,3 +1,10 @@
+apps:
+  download:
+    - which_bin
+    - exit_fun
+    - get_nthreads
+    - require
+
 build:
   - bat_fun
   - cat_color
@@ -48,9 +55,9 @@ build:
   - slurm_check_queue
   - slurm_interactive_gpu_session
   - slurm_interactive_session
-    
+
   # pure bash functions
   - cat_pure
   - clear_pure
   - head_pure
-  - sleep_pure 
+  - sleep_pure
