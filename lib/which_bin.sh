@@ -9,6 +9,10 @@ function which_bin () {
   builtin local which_arr;
   builtin local which_bin_str;
   cmd_arg="${1}";
+
+  #if [[-z ${cmd_arg} ]]; then
+  #  exit_fun '`which_bin` expects one argument.';
+  #fi
   builtin mapfile -t which_arr < <(
     builtin command which -a 'which' 2> /dev/null || builtin echo -ne ''
   );
