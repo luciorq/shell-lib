@@ -8,6 +8,7 @@
 function get_nthreads () {
   local nproc_bin;
   local lscpu_bin;
+  local grep_bin;
   local num_threads;
   local half_threads;
   local max_threads_to_use;
@@ -15,12 +16,13 @@ function get_nthreads () {
   max_threads_to_use="${1:-8}";
   nproc_bin="$(which_bin 'nproc')";
   lscpu_bin="$(which_bin 'lscpu')";
+  grep_bin="$(require 'lscpu')";
   if [[ -n ${nproc_bin} ]]; then
     num_threads="$("${nproc_bin}")";
   elif [[ -e /proc/cpuinfo ]]; then
-    num_threads="$(grep -c 'processor' '/proc/cpuinfo')";
+    num_threads="$("${grep_bin}" -c 'processor' '/proc/cpuinfo')";
   elif [[ -n ${lscpu_bin}  ]]; then
-    num_threads="$("${lscpu_bin}" | grep '^CPU(' | awk '{print $2}')";
+    num_threads="$("${lscpu_bin}" | "${grep_bin}" '^CPU(' | awk '{print $2}')";
   else
     builtin echo -ne "4";
     return 0;
