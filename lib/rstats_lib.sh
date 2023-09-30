@@ -264,3 +264,11 @@ function rstats::build_pkg () {
 
   return 0;
 }
+
+# Create an isolated R installation on a Conda environment
+function rstats::create_r_conda_env () {
+  conda create -n r-env -y \
+    -c bioconda -c conda-forge -c defaults \
+    r-base r-devtools r-tidyverse r-biocmanager r-pak r-renv;
+  builtin return 0;
+}
