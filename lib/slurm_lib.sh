@@ -34,10 +34,11 @@ function slurm_check_nodes () {
 # Request interactive section on slurm
 # + Defaults: 4 CPU, 32 GB RAM, 120 Minutes, 0 GPU
 function slurm_interactive_session () {
-  local _usage="Usage: ${0} [PARTITION] [N_CPU] [MEM_GB] [TIME_MIN] [GPU_NUM]";
+  local _usage="Usage: ${0} [PARTITION] [N_CPU] [MEM_GB] [TIME_MIN] [GPU_NUM] [GROUP_NAME]";
   unset _usage;
   local bash_bin;
   local srun_bin;
+  local sg_bin;
   local partition_name;
   local num_cpu;
   local mem_gb;
@@ -46,24 +47,28 @@ function slurm_interactive_session () {
   local gpu_num;
   bash_bin="$(require 'bash')";
   srun_bin="$(require 'srun')";
+  sg_bin="$(require 'sg')";
   partition_name="${1:-scu-cpu}";
   num_cpu="${2:-4}";
   mem_gb="${3:-8}";
   time_min="${4:-120}";
   gpu_num="${5-0}";
+  group_name="${6:-marchionnilab}";
   ((time_hour = time_min / 60));
   ((time_min = time_min % 60));
   time_hour="$(builtin printf '%02d' "${time_hour}")";
   time_min="$(builtin printf '%02d' "${time_min}")";
   # "${gpu_block[@]}" \
   # --gres=gpu:1;
-  "${srun_bin}" --partition "${partition_name}" \
-    --job-name "InteractiveJob" \
-    --cpus-per-task "${num_cpu}" \
-    --mem-per-cpu "${mem_gb}"G \
-    --gres=gpu:"${gpu_num}" \
-    --time "${time_hour}":"${time_min}":00 \
-    --pty "${bash_bin}";
+  "${sg_bin}" "${group_name}" "\
+    ${srun_bin} --partition ${partition_name} \
+    --job-name InteractiveJob \
+    --cpus-per-task ${num_cpu} \
+    --mem-per-cpu ${mem_gb}G \
+    --gres=gpu:${gpu_num} \
+    --time ${time_hour}:${time_min}:00 \
+    --pty ${bash_bin} \
+    ";
   return 0;
 }
 
