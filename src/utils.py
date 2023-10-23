@@ -180,23 +180,28 @@ def build_app(app_name: str) -> None:
     # use `#!/usr/bin/env bash` as first line
     header_str = '''#!/usr/bin/env bash
 
-    builtin set -o errexit;    # abort on nonzero exitstatus
-    builtin set -o nounset;    # abort on unbound variable
-    builtin set -o pipefail;   # don\'t hide errors within pipes
+# Do NOT modify this file manually.
+# Change source code at: https://github.com/luciorq/shell-lib
+# Author: Lucio Rezende Queiroz
+# License: MIT
 
-    [[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { builtin echo >&2 "Error: Bash >=4 required"; exit 1; }
+builtin set -o errexit;    # abort on nonzero exitstatus
+builtin set -o nounset;    # abort on unbound variable
+builtin set -o pipefail;   # don\'t hide errors within pipes
 
-    '''
+[[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { builtin echo >&2 "Error: Bash >=4 required"; exit 1; }
+
+'''
 
     main_function = f'''
-    function main () {{
-      { function_name } "${{@}}";
-    builtin exit 0;
-    }}
+function main () {{
+    { function_name } "${{@}}";
+builtin exit 0;
+}}
 
-    main "${{@}}";
-    builtin exit 0;
-    '''
+main "${{@}}";
+builtin exit 0;
+'''
 
     script_text = header_str + main_function_def + main_function
     output_path = os.path.join("bin", function_name)
