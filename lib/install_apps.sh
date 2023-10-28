@@ -3,7 +3,7 @@
 # Main ------------------------------------------------------------------------
 # Install Apps defined in a configuration YAML file.
 function install_apps () {
-  local _usage="usage: $0 [--user|--system]";
+  local _usage="usage: ${0} [--user|--system]";
   local _arg;
   local install_type;
   local apps_length;

@@ -237,9 +237,9 @@ function __rebuild_rust_source_tools () {
   for _check_name in "${check_bin_arr[@]}"; do
     _check_bin="$(which_bin "${_check_name}")";
     if [[ -n ${_check_bin} ]]; then
-      _check_avail="$(
+      _check_avail="$(\
         "${_check_bin}" --version 2> /dev/null > /dev/null \
-          || builtin echo -ne "${?}"
+          || builtin echo -ne "${?}"\
       )";
       if [[ -n ${_check_avail} ]]; then
         rebuild_arr+=(
@@ -276,6 +276,7 @@ function __check_glibc () {
   local min_version;
   ldd_bin="$(which_bin 'ldd')";
   if [[ -z ${ldd_bin} ]]; then
+    exit_fun '__check_glibc: `ldd` not found';
     return 0;
   fi
   min_version="${1:-2.18}";
@@ -284,10 +285,10 @@ function __check_glibc () {
       | head -n1 \
       | sed -e 's/.*[[:space:]]//g'
   )";
-  latest_version="$(
+  latest_version="$(\
     builtin echo -ne "${glibc_version}\n${min_version}\n" \
       | sort -r -V \
-      | head -n1
+      | head -n1\
   )";
   if [[ ${latest_version} =~ ${glibc_version} ]]; then
     builtin echo -ne 'true';
@@ -351,9 +352,9 @@ function __build_glibc () {
   num_threads="$(get_nthreads 8)";
   if [[ ${force_version} == latest ]]; then
     mirror_repo='bminor/glibc';
-    latest_tag="$(
+    latest_tag="$(\
       "${curl_bin}" -fsSL --insecure \
-        "https://api.github.com/repos/${mirror_repo}/tags"
+        "https://api.github.com/repos/${mirror_repo}/tags"\
     )";
     latest_version="$(
     builtin echo "${latest_tag[@]}" \
