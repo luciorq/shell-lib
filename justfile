@@ -19,30 +19,6 @@ install-separate:
     \cp {{lib_path}}/"${_i}" "{{dest_dir}}/";
   done;
 
-build:
-  #!/usr/bin/env bash
-  set -euxo pipefail;
-  bashly generate;
-  # for _i in src; do
-  #  _function_name="$(basename ${_i%%.*})";
-  #  bashly generate --wrap ${_function_name};
-  # done
-  bashly add comp script share/completions.bash --force
-  bashly add comp function --force
-  bashly generate --upgrade --env production --wrap "${_tool_name}"
-  sed -i -e 's|exit|return|g' "${_tool_name}"
-  sed -i -e 's|  set -e|  # set -e|g' "${_tool_name}"
-  mv "${_tool_name}" "${_tool_name}_fun";
-  # cp "inst/${_tool_name}" "${_tool_name}";
-  # chmod a+x "${_tool_name}";
-  unset _tool_name;
-
-
-install-bundle:
-  #!/usr/bin/env bash
-  set -euxo pipefail;
-
-
 install-mac-launchers:
   #!/usr/bin/env -S bash -i
   set -euxo pipefail;
@@ -66,12 +42,6 @@ is-interactive:
   echo "$SHELL"
   env
 
-init:
-  #!/usr/bin/env -S bash -i
-  set -euxo pipefail
-  bashly init
-  bashly add yaml
-
 super-lint:
   #!/usr/bin/env -S bash -i
   set -euxo pipefail
@@ -88,3 +58,32 @@ install_apps_system:
 
 test-conda-env:
   conda activate test-env;
+
+# TODO: Legacy references to bashly
+# build:
+#   #!/usr/bin/env bash
+#   set -euxo pipefail;
+#   bashly generate;
+#   # for _i in src; do
+#   #  _function_name="$(basename ${_i%%.*})";
+#   #  bashly generate --wrap ${_function_name};
+#   # done
+#   bashly add comp script share/completions.bash --force
+#   bashly add comp function --force
+#   bashly generate --upgrade --env production --wrap "${_tool_name}"
+#   sed -i -e 's|exit|return|g' "${_tool_name}"
+#   sed -i -e 's|  set -e|  # set -e|g' "${_tool_name}"
+#   mv "${_tool_name}" "${_tool_name}_fun";
+#   # cp "inst/${_tool_name}" "${_tool_name}";
+#   # chmod a+x "${_tool_name}";
+#   unset _tool_name;
+
+# install-bundle:
+#   #!/usr/bin/env bash
+#   set -euxo pipefail;
+
+# init:
+#   #!/usr/bin/env -S bash -i
+#   set -euxo pipefail
+#   bashly init
+#   bashly add yaml
