@@ -3,7 +3,7 @@
 # Pure bash implementation of head
 # TODO(luciorq) Parse -n as input so it can be equovalent to GNU head
 function head_pure () {
-    # Usage: tail "n" "file"
+    # Usage: head <NUM> <FILE_PATH>
     local line_arr;
     local file_path;
     n_arg="${1}";

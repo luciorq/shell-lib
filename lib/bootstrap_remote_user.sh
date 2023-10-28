@@ -166,7 +166,8 @@ function __build_rust_cargo () {
 
 # Rebuild specific Rust app using local cargo
 function __rebuild_rust_source_app () {
-  local _usage="usage: ${0} <CARGO_PKG_NAME> <APP_BINARIY>";
+  local _usage;
+  _usage="usage: ${0} <CARGO_PKG_NAME> <APP_BINARIY>";
   unset _usage;
   local pkg_name;
   local app_bin;
