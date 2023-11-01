@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 function bat_fun () {
-  local bat_bin;
-  local cat_bin;
-  local bat_avail;
+  builtin local bat_bin;
+  builtin local cat_bin;
+  builtin local bat_avail;
   bat_bin="$(which_bin 'bat')";
   if [[ -z ${bat_bin} ]]; then
     bat_bin="$(which_bin 'batcat')";
@@ -19,5 +19,5 @@ function bat_fun () {
   else
     "${cat_bin}";
   fi
-  return 0;
+  builtin return 0;
 }
