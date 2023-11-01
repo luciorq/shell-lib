@@ -8,7 +8,8 @@ function type_color () {
   else
     builtin type "${@}" \
       | bat_fun \
-        -l 'bash' -p --paging 'never' \
+        -l 'bash' \
+        --style=plain --paging=never \
         --theme 'gruvbox-dark';
   fi
   return 0;
@@ -43,7 +44,7 @@ function cat_color () {
   fi
   "${cat_bin}" "${@}" \
     | bat_fun \
-      -p --paging 'never' \
+      --style=plain --paging=never \
       --theme 'gruvbox-dark' "${bat_filename[@]}" \
       --color auto;
   return 0;

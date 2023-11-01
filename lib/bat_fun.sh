@@ -21,4 +21,3 @@ function bat_fun () {
   fi
   return 0;
 }
-
