@@ -9,7 +9,8 @@ function which_bin () {
   builtin local which_arr;
   builtin local which_bin_str;
   cmd_arg="${1:-}";
-
+  cmd_arr='';
+  which_arr='';
   #if [[-z ${cmd_arg} ]]; then
   #  exit_fun '`which_bin` expects one argument.';
   #fi
@@ -26,7 +27,7 @@ function which_bin () {
       "${which_bin_str}" -a "${cmd_arg}" 2> /dev/null || builtin echo -ne ''
     );
   fi
-  cmd_bin="${cmd_arr[0]}";
+  cmd_bin="${cmd_arr[0]:-}";
   builtin echo -ne "${cmd_bin}";
   builtin return 0;
 }

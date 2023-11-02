@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function type_color () {
-  local bat_bin;
+  builtin local bat_bin;
   bat_bin="$(which_bin 'bat')";
   if [[ -z ${bat_bin} ]]; then
     builtin type "${@}";
@@ -16,18 +16,18 @@ function type_color () {
 }
 
 function cat_color () {
-  local bat_bin;
-  local bat_filename;
-  local cat_bin;
-  local _arg;
+  builtin local bat_bin;
+  builtin local bat_filename;
+  builtin local cat_bin;
+  builtin local _arg;
   cat_bin="$(require 'cat')";
   if [[ -z ${cat_bin} ]]; then
-    return 1;
+    builtin return 1;
   fi
   bat_bin="$(which_bin 'bat')";
   if [[ -z ${bat_bin} ]]; then
     "${cat_bin}" "${@}";
-    return 0;
+    builtin return 0;
   fi
   bat_filename='';
   for _arg in "${@}"; do
@@ -38,15 +38,15 @@ function cat_color () {
       );
     fi
   done
-  if [[ -d ${1} ]]; then
+  if [[ -d ${1:-} ]]; then
     "${cat_bin}" "${@}";
-    return 0;
+    builtin return 0;
   fi
   "${cat_bin}" "${@}" \
     | bat_fun \
       --style=plain --paging=never \
       --theme 'gruvbox-dark' "${bat_filename[@]}" \
       --color auto;
-  return 0;
+  builtin return 0;
 }
 
