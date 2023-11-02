@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+
+# Do NOT modify this file manually.
+# Change source code at: https://github.com/luciorq/shell-lib
+# Author: Lucio Rezende Queiroz
+# License: MIT
+
+builtin set -o errexit;    # abort on nonzero exitstatus
+builtin set -o nounset;    # abort on unbound variable
+builtin set -o pipefail;   # don't hide errors within pipes
+
+[[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { builtin echo >&2 "Error: Bash >=4 required"; exit 1; }
+
+dfh () 
+{ 
+    local ls_bin;
+    local df_bin;
+    local grep_bin;
+    local sed_bin;
+    local column_bin;
+    local header_str;
+    local align_str;
+    local body_str;
+    header_str="FS,Type,Size,Used,Available,Usage(%),MountPath\n";
+    align_str="---,---,---,---,---,---,---\n";
+    ls_bin="$(which_bin 'ls')";
+    df_bin="$(which_bin 'df')";
+    grep_bin="$(which_bin 'grep')";
+    sed_bin="$(which_bin 'sed')";
+    column_bin="$(which_bin 'column')";
+    "${ls_bin}" /data/* /home 2> /dev/null > /dev/null || builtin echo -ne '';
+    body_str="$("${df_bin}" -h -T -x squashfs -x devtmpfs | "${grep_bin}" -v '/var/lib/docker/zfs' | "${grep_bin}" -v '^tmpfs.*[^scratch]$' | "${grep_bin}" -v '^Filesystem.*on$' | "${sed_bin}" -r 's/\s+/,/g')";
+    CLICOLOR_FORCE=1 builtin echo -ne "${header_str}${align_str}${body_str}\n" | bat_fun -l csv -pp --color=always | "${sed_bin}" 's/,/ | /g' | "${sed_bin}" 's/^/| /g' | "${sed_bin}" 's/$/ |/g' | "${column_bin}" -t;
+    exit 0
+}
+which_bin () 
+{ 
+    builtin local cmd_arg;
+    builtin local cmd_arr;
+    builtin local cmd_bin;
+    builtin local which_arr;
+    builtin local which_bin_str;
+    cmd_arg="${1:-}";
+    cmd_arr='';
+    which_arr='';
+    builtin mapfile -t which_arr < <(builtin command which -a 'which' 2> /dev/null || builtin echo -ne '');
+    which_bin_str="${which_arr[0]}";
+    if [[ -z ${which_bin_str} ]]; then
+        builtin mapfile -t cmd_arr < <(builtin command -v "${cmd_arg}" 2> /dev/null || builtin echo -ne '');
+    else
+        builtin mapfile -t cmd_arr < <("${which_bin_str}" -a "${cmd_arg}" 2> /dev/null || builtin echo -ne '');
+    fi;
+    cmd_bin="${cmd_arr[0]:-}";
+    builtin echo -ne "${cmd_bin}";
+    builtin exit 0
+}
+bat_fun () 
+{ 
+    builtin local bat_bin;
+    builtin local cat_bin;
+    builtin local bat_avail;
+    bat_bin="$(which_bin 'bat')";
+    if [[ -z ${bat_bin} ]]; then
+        bat_bin="$(which_bin 'batcat')";
+    fi;
+    if [[ -n ${bat_bin} ]]; then
+        bat_avail="$("${bat_bin}" -V 2> /dev/null > /dev/null || builtin echo -ne "${?}")";
+    fi;
+    cat_bin="$(which_bin 'cat')";
+    if [[ -n ${bat_bin} && -z ${bat_avail} ]]; then
+        "${bat_bin}" "${@}" --theme 'gruvbox-dark';
+    else
+        "${cat_bin}";
+    fi;
+    builtin exit 0
+}
+
+function main () {
+    dfh "${@}";
+builtin exit 0;
+}
+
+main "${@}";
+builtin exit 0;
+
