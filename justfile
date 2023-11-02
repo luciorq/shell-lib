@@ -10,6 +10,11 @@ dest_dir := lib_home + '/' + prj_name
 default:
   @just --choose
 
+build-apps:
+  #!/usr/bin/env bash
+  set -euxo pipefail;
+  python {{ justfile_directory() }}/src/build_execs.py
+
 # integrate functions from source lib
 install-separate:
   #!/usr/bin/env bash

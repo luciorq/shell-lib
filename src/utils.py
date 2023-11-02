@@ -16,6 +16,7 @@ import yaml
 
 # Util functions
 
+
 # Equivalent to R's `stringr::str_detect()`
 def str_detect(string: str, pattern: str) -> bool:
     """
@@ -114,11 +115,17 @@ def extract_function_definition(function_name: str) -> str:
         str: String containing the Bash function definition.
     """
     function_declaration = subprocess.check_output(
-        ["bash", "-c", "for i in lib/*.sh; do source $i; done; builtin declare -f " + function_name]
+        [
+            "bash",
+            "-c",
+            "for i in lib/*.sh; do source $i; done; builtin declare -f "
+            + function_name,
+        ]
     )
     function_declaration = function_declaration.decode()
     function_declaration = re.sub(r"return", "exit", function_declaration)
     return function_declaration
+
 
 # Find all function requests per file
 def find_function_deps(script_name: str, function_names: str):
@@ -141,7 +148,8 @@ def find_function_deps(script_name: str, function_names: str):
         # print(script_file)
     unique_defs = list(set(function_names))
     unique_defs.sort()
-    function_dep_dict = {function_calls}
+    function_dep_dict = {script_name: set(function_calls)}
+
     return function_dep_dict
 
 
@@ -159,6 +167,7 @@ def change_exec_permission(bin_dir: str):
         s_t = os.stat(bin_file)
         os.chmod(bin_file, s_t.st_mode | stat.S_IEXEC)
 
+
 def build_app(app_name: str) -> None:
     """
     Builds Bash apps using a library of bash functions
@@ -167,7 +176,7 @@ def build_app(app_name: str) -> None:
         app_name (str): Name of the Bash application to be built.
     """
     function_name = app_name
-    dep_full_dict = read_config('apps')
+    dep_full_dict = read_config("apps")
     dep_list = dep_full_dict[function_name]
 
     main_function_def = extract_function_definition(function_name)
@@ -178,7 +187,7 @@ def build_app(app_name: str) -> None:
     # Add `main` function passing all parameters
 
     # use `#!/usr/bin/env bash` as first line
-    header_str = '''#!/usr/bin/env bash
+    header_str = """#!/usr/bin/env bash
 
 # Do NOT modify this file manually.
 # Change source code at: https://github.com/luciorq/shell-lib
@@ -191,9 +200,9 @@ builtin set -o pipefail;   # don\'t hide errors within pipes
 
 [[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { builtin echo >&2 "Error: Bash >=4 required"; exit 1; }
 
-'''
+"""
 
-    main_function = f'''
+    main_function = f"""
 function main () {{
     { function_name } "${{@}}";
 builtin exit 0;
@@ -201,14 +210,14 @@ builtin exit 0;
 
 main "${{@}}";
 builtin exit 0;
-'''
+"""
 
     script_text = header_str + main_function_def + main_function
     output_path = os.path.join("bin", function_name)
 
     # script_text
 
-    with open(output_path, mode = 'w', encoding = 'utf-8') as output_file:
+    with open(output_path, mode="w", encoding="utf-8") as output_file:
         for line in script_text:
             output_file.write(line)
-        output_file.write('\n')
+        output_file.write("\n")

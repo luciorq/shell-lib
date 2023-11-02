@@ -4,6 +4,15 @@ apps:
     - exit_fun
     - get_nthreads
     - require
+  which_bin: ''
+  bat_fun:
+    - which_bin
+  dfh:
+    - which_bin
+    - bat_fun
+  require:
+    - which_bin
+    - exit_fun
 
 build:
   - bat_fun
