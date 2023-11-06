@@ -2,22 +2,22 @@
 
 # Extract variables from YAML a file
 function parse_yaml () {
-  local _usage;
+  builtin local _usage;
   _usage="Usage: ${0} <FILE_NAME> [<KEY_1>...<KEY_N>]";
-  unset _usage;
-  local yq_bin;
-  local ruby_bin;
-  local py3_bin py_bin;
-  local method;
-  local file_path;
+  builtin unset _usage;
+  builtin local yq_bin;
+  builtin local ruby_bin;
+  builtin local py3_bin py_bin;
+  builtin local method;
+  builtin local file_path;
   yq_bin="$(which_bin 'yq')";
   ruby_bin="$(which_bin 'ruby')";
   py3_bin="$(which_bin 'python3')";
   py_bin="$(which_bin 'python')";
-  file_path="${1}";
+  file_path="${1:-}";
   if [[ ! -f ${file_path} ]]; then
     exit_fun "File '${file_path}' does not exist";
-    return 1;
+    builtin return 1;
   fi
   method='';
   if [[ -n ${yq_bin} ]]; then
@@ -33,20 +33,20 @@ function parse_yaml () {
     python) __parse_yaml_python "${@}";;
     *)
       exit_fun 'No method available for parsing YAML.';
-      return 1;
+      builtin return 1;
     ;;
   esac
 }
 
 function __parse_yaml_ruby () {
-  local ruby_bin;
-  local ruby_script;
-  local yaml_path;
-  local _level;
-  local int_regex;
-  local yaml_res;
+  builtin local ruby_bin;
+  builtin local ruby_script;
+  builtin local yaml_path;
+  builtin local _level;
+  builtin local int_regex;
+  builtin local yaml_res;
   ruby_bin="$(which_bin 'ruby')";
-  yaml_path="${1}";
+  yaml_path="${1:-}";
   ruby_script="var_res=YAML::load(open(ARGV.first).read)";
   int_regex='^[0-9]+$';
   for _level in "${@:2}"; do
@@ -62,18 +62,18 @@ function __parse_yaml_ruby () {
       | grep -v '^---'
   );
   builtin echo -ne "${yaml_res}";
-  return 0;
+  builtin return 0;
 }
 
 function __parse_yaml_yq () {
-  local yq_bin;
-  local yq_str;
-  local yaml_path;
-  local _level;
-  local levels_str;
-  local yaml_res;
+  builtin local yq_bin;
+  builtin local yq_str;
+  builtin local yaml_path;
+  builtin local _level;
+  builtin local levels_str;
+  builtin local yaml_res;
   yq_bin="$(which_bin 'yq')";
-  yaml_path="${1}";
+  yaml_path="${1:-}";
   levels_str='';
   for _level in "${@:2}"; do
     levels_str="${levels_str}.${_level}";
@@ -89,17 +89,17 @@ function __parse_yaml_yq () {
     yaml_res='\n';
   fi
   builtin echo -ne "${yaml_res}";
-  return 0;
+  builtin return 0;
 }
 
 function __parse_yaml_python () {
-  local py_bin;
-  local yaml_path;
-  local _level;
-  local levels_str;
-  local py_script;
-  local int_regex;
-  local module_res;
+  builtin local py_bin;
+  builtin local yaml_path;
+  builtin local _level;
+  builtin local levels_str;
+  builtin local py_script;
+  builtin local int_regex;
+  builtin local module_res;
   py_bin="$(which_bin 'python3')";
   if [[ -z ${py_bin} ]]; then
     py_bin="$(which_bin 'python')";
@@ -107,10 +107,10 @@ function __parse_yaml_python () {
 
   if [[ -z ${py_bin} ]]; then
     exit_fun "'python' is not available.";
-    return 1;
+    builtin return 1;
   fi
 
-  yaml_path="${1}";
+  yaml_path="${1:-}";
   levels_str='';
   int_regex='^[0-9]+$';
   for _level in "${@:2}"; do
@@ -123,7 +123,7 @@ function __parse_yaml_python () {
   module_res=$("${py_bin}" -c 'import yaml' 2> /dev/null);
   if [[ $? -eq 1 ]]; then
     exit_fun 'Python {yaml} module is not installed.';
-    return 1;
+    builtin return 1;
   fi
   py_script="import yaml;x = yaml.safe_load(open('${yaml_path}', 'r'))";
   py_script="${py_script}${levels_str}";
@@ -131,8 +131,8 @@ function __parse_yaml_python () {
   module_res=$( "${py_bin}" -c "${py_script}" 2>&1 );
   if [[ ${module_res} =~ KeyError: ]]; then
     builtin echo -ne '\n';
-    return 0;
+    builtin return 0;
   fi
   builtin echo -ne "${module_res}";
-  return 0;
+  builtin return 0;
 }

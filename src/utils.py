@@ -99,7 +99,7 @@ def find_all_functions():
                 function_names.extend(matches)
     function_names.sort()
     # TODO: `functions_to_remove` not implemented
-    functions_to_remove = ["_usage"]
+    # + functions_to_remove = ["_usage"]
     return function_names
 
 
