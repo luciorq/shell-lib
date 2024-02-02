@@ -3,8 +3,8 @@
 # Main function to install tools and
 # + reload user environment
 function bootstrap_user () {
-  local install_type;
-  local mkdir_bin;
+  builtin local install_type;
+  builtin local mkdir_bin;
   install_type='--user';
   mkdir_bin="$(require 'mkdir')";
   "${mkdir_bin}" -p "${HOME}/projects";
@@ -28,14 +28,15 @@ function bootstrap_user () {
   source_configs;
   __clean_home;
   __update_configs;
-  return 0;
+  builtin return 0;
 }
 
 # Check for required system tools
 function __check_req_cli_tools () {
-  local cli_arr;
-  local _cli;
-  local cli_bin;
+  builtin local cli_arr;
+  builtin local _cli;
+  builtin local cli_bin;
+  cli_arr='';
   declare -a cli_arr=(
     curl
     gcc
@@ -49,18 +50,19 @@ function __check_req_cli_tools () {
       builtin echo -ne "Install '${_cli}' to continue.\n";
     fi
   done
-  return 0;
+  builtin return 0;
 }
 
 
 # Clean dotfiles not XDG base dir spec
 # + compliant in user home dir
 function __clean_home () {
-  local remove_dirs_arr;
-  local _dir;
-  local rm_bin;
-  local path_to_rm;
+  builtin local remove_dirs_arr;
+  builtin local _dir;
+  builtin local rm_bin;
+  builtin local path_to_rm;
   rm_bin="$(which_bin 'rm')";
+  remove_dirs_arr='';
   # TODO: @luciorq Add .mamba, after solving xdg compliance to .mamba/proc/
   declare -a remove_dirs_arr=(
     .vim
@@ -105,6 +107,7 @@ function __clean_home () {
     .Xauthority
     .yarnrc
     .yarn
+    .slime_paste
   )
   for _dir in "${remove_dirs_arr[@]}"; do
     path_to_rm="${HOME}/${_dir}";
@@ -114,8 +117,7 @@ function __clean_home () {
       "${rm_bin}" -rf "${path_to_rm}";
     fi
   done;
-
-  return 0;
+  builtin return 0;
 }
 
 # ======================================================================
@@ -523,15 +525,20 @@ function __build_bash () {
 
 # Install a temporary yq binary to make parse_yaml work
 function __install_yq () {
-  local latest_version;
-  local gh_repo;
-  local get_url;
-  local sys_arch bin_arch;
-  local ln_bin chmod_bin mkdir_bin;
-  local link_inst_path;
+  builtin local latest_version;
+  builtin local gh_repo;
+  builtin local get_url;
+  builtin local sys_arch;
+  builtin local bin_arch;
+  builtin local ln_bin;
+  builtin local chmod_bin;
+  builtin local mkdir_bin;
+  builtin local uname_bin;
+  builtin local link_inst_path;
   inst_path="$(__install_path --user)";
   link_inst_path="${HOME}/.local/bin";
-  sys_arch="$(uname -s)-$(uname -m)";
+  uname_bin="$(require 'uname')";
+  sys_arch="$("${uname_bin}" -s)-$("${uname_bin}" -m)";
   case "${sys_arch}" in
     Linux-x86_64)     bin_arch="linux_amd64"    ;;
     Linux-aarch64)    bin_arch="linux_arm64"    ;;
@@ -580,12 +587,14 @@ function __install_node_cli_tools () {
     return 0;
   fi
   "${npm_bin}" install -g npm;
+  npm_pkg_arr='';
   builtin mapfile -t npm_pkg_arr < <(
     get_config 'node_packages' 'npm'
   );
   for _npm_pkg in "${npm_pkg_arr[@]}"; do
     "${npm_bin}" install -g "${_npm_pkg}";
   done
+  npm_exec_arr='';
   builtin mapfile -t npm_exec_arr < <(
     "${ls_bin}" -A1 "${HOME}/.local/share/npm/bin"
   );
@@ -614,13 +623,14 @@ function __install_python_cli_tools () {
   if [[ -z ${py_bin} ]]; then
     py_bin="$(which_bin 'python')";
   fi
+  pip_pkg_arr='';
   builtin mapfile -t pip_pkg_arr < <(
     get_config 'python_packages' 'pip'
   );
   for _pip_pkg in "${pip_pkg_arr[@]}"; do
     "${py_bin}" -m pip install "${_pip_pkg}";
   done
-  return 0;
+  builtin return 0;
 }
 
 # ===================================================================

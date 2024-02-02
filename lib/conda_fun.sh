@@ -19,7 +19,7 @@ function conda_env_exists () {
   list_envs_res="$(\
     conda_list_envs \
       | "${jq_bin}" -r '.envs[]' \
-      | "${grep_bin}" "${env_name}$"\
+      | "${grep_bin}" "/${env_name}$"\
   )";
   builtin echo -ne "${list_envs_res}";
   builtin return 0;

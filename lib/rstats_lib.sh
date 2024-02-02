@@ -183,7 +183,7 @@ function rstats::install_pkg () {
 # Update R language installation to the latest release version
 # + only works correctly with devel, release, next
 function rstats::install_rstats_version () {
-  local rig_bin;
+  builtin local rig_bin;
   local os_type;
   local rstats_version;
 
@@ -225,7 +225,7 @@ function rstats::install_rig () {
   if [[ -z ${rig_bin} ]]; then
     __install_app 'rig';
   fi
-  return 0;
+  builtin return 0;
 }
 
 # Remove installed R package
@@ -234,12 +234,36 @@ function rstats::remove_pkg () {
   local pkg_name;
   local script_str;
   r_bin="$(require 'R')";
-  pkg_name="${1}";
+  pkg_name="${1:-}";
   script_str="utils::remove.packages('${pkg_name}')";
   "${r_bin}" \
     -q -s -e \
     "${script_str}";
-  return 0;
+  builtin return 0;
+}
+
+
+function rstats::rstudio () {
+  builtin local rig_bin;
+  builtin local r_version;
+  rig_bin="$(require 'rig')";
+  if [[ -z ${rig_bin} ]]; then
+    exit_fun '{rig} CLI is not installed.';
+    builtin return 1;
+  fi
+  r_version="${1:-release}";
+
+
+  builtin local project_file_path;
+  project_file_path="${2:-}";
+
+  if [[ -z ${project_file_path} ]]; then
+    project_file_path="$(get_config rstats_projects default_project)";
+  fi
+  basename $(realpath .)
+
+  "${rig_bin}" rstudio "${r_version}" "${@:2}";
+  builtin return 0;
 }
 
 # ==============================================================================
@@ -251,24 +275,29 @@ function rstats::remove_pkg () {
 
 # Check R package
 function rstats::check_pkg () {
-  local r_bin;
+  builtin local r_bin;
   r_bin="$(require 'R')";
-
-  return 0;
+  builtin return 0;
 }
 
 # Build R package
 function rstats::build_pkg () {
-  local r_bin;
+  builtin local r_bin;
   r_bin="$(require 'R')";
-
-  return 0;
+  builtin return 0;
 }
 
 # Create an isolated R installation on a Conda environment
-function rstats::create_r_conda_env () {
-  conda create -n r-env -y \
-    -c bioconda -c conda-forge -c defaults \
-    r-base r-devtools r-tidyverse r-biocmanager r-pak r-renv;
+function rstats::create_conda_env () {
+  conda_create_env r-env \
+    'r-base r-devtools r-tidyverse r-biocmanager r-pak r-renv';
+  builtin return 0;
+}
+
+# Install R Package inside Conda environment
+function rstats::install_pkg_conda () {
+  builtin local pkg_name;
+  pkg_name="${1:-}";
+  conda_run r-env R -q -e "pak::pkg_install('${pkg_name}')";
   builtin return 0;
 }
