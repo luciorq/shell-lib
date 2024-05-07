@@ -247,9 +247,9 @@ export "TEXMFVAR=${XDG_CACHE_HOME}/texlive/texmf-var";
 export "TEXMFCONFIG=${XDG_CONFIG_HOME}/texlive/texmf-config";
 
 # Lua Rocks
-if [[ -d ${HOME}/.luarocks ]]; then
-  \rm -rf "${HOME}/.luarocks";
-fi
+# if [[ -d ${HOME}/.luarocks ]]; then
+#  \rm -rf "${HOME}/.luarocks";
+# fi
 if [[ ! -d ${XDG_CACHE_HOME}/luarocks ]]; then
   \mkdir -p "${XDG_CACHE_HOME}/luarocks";
 fi
@@ -340,3 +340,7 @@ fi
 if [[ ! -d "${XDG_DATA_HOME}/gsutil" ]]; then
   \mkdir -p "${XDG_DATA_HOME}/gsutil";
 fi
+
+# PIXI - conda package manager ---
+
+# =============================================================================
