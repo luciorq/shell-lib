@@ -16,7 +16,7 @@ function get_conda_bin () {
   #   conda_bin="$(which_bin 'micromamba')";
   # fi
   if [[ -z ${conda_bin} ]]; then
-    install_micromamba;
+    install_micromamba --force;
     conda_bin="$(which_bin 'micromamba')";
   fi
   if [[ -z ${conda_bin} ]]; then
