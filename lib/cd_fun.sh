@@ -8,7 +8,7 @@ function cd_fun () {
   if [[ -n ${zoxide_bin} ]] && [[ $(builtin type -t z) == function ]]; then
     z "${@}";
   else
-    builtin cd "${@}" || return 1;
+    builtin cd "${@}" || builtin return 1;
   fi
   builtin return 0;
 }

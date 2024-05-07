@@ -2,6 +2,7 @@
 
 function conda_list_envs () {
   conda_priv_fun 'env' 'list' -q --json;
+  builtin return 0;
 }
 
 function conda_env_exists () {

@@ -83,7 +83,7 @@ function __user_create () {
     --user-group \
     "${user_name}";
     builtin echo -ne "${user_pw}\n";
-  return 0;
+  builtin return 0;
 }
 
 # Add user to groups
@@ -104,7 +104,7 @@ function __user_add_group () {
       | sed -r 's|\s+|,|g'
   )";
   "${sudo_bin}" "${usermod_bin}" -a -G "${groups_to_add[@]}" "${user_name}";
-  return 0;
+  builtin return 0;
 }
 
 # Delete User

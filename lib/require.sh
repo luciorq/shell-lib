@@ -21,7 +21,7 @@ function require () {
   local cmd_bin;
   local cmd_res;
   local full_cmd;
-  cmd_str="${1}";
+  cmd_str="${1:-}";
   cmd_bin="$(which_bin "${cmd_str}")";
   if [[ -z ${cmd_bin} ]]; then
     exit_fun "'${cmd_str}' executable not found in '\${PATH}'";
