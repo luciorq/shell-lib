@@ -3,10 +3,10 @@
 # Run Google Cloud SDK commands inside a conda environment
 function gcloud_fun () {
   builtin local env_name;
-  env_name="gcloud-env";
+  env_name="gcloud-env"
   # pkgs_str="google-cloud-sdk";
   # channels_str="";
-  conda_create_env "${env_name}" "google-cloud-sdk" "-c conda-forge";
+  conda_create_env "${env_name}" "google-cloud-sdk python numpy" "-c conda-forge";
   # TODO(luciorq): Check if command actually exists in the environment
   # + before running
   # + Also, probably add it inside conda_run
@@ -17,7 +17,7 @@ function gcloud_fun () {
   builtin return 0;
 }
 
-# Run Gcloud commands inside a conda environment
+# Run `gsutil` commands inside a conda environment
 function gsutil_fun () {
   builtin local env_name;
   env_name="gsutil-env";
