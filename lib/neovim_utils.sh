@@ -14,11 +14,11 @@ function neovim_install () {
 
   if [[ "$(get_os_type)" == "linux" ]]; then
     conda_create_env "${env_name}" \
-      "r-base r-tidyverse r-pak r-biocmanager bioconductor-deseq2 bioconductor-edger r-languageserver openssl coreutils nodejs python imagemagick lua luarocks gcc clang llvm radian" \
+      "r-base r-tidyverse r-pak r-biocmanager bioconductor-deseq2 bioconductor-edger r-languageserver openssl coreutils nodejs python imagemagick lua luarocks gcc clang llvm radian quarto" \
       "-c bioconda -c conda-forge";
   else
     conda_create_env "${env_name}" \
-      "r-base r-tidyverse r-pak r-biocmanager r-languageserver openssl coreutils nodejs python imagemagick lua luarocks clang llvm radian" \
+      "r-base r-tidyverse r-pak r-biocmanager r-languageserver openssl coreutils nodejs python imagemagick lua luarocks clang llvm radian quarto" \
       "-c bioconda -c conda-forge";
   fi
   conda_run "${env_name}" npm install --global --silent bash-language-server;
