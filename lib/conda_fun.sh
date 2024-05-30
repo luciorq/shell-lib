@@ -66,13 +66,13 @@ function conda_create_env () {
     builtin return 1;
   fi
 
-  # TODO: Platform string not added to command
+  # TODO: Platform string not added to command yet
   if [[ -z ${platform_str} ]]; then
     platform_str="$(get_conda_platform)";
   fi
   # --platform "${platform_str}"
   builtin echo -ne "Creating Conda environment: \`${env_name}\`. Please wait...\n";
-  conda_priv_fun create -y -q -n "${env_name}" ${channels_str} ${pkgs_str};
+  conda_priv_fun create -y -q -n "${env_name}" --platform "${platform_str}" ${channels_str} ${pkgs_str};
 
   builtin echo -ne "Succesfully created: \`${env_name}\`.\n";
 
