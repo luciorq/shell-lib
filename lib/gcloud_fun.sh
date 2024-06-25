@@ -13,7 +13,7 @@ function gcloud_fun () {
   # if [[ -z $(conda_run "${env_name}" command -v gcloud) ]] then
   #   conda_run "${env_name}" gcloud "${@}";
   # fi;
-  conda_run "${env_name}" gcloud "${@}";
+  CLOUDSDK_PYTHON_SITEPACKAGES=1 conda_run "${env_name}" gcloud "${@}";
   builtin return 0;
 }
 
