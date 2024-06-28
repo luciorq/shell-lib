@@ -195,22 +195,22 @@ def build_app(app_name: str) -> None:
 # Author: Lucio Rezende Queiroz
 # License: MIT
 
-\builtin set -o errexit;    # abort on nonzero exitstatus
-\builtin set -o nounset;    # abort on unbound variable
-\builtin set -o pipefail;   # don\'t hide errors within pipes
+\\builtin set -o errexit;    # abort on nonzero exitstatus
+\\builtin set -o nounset;    # abort on unbound variable
+\\builtin set -o pipefail;   # don\'t hide errors within pipes
 
-[[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { \builtin echo >&2 "Error: Bash >=4 required"; exit 1; }
+[[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { \\builtin echo >&2 "Error: Bash >=4 required"; \\builtin exit 1; }
 
 """
 
     main_function = f"""
 function main () {{
     { function_name } "${{@}}";
-\builtin exit 0;
+\\builtin exit 0;
 }}
 
 main "${{@}}";
-\builtin exit 0;
+\\builtin exit 0;
 """
 
     script_text = header_str + main_function_def + main_function
