@@ -12,22 +12,22 @@ Build Resilient Bash Shell Scripts
 if __name__ == "__main__":
     print("Running as a script")
     from utils import (
-        stop_if_not_project_root,
-        clean_dir,
-        read_config,
-        find_all_functions,
         build_app,
         change_exec_permission,
+        clean_dir,
+        find_all_functions,
+        read_config,
+        stop_if_not_project_root,
     )
 else:
     print("Running as a module")
     from src.utils import (
-        stop_if_not_project_root,
-        clean_dir,
-        read_config,
-        find_all_functions,
         build_app,
         change_exec_permission,
+        clean_dir,
+        find_all_functions,
+        read_config,
+        stop_if_not_project_root,
     )
 
 # local imports
