@@ -10,18 +10,23 @@ dest_dir := lib_home + '/' + prj_name
 default:
   @just --choose
 
+create-env-build-apps:
+  #!/usr/bin/env -S bash -i
+  \builtin set -euxo pipefail;
+  conda create -n shell-lib-env -y -c conda-forge python pyyaml;
+
 build-apps:
-  #!/usr/bin/env bash
-  set -euxo pipefail;
-  python {{ justfile_directory() }}/src/build_execs.py
+  #!/usr/bin/env -S bash -i
+  \builtin set -euxo pipefail;
+  conda run -n shell-lib-env python "{{ justfile_directory() }}/src/build_execs.py";
 
 # integrate functions from source lib
 install-separate:
   #!/usr/bin/env bash
   set -euxo pipefail;
-  mkdir -p "{{dest_dir}}";
+  \mkdir -p "{{dest_dir}}";
   for _i in lib/*.sh; do
-    \cp {{lib_path}}/"${_i}" "{{dest_dir}}/";
+    \cp "{{lib_path}}/${_i}" "{{dest_dir}}/";
   done;
 
 install-mac-launchers:
@@ -35,21 +40,21 @@ install-mac-launchers:
   done
 
 test:
-  #!/usr/bin/env bash
+  #!/usr/bin/env -S bash -i
   set -euxo pipefail;
   bats -x tests/;
 
 is-interactive:
-  #!/usr/bin/env -S bash -i
-  set -euxo pipefail;
-  echo "$-"
-  echo "$TERM"
-  echo "$SHELL"
+  #!/usr/bin/env -vS bash -i
+  \builtin set -euxo pipefail;
+  \builtin echo "\${-}: ${-}";
+  \builtin echo "\${TERM}: ${TERM}";
+  \builtin echo "\${SHELL}: ${SHELL}";
   env
 
 super-lint:
   #!/usr/bin/env -S bash -i
-  set -euxo pipefail
+  \builtin set -euxo pipefail
   docker pull github/super-linter:latest
   docker run -e RUN_LOCAL=true -v {{ justfile_directory() }}:/tmp/lint github/super-linter
 
@@ -57,38 +62,10 @@ user_name := env_var('USER')
 # needs to be root user
 install_apps_system:
   #!/usr/bin/env -S bash -i
-  echo 'for _i in $(\ls -A1 /home/{{ user_name }}/projects/shell-lib/lib/*.sh); do source "${_i}"; done;';
-  echo 'source /home/{{ user_name }}/.bashrc;';
-  echo '_LOCAL_CONFIG=/home/{{ user_name }}/.config/lrq install_apps --system;';
+  \builtin echo 'for _i in $(\ls -A1 /home/{{ user_name }}/projects/shell-lib/lib/*.sh); do source "${_i}"; done;\n';
+  \builtin echo -ne 'source /home/{{ user_name }}/.bashrc;\n';
+  \builtin echo -ne '_LOCAL_CONFIG=/home/{{ user_name }}/.config/lrq install_apps --system;\n';
 
 test-conda-env:
   conda activate test-env;
 
-# TODO: Legacy references to bashly
-# build:
-#   #!/usr/bin/env bash
-#   set -euxo pipefail;
-#   bashly generate;
-#   # for _i in src; do
-#   #  _function_name="$(basename ${_i%%.*})";
-#   #  bashly generate --wrap ${_function_name};
-#   # done
-#   bashly add comp script share/completions.bash --force
-#   bashly add comp function --force
-#   bashly generate --upgrade --env production --wrap "${_tool_name}"
-#   sed -i -e 's|exit|return|g' "${_tool_name}"
-#   sed -i -e 's|  set -e|  # set -e|g' "${_tool_name}"
-#   mv "${_tool_name}" "${_tool_name}_fun";
-#   # cp "inst/${_tool_name}" "${_tool_name}";
-#   # chmod a+x "${_tool_name}";
-#   unset _tool_name;
-
-# install-bundle:
-#   #!/usr/bin/env bash
-#   set -euxo pipefail;
-
-# init:
-#   #!/usr/bin/env -S bash -i
-#   set -euxo pipefail
-#   bashly init
-#   bashly add yaml
