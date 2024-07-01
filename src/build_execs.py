@@ -11,7 +11,7 @@ Build Resilient Bash Shell Scripts
 
 if __name__ == "__main__":
     print("Running as a script")
-    from utils import (
+    from appbuilder.utils import (
         build_app,
         change_exec_permission,
         clean_dir,
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     )
 else:
     print("Running as a module")
-    from src.utils import (
+    from src.appbuilder.utils import (
         build_app,
         change_exec_permission,
         clean_dir,
@@ -66,4 +66,5 @@ build_app("download")
 
 change_exec_permission("bin")
 
-# TODO: **Create** and **Run** tests for the shell scripts.
+# TODO: @luciorq **Create** and **Run** tests for the shell scripts.
+# + At work at `./tests/test-*.py`

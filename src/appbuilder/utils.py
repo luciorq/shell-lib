@@ -12,6 +12,7 @@ import shutil
 import stat
 import subprocess
 import sys
+from typing import Any
 
 import yaml
 
@@ -42,18 +43,21 @@ def str_detect(string: str, pattern: str) -> bool:
 
 
 # Stop execution if not in the Project root directory
-def stop_if_not_project_root():
+def stop_if_not_project_root() -> None:
     """
     Stop execution if not in the Project root directory.
     """
     current_dir = os.getcwd()
     if not str_detect(current_dir, r"shell-lib$"):
-        print("Error: Script must be executed from the project root directory.")
+        print(
+            "Error: Script must be executed from the project root directory.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
 
 # Create and clean `bin` directory
-def clean_dir(bin_dir: str):
+def clean_dir(bin_dir: str) -> None:
     """
     Create and clean project `bin` directory.
 
@@ -67,7 +71,7 @@ def clean_dir(bin_dir: str):
 
 
 # Define functions to be created from config YAML file
-def read_config(field: str):
+def read_config(field: str) -> Any:
     """
     Read a specific field from the configuration file.
 
@@ -78,7 +82,7 @@ def read_config(field: str):
     - field (str): The name of the field to retrieve from the configuration file.
 
     Returns:
-    - The value associated with the specified field in the configuration file.
+    - Any: The value associated with the specified field in the configuration file.
     """
     config_path = os.path.join("config", "build.yaml")
     with open(config_path, "r", encoding="utf-8") as config_file:
@@ -129,6 +133,7 @@ def extract_function_definition(function_name: str) -> str:
 
 
 # Find all function requests per file
+# TODO: @luciorq WIP
 def find_function_deps(script_name: str, function_names: str):
     """_summary_
 
