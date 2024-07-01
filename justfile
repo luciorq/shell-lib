@@ -11,17 +11,17 @@ default:
   @just --choose
 
 create-env-build-apps:
-  #!/usr/bin/env -S bash -i
+  #!/usr/bin/env -vS bash -i
   \builtin set -euxo pipefail;
   conda create -n shell-lib-env -y -c conda-forge python pyyaml pytest;
 
 build-apps:
-  #!/usr/bin/env -S bash -i
+  #!/usr/bin/env -vS bash -i
   \builtin set -euxo pipefail;
   conda run -n shell-lib-env python "{{ justfile_directory() }}/src/build_execs.py";
 
 test-apps: build-apps
-  #!/usr/bin/env -S bash -i
+  #!/usr/bin/env -vS bash -i
   \builtin set -euxo pipefail;
   conda run -n shell-lib-env python -m pytest "{{ justfile_directory() }}"/tests/test-app-*.py;
 
