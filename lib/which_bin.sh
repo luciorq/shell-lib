@@ -1,33 +1,22 @@
 #!/usr/bin/env bash
 
-# Return the first executable on path, without failing
-# + but returning warnings
-function which_bin () {
-  \builtin local cmd_arg;
-  \builtin local cmd_arr;
-  \builtin local cmd_bin;
-  \builtin local which_arr;
-  \builtin local which_bin_str;
-  cmd_arg="${1:-}";
-  cmd_arr='';
-  which_arr='';
-  #if [[-z ${cmd_arg} ]]; then
-  #  exit_fun '`which_bin` expects one argument.';
-  #fi
-  \builtin mapfile -t which_arr < <(
-    \builtin command which -a 'which' 2>/dev/null || \builtin echo -ne ''
-  )
-  which_bin_str="${which_arr[0]}";
-  if [[ -z ${which_bin_str} ]]; then
-    \builtin mapfile -t cmd_arr < <(
-      \builtin command -v "${cmd_arg}" 2>/dev/null || \builtin echo -ne ''
-    )
-  else
-    \builtin mapfile -t cmd_arr < <(
-      "${which_bin_str}" -a "${cmd_arg}" 2>/dev/null || \builtin echo -ne ''
-    )
-  fi
-  cmd_bin="${cmd_arr[0]:-}";
-  \builtin echo -ne "${cmd_bin}";
-  \builtin return 0;
+# Return the first executable on path
+function which_bin() {
+  \builtin local cmd_arg
+  \builtin local path_dir_arr
+  \builtin local path_dir
+  \builtin local file_name
+  \builtin local cmd_bin
+  cmd_arg="${1:-}"
+  cmd_bin=''
+  IFS=: \builtin read -r -a path_dir_arr <<<"${PATH:-}"
+  for path_dir in "${path_dir_arr[@]}"; do
+    file_name="${path_dir}/${cmd_arg}"
+    if [[ -x "${file_name}" && ! -d "${file_name}" ]] && [[ "${file_name}" =~ ${cmd_arg}$ ]]; then
+      cmd_bin="${file_name}"
+      \builtin break
+    fi
+  done
+  \builtin echo -ne "${cmd_bin}"
+  \builtin return 0
 }
