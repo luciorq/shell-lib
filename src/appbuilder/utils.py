@@ -128,7 +128,7 @@ def extract_function_definition(function_name: str) -> str:
         ]
     )
     function_declaration = function_declaration.decode()
-    function_declaration = re.sub(r"return", "exit", function_declaration)
+    function_declaration = re.sub(r"return 1", "exit 1", function_declaration)
     return function_declaration
 
 
@@ -210,12 +210,12 @@ def build_app(app_name: str) -> None:
 
     main_function = f"""
 function main () {{
-    { function_name } "${{@}}";
-\\builtin exit 0;
+    { function_name } "${{@:-}}";
+\\builtin return;
 }}
 
-main "${{@}}";
-\\builtin exit 0;
+main "${{@:-}}";
+\\builtin exit;
 """
 
     script_text = header_str + main_function_def + main_function
