@@ -21,7 +21,15 @@ of this library.
 This file is intended to be sourced from an interactive session to force some
 applications to abide by the XDG Base Directory Specification.
 
----
+## Content
+
+📂 [lib](./lib) has Shell scripts containing functions to be sourced\
+📂 [bin](./bin) has independent executable scripts that can be added to PATH directly\
+📂 [src](./src) contain additional executables used during development\
+  ⊢ 📂 [appbuilder](./src/appbuilder) Experimental Python library for building apps\
+📂 [tests](./tests) contain tests for both functions and executables\
+  ⊢ 📄 `test-app-*.py` tests for individual executables\
+  ⊢ 📄 `test-*.bats` tests for functions loaded in a Bash Shell
 
 ## Usage
 
