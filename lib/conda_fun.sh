@@ -28,7 +28,6 @@ function conda_env_exists() {
 
 function conda_run() {
   local env_name
-  # local conda_bin;
   local conda_env_exists_res
   env_name="${1:-}"
   if [[ -z ${env_name} ]]; then

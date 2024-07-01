@@ -5,10 +5,10 @@
 function cd_fun () {
   \builtin local zoxide_bin;
   zoxide_bin="$(which_bin 'zoxide')";
-  if [[ -n ${zoxide_bin} ]] && [[ $(\builtin type -t z) != function ]] && [[ "${SHELL:-}" =~ bash$ ]]; then
+  if [[ -n ${zoxide_bin} ]] && [[ $(LC_ALL=C \builtin type -t z) != function ]] && [[ "${SHELL:-}" =~ bash$ ]]; then
     \builtin eval "$("${zoxide_bin}" init bash)";
   fi
-  if [[ -n ${zoxide_bin} ]] && [[ $(\builtin type -t z) == function ]]; then
+  if [[ -n ${zoxide_bin} ]] && [[ $(LC_ALL=C \builtin type -t z) == function ]]; then
     z "${@}";
   else
     \builtin cd -- "${@}" || \builtin return 1;
