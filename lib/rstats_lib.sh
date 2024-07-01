@@ -13,11 +13,11 @@ function rstats::start_rmote() {
 
 # Bootstrap Quarto Markdown Documents
 function rstats::boostrap_quarto_install() {
-  builtin local quarto_bin
+  \builtin local quarto_bin
   quarto_bin="$(which_bin 'quarto')"
   if [[ -z ${quarto_bin} ]]; then
     exit_fun '{quarto} CLI is not installed.'
-    builtin return 1
+    \builtin return 1
   fi
   # For MacOS
   # + brew upgrade quarto
@@ -29,7 +29,7 @@ function rstats::boostrap_quarto_install() {
   "${quarto_bin}" install tool --no-prompt chromium
   # Install extensions
   "${quarto_bin}" add --no-prompt coatless/quarto-webr
-  builtin return 0
+  \builtin return 0
 }
 
 # Install / update all packages from config file
@@ -82,7 +82,7 @@ function rstats::install_all_pkgs() {
           ;;
         *)
           exit_fun "'${pkg_type}' not available as a Source."
-          builtin return 1
+          \builtin return 1
           ;;
         esac
       # rstats::install_pkg "${_pkg_name}" "${_pkg_type}";
@@ -95,6 +95,7 @@ function rstats::install_all_pkgs() {
   pkg_name_str="$("${sed_bin}" 's/,$//' <<<"${pkg_name_str}")"
   pkg_name_str="c(${pkg_name_str})"
 
+  # TODO: @luciorq WIP
   if [[ -n ${CONDA_DEFAULT_ENV} ]]; then
     local conda_bin
     local conda_env_name
@@ -223,17 +224,17 @@ function rstats::update_rstats_version() {
   rstats::install_rstats_version devel
   rstats::install_rstats_version next
   rstats::install_rstats_version release
-  return 0
+  \builtin return 0
 }
 
 # Install RIG - R installation manager
 function rstats::install_rig() {
-  local rig_bin
+  \builtin local rig_bin
   rig_bin="$(which_bin 'rig')"
   if [[ -z ${rig_bin} ]]; then
     __install_app 'rig'
   fi
-  builtin return 0
+  \builtin return 0
 }
 
 # Remove installed R package
@@ -247,7 +248,7 @@ function rstats::remove_pkg() {
   "${r_bin}" \
     -q -s -e \
     "${script_str}"
-  builtin return 0
+  \builtin return 0
 }
 
 function rstats::rstudio() {
@@ -256,11 +257,11 @@ function rstats::rstudio() {
   rig_bin="$(require 'rig')"
   if [[ -z ${rig_bin} ]]; then
     exit_fun '{rig} CLI is not installed.'
-    builtin return 1
+    \builtin return 1
   fi
   r_version="${1:-release}"
 
-  builtin local project_file_path
+  \builtin local project_file_path
   project_file_path="${2:-}"
 
   if [[ -z ${project_file_path} ]]; then
@@ -269,7 +270,7 @@ function rstats::rstudio() {
   # basename $(realpath .)
 
   "${rig_bin}" rstudio "${r_version}" "${@:2}"
-  builtin return 0
+  \builtin return 0
 }
 
 # ==============================================================================

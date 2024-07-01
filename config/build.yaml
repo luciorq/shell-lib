@@ -1,3 +1,8 @@
+# This file defines which independent executable should
+# + be built.
+---
+# Name of the executables to be created
+# + The elements of each list are the dependencies
 apps:
   download:
     - which_bin
@@ -14,6 +19,8 @@ apps:
     - which_bin
     - exit_fun
 
+# TODO: @luciorq WIP
+# - Probably not going to use the build
 build:
   - bat_fun
   - cat_color
