@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
 function dfh () {
-  local ls_bin;
-  local df_bin;
-  local grep_bin;
-  local sed_bin;
-  local column_bin;
-  local header_str;
-  local align_str;
-  local body_str;
+  \builtin local ls_bin;
+  \builtin local df_bin;
+  \builtin local grep_bin;
+  \builtin local sed_bin;
+  \builtin local column_bin;
+  \builtin local header_str;
+  \builtin local align_str;
+  \builtin local body_str;
   header_str="FS,Type,Size,Used,Available,Usage(%),MountPath\n";
   align_str="---,---,---,---,---,---,---\n";
   ls_bin="$(which_bin 'ls')";
@@ -16,9 +16,12 @@ function dfh () {
   grep_bin="$(which_bin 'grep')";
   sed_bin="$(which_bin 'sed')";
   column_bin="$(which_bin 'column')";
+  # NOTE: @luciorq On my remote servers I always mount
+  # + data directories at `/data/{ hostname }` also `/home`
+  # + is usually a NFS endpoint.
   # Force NFS to mount prior to df execution
   "${ls_bin}" /data/* /home 2> /dev/null 1> /dev/null \
-    || builtin echo -ne '';
+    || \builtin echo -ne '';
   body_str="$(
     "${df_bin}" -h -T -x squashfs -x devtmpfs \
       | "${grep_bin}" -v '/var/lib/docker/zfs' \
@@ -34,5 +37,5 @@ function dfh () {
     | "${sed_bin}" 's/^/| /g' \
     | "${sed_bin}" 's/$/ |/g' \
     | "${column_bin}" -t;
-  return 0;
+  \builtin return 0;
 }

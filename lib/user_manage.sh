@@ -86,10 +86,10 @@ function __user_add_group() {
   local groups_to_add
   local usermod_bin
   local sudo_bin
-  user_name="${1}"
+  user_name="${1:-}"
   usermod_bin="$(require 'usermod' '-h')"
   sudo_bin="$(require 'sudo')"
-  \builtin mapfile -t args_arr < <(builtin echo "${@}")
+  \builtin mapfile -t args_arr < <(builtin echo "${@:-}")
   groups_to_add="$(
     \builtin echo "${args_arr[@]:1}" |
       sed -r 's|\s+|,|g'
