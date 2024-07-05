@@ -47,6 +47,17 @@ Recommended directory: `/usr/local/bin` for system-wide installation or
 Function files can be found in the `lib` directory.
 Copy individual files to your project and source them from your scripts.
 
+### Calling individual scripts
+
+All scripts in the `bin` directory are formatted in a way to be executed directly
+from the internet if needed.
+
+E.g. for calling `dfh` script.
+
+```bash
+curl -fssL https://raw.githubusercontent.com/luciorq/shell-lib/main/bin/dfh | bash
+```
+
 ---
 
 > Source with caution and have fun!
