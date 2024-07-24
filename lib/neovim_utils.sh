@@ -22,7 +22,7 @@ function neovim_install () {
       "-c bioconda -c conda-forge";
   fi
   conda_run "${env_name}" npm install --global --silent bash-language-server;
-  # conda_run "${env_name}" npm install --global --silent tree-sitter-cli;
+  conda_run "${env_name}" npm install --global --silent tree-sitter-cli;
   # conda_run "${env_name}" npm install -g dockerfile-language-server-nodejs;
 
   if [[ -f ${HOME}/.local/share/npm/bin/bash-language-server ]]; then
@@ -46,7 +46,12 @@ function neovim_install () {
     fi
   fi
 
-  conda_run "${env_name}" luarocks --local --lua-version=5.1 install magick;
+  # \builtin local lua_version;
+  # lua_version="$(conda_run "${env_name}" lua -v)";
+  # lua_version="${lua_version##Lua }";
+  # lua_version="${lua_version%% *}";
+  # conda_run "${env_name}" luarocks --local --lua-version="${lua_version}" install magick;
+  conda_run "${env_name}" luarocks --local --lua-version='5.1' install magick;
 
   neovim_run --headless -c 'TSUpdate' -qa;
 
@@ -68,7 +73,7 @@ function neovim_clean () {
     # conda_remove_env neovim-env;
     conda env remove -n "${env_name}" -y -q;
   fi
-  builtin return 0;
+  \builtin return 0;
 }
 
 # TODO: @luciorq `neovim` is the wrong conda package name.
