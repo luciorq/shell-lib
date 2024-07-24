@@ -23,6 +23,7 @@ function sudo_fun () {
   cmd_str="${1:-}";
   if [[ "${cmd_str}" == '--help' ]] ||
     [[ "${cmd_str}" == '-h' ]] ||
+    [[ "${cmd_str}" == '-l' ]] ||
     [[ "${cmd_str}" == '--version' ]] ||
     [[ "${cmd_str}" == '-V' ]]; then
     "${sudo_bin}" "${cmd_str}";
