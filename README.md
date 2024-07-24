@@ -55,7 +55,7 @@ from the internet if needed.
 E.g. for calling `dfh` script.
 
 ```bash
-curl -fssL https://raw.githubusercontent.com/luciorq/shell-lib/main/bin/dfh | bash
+\curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/luciorq/shell-lib/main/bin/dfh | bash
 ```
 
 ---
