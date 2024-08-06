@@ -21,7 +21,7 @@ if __name__ == "__main__":
     )
 else:
     print("Running as a module")
-    from src.appbuilder.utils import (
+    from src.appbuilder.src.appbuilder.utils import (
         build_app,
         change_exec_permission,
         clean_dir,
