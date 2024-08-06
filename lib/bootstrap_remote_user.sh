@@ -215,7 +215,7 @@ function __rebuild_rust_source_tools () {
   local _check_avail;
   declare -a cargo_arr=(
     starship
-    exa
+    eza
     bat
     du-dust
     fd-find
@@ -229,7 +229,7 @@ function __rebuild_rust_source_tools () {
   link_path="${HOME}/.local/bin";
   declare -a check_bin_arr=(
     starship
-    exa
+    eza
     bat
     dust
     fd

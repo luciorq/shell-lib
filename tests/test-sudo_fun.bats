@@ -4,7 +4,7 @@ function setup () {
   source lib/which_bin.sh;
   source lib/exit_fun.sh;
   source lib/sudo_fun.sh;
-  alias ls='exa -g';
+  alias ls='eza -g';
   _target_path="$(dirname $(dirname "${BATS_TEST_FILENAME}"))";
   sudo_bin="$(which sudo)";
   ls_bin="$(which ls)";
@@ -20,7 +20,7 @@ function setup () {
 }
 
 @test "'sudo_fun' - Expand alias" {
-  default_output="$("${sudo_bin}" exa -g "${_target_path}")";
+  default_output="$("${sudo_bin}" eza -g "${_target_path}")";
   run sudo_fun ls "${_target_path}";
   echo "${output}";
   #echo "----------------------------------------------------";
