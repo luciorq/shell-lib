@@ -32,7 +32,7 @@ function conda_priv_fun () {
   local env_name;
   local conda_env_exports;
   conda_bin="$(get_conda_bin)";
-  if [[ ${1} =~ activate ]]; then
+  if [[ ${1:-} =~ activate ]]; then
     env_name="${2-}";
     if [[ "${conda_bin}" =~ micromamba$ ]]; then
       conda_env_exports="$("${conda_bin}" shell "${env_name}" activate --shell bash)";
@@ -43,7 +43,7 @@ function conda_priv_fun () {
     builtin hash -r;
     builtin return 0;
   fi
-  "${conda_bin}" "${@}";
+  "${conda_bin}" "${@:-}";
   builtin return 0;
 }
 
@@ -77,8 +77,8 @@ function install_micromamba () {
   done
   micromamba_bin="$(which_bin 'micromamba')";
   if [[ -n ${micromamba_bin} ]] && [[ ${force_flag} == '0' ]]; then
-    builtin echo -ne "\`micromamba\` already installed at \`${micromamba_bin}\`";
-    builtin return 0;
+    \builtin echo -ne "\`micromamba\` already installed at \`${micromamba_bin}\`";
+    \builtin return 0;
   fi
 
   chmod_bin="$(which_bin 'chmod')";
@@ -125,14 +125,14 @@ function install_micromamba () {
     "${mkdir_bin}" -p "${link_dir}";
   fi
   "${ln_bin}" -sf "${dl_path}" "${link_path}";
-  builtin return 0;
+  \builtin return 0;
 }
 
 # Retrive conda native platform in the form of `os-arch`
 function get_conda_platform () {
-  builtin local os_type;
-  builtin local os_arch;
-  builtin local platform_str;
+  \builtin local os_type;
+  \builtin local os_arch;
+  \builtin local platform_str;
 
   os_type="$(get_os_type)";
   os_arch="$(get_os_arch)";
@@ -166,22 +166,22 @@ function get_conda_platform () {
       ;;  # pass
     *)
       exit_fun 'get_conda_platform: Failed to detect supported OS';
-      builtin return 1;
+      \builtin return 1;
       ;;
   esac
 
-  builtin echo -ne "${platform_str}";
-  builtin return 0;
+  \builtin echo -ne "${platform_str}";
+  \builtin return 0;
 }
 
 # This function just works on MacOS
 function __conda_platform_arm64_to_64 () {
-  builtin local platform_str;
+  \builtin local platform_str;
   platform_str=$(get_conda_platform);
   if [[ "${platform_str}" =~ osx-arm64 ]]; then
-    builtin echo -ne 'osx-64';
+    \builtin echo -ne 'osx-64';
   else
-    builtin echo -ne "${platform_str}";
+    \builtin echo -ne "${platform_str}";
   fi
-  builtin return 0;
+  \builtin return 0;
 }
