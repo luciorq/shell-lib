@@ -63,7 +63,6 @@ build_app("require")
 
 build_app("download")
 
-
 change_exec_permission("bin")
 
 # TODO: @luciorq **Create** and **Run** tests for the shell scripts.

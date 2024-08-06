@@ -1,7 +1,6 @@
 # __init__.py
 
 # appbuilder module
-
-import appbuilder.utils
+from .utils import *
 
 print("`{appbuilder}` succesfully imported")

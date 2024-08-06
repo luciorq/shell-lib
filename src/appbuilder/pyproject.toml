@@ -1,0 +1,67 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "appbuilder"
+dynamic = ["version"]
+description = 'Build resilient Shell Scripts from a library of Shell functions.'
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "luciorq", email = "luciorqueiroz@gmail.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+#  "click",
+  "pyyaml",
+]
+
+[project.urls]
+Documentation = "https://github.com/luciorq/appbuilder#readme"
+Issues = "https://github.com/luciorq/appbuilder/issues"
+Source = "https://github.com/luciorq/appbuilder"
+
+# [project.scripts]
+# appbuilder = "appbuilder.cli:appbuilder"
+
+[tool.hatch.version]
+path = "src/appbuilder/__about__.py"
+
+[tool.hatch.envs.types]
+extra-dependencies = [
+  "mypy>=1.0.0",
+]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/appbuilder tests}"
+
+[tool.coverage.run]
+source_pkgs = ["appbuilder", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/appbuilder/__about__.py",
+]
+
+[tool.coverage.paths]
+appbuilder = ["src/appbuilder", "*/appbuilder/src/appbuilder"]
+tests = ["tests", "*/appbuilder/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
