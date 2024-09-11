@@ -44,36 +44,36 @@ function conda_run() {
 }
 
 function conda_create_env() {
-  builtin local _usage
-  _usage="${0} <ENV_NAME> <PKGS> [<CHANNELS>] [<PLATFORM>]"
-  builtin unset _usage
-  builtin local env_name
-  builtin local pkgs_str
-  builtin local channels_str
-  builtin local conda_env_exists_res
-  builtin local platform_str
-  env_name="${1:-}"
-  pkgs_str="${2:-}"
-  channels_str="${3:-}"
-  platform_str="${4:-}"
-  conda_env_exists_res="$(conda_env_exists "${env_name}")"
+  builtin local _usage;
+  _usage="${0} <ENV_NAME> <PKGS> [<CHANNELS>] [<PLATFORM>]";
+  builtin unset _usage;
+  builtin local env_name;
+  builtin local pkgs_str;
+  builtin local channels_str;
+  builtin local conda_env_exists_res;
+  builtin local platform_str;
+  env_name="${1:-}";
+  pkgs_str="${2:-}";
+  channels_str="${3:-}";
+  platform_str="${4:-}";
+  conda_env_exists_res="$(conda_env_exists "${env_name}")";
   if [[ -n ${conda_env_exists_res} ]]; then
-    builtin return 0
+    \builtin return 0;
   fi
   if [[ -z ${pkgs_str} ]]; then
-    exit_fun 'conda_create_env: Packages not provided'
-    builtin return 1
+    exit_fun 'conda_create_env: Packages not provided';
+    \builtin return 1;
   fi
 
   # TODO: Platform string not added to command yet
   if [[ -z ${platform_str} ]]; then
-    platform_str="$(get_conda_platform)"
+    platform_str="$(get_conda_platform)";
   fi
   # --platform "${platform_str}"
-  builtin echo -ne "Creating Conda environment: \`${env_name}\`. Please wait...\n"
-  conda_priv_fun create -y -q -n "${env_name}" --platform "${platform_str}" ${channels_str} ${pkgs_str}
+  \builtin echo -ne "Creating Conda environment: \`${env_name}\`. Please wait...\n";
+  conda_priv_fun create -y -q -n "${env_name}" --platform "${platform_str}" --override-channels ${channels_str} ${pkgs_str}
 
-  builtin echo -ne "Succesfully created: \`${env_name}\`.\n"
+  \builtin echo -ne "Succesfully created: \`${env_name}\`.\n";
 
-  builtin return 0
+  \builtin return 0;
 }
