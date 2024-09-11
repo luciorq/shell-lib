@@ -44,7 +44,6 @@ bin_list = read_config("build")
 
 function_names = find_all_functions()
 
-
 # TODO: Extracting function definition is not working.
 # + Trying workaround with subprocess("declare -f <function_name>")
 # extract_function_definition("lib/which_bin.sh", "which_bin")
