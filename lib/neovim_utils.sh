@@ -71,7 +71,7 @@ function neovim_clean () {
 
   if [[ -n $(conda_env_exists "${env_name}") ]]; then
     # conda_remove_env neovim-env;
-    conda env remove -n "${env_name}" -y -q;
+    conda_priv_fun env remove -n "${env_name}" -y -q;
   fi
   \builtin return 0;
 }
