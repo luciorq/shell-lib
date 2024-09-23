@@ -292,7 +292,10 @@ function __install_app_source () {
         --no-env \
         -c conda-forge \
         -c bioconda \
-        -c defaults \
+        -c nodefaults \
+        --no-channel-priority \
+        --override-channels \
+        --channel-priority=0 \
         --prefix "${envs_path}/${app_name}" \
         "${app_name}";
     fi
