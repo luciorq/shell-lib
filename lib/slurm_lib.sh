@@ -34,17 +34,17 @@ function slurm_check_nodes () {
 # Request interactive section on slurm
 # + Defaults: 4 CPU, 32 GB RAM, 120 Minutes, 0 GPU
 function slurm_interactive_session () {
-  local _usage="Usage: ${0} [PARTITION] [N_CPU] [MEM_GB] [TIME_MIN] [GPU_NUM] [GROUP_NAME]";
-  unset _usage;
-  local bash_bin;
-  local srun_bin;
-  local sg_bin;
-  local partition_name;
-  local num_cpu;
-  local mem_gb;
-  local time_min;
-  local time_hour;
-  local gpu_num;
+  \builtin local _usage="Usage: ${0} [PARTITION] [N_CPU] [MEM_GB] [TIME_MIN] [GPU_NUM] [GROUP_NAME]";
+  \builtin unset _usage;
+  \builtin local bash_bin;
+  \builtin local srun_bin;
+  \builtin local sg_bin;
+  \builtin local partition_name;
+  \builtin local num_cpu;
+  \builtin local mem_gb;
+  \builtin local time_min;
+  \builtin local time_hour;
+  \builtin local gpu_num;
   bash_bin="$(require 'bash')";
   srun_bin="$(require 'srun')";
   sg_bin="$(require 'sg')";
@@ -56,32 +56,31 @@ function slurm_interactive_session () {
   group_name="${6:-marchionnilab}";
   ((time_hour = time_min / 60));
   ((time_min = time_min % 60));
-  time_hour="$(builtin printf '%02d' "${time_hour}")";
-  time_min="$(builtin printf '%02d' "${time_min}")";
+  time_hour="$(\builtin printf '%02d' "${time_hour}")";
+  time_min="$(\builtin printf '%02d' "${time_min}")";
   # "${gpu_block[@]}" \
   # --gres=gpu:1;
-  "${sg_bin}" "${group_name}" "\
-    ${srun_bin} --partition ${partition_name} \
+  "${sg_bin}" "${group_name}" \
+    "${srun_bin} --partition ${partition_name} \
     --job-name InteractiveJob \
     --cpus-per-task ${num_cpu} \
     --mem-per-cpu ${mem_gb}G \
     --gres=gpu:${gpu_num} \
     --time ${time_hour}:${time_min}:00 \
-    --pty ${bash_bin} \
-    ";
-  return 0;
+    --pty ${bash_bin}";
+  \builtin return 0;
 }
 
 # Request interactive session with GPU support
 # + Defaults: 1 GPU, 4 CPU, 32 GB RAM, 120 Minutes
 function slurm_interactive_gpu_session () {
-  local _usage="Usage: ${0} [GPU_NUM] [PARTITION] [N_CPU] [MEM_GB] [TIME_MIN]";
-  unset _usage;
-  local gpu_num;
-  local partition_name;
-  local num_cpu;
-  local mem_gb;
-  local time_min;
+  \builtin local _usage="Usage: ${0} [GPU_NUM] [PARTITION] [N_CPU] [MEM_GB] [TIME_MIN]";
+  \builtin unset _usage;
+  \builtin local gpu_num;
+  \builtin local partition_name;
+  \builtin local num_cpu;
+  \builtin local mem_gb;
+  \builtin local time_min;
   gpu_num="${1-1}";
   partition_name="${2:-scu-gpu}";
   num_cpu="${3:-4}";
@@ -93,36 +92,36 @@ function slurm_interactive_gpu_session () {
     "${mem_gb}" \
     "${time_min}" \
     "${gpu_num}";
-  return 0;
+  \builtin return 0;
 }
 function slurm_check_queue () {
-  local squeue_bin;
+  \builtin local squeue_bin;
   squeue_bin="$(require 'squeue')";
   "${squeue_bin}" -o \
     "%.18i %.9P %.8j %.8u %.2t %.10M %.6D      %C      %m      %R";
-  return 0;
+  \builtin return 0;
 }
 
 function slurm_check_limits () {
-  local sacc_bin;
+  \builtin local sacc_bin;
   sacc_bin="$(require 'sacctmgr')";
   "${sacc_bin}" list associations;
-  return 0;
+  \builtin return 0;
 }
 
 # Check GPUs available in each node
 function slurm_check_gpus () {
-  local scontrol_bin;
-  local grep_bin;
-  local gpu_output;
-  local gpu_node_names;
-  local gpus_installed;
-  local gpus_used;
-  local partition_names;
-  local gpus_model;
-  local sed_bin;
-  local paste_bin;
-  local column_bin;
+  \builtin local scontrol_bin;
+  \builtin local grep_bin;
+  \builtin local gpu_output;
+  \builtin local gpu_node_names;
+  \builtin local gpus_installed;
+  \builtin local gpus_used;
+  \builtin local partition_names;
+  \builtin local gpus_model;
+  \builtin local sed_bin;
+  \builtin local paste_bin;
+  \builtin local column_bin;
   scontrol_bin="$(require 'scontrol')";
   grep_bin="$(require 'grep')";
   sed_bin="$(require 'sed')";
@@ -133,25 +132,25 @@ function slurm_check_gpus () {
     -e CfgTRES= -e AllocTRES= -e NodeName= -e Gres= -e Partitions=
   )";
   gpu_node_names="$(
-    builtin echo -ne "${gpu_output}" \
+    \builtin echo -ne "${gpu_output}" \
       | grep 'NodeName=' \
       | sed -e 's|\s.*||g' \
       | sed -e 's|NodeName=||g'
   )";
   gpus_installed="$(
-    builtin echo -ne "${gpu_output}" \
+    \builtin echo -ne "${gpu_output}" \
       | grep 'Gres=' \
       | sed -e 's|Gres\=||g' \
       | sed -e 's|gpu\:||g'
   )";
   gpus_used="$(
-    builtin echo -ne "${gpu_output}" \
+    \builtin echo -ne "${gpu_output}" \
       | grep 'AllocTRES=' \
       | sed -e 's|.*gres/gpu:||g' \
       | sed -e 's|AllocTRES\=|0|g'
   )";
   partition_names="$(
-    builtin echo -ne "${gpu_output}" \
+    \builtin echo -ne "${gpu_output}" \
       | grep -v 'Gres=' \
       | grep -v 'AllocTRES=' \
       | grep -v 'CfgTRES=' \
@@ -162,12 +161,12 @@ function slurm_check_gpus () {
       | sed -e 's|NA|\n|g'
   )";
   CLICOLOR_FORCE=1 "${paste_bin}" \
-    <(builtin echo -ne "NODENAME\n${gpu_node_names}") \
-    <(builtin echo -ne "TOTAL_GPUS\n${gpus_installed}") \
-    <(builtin echo -ne "USED_GPUS\n${gpus_used}") \
-    <(builtin echo -ne "PARTITION\n${partition_names}") \
+    <(\builtin echo -ne "NODENAME\n${gpu_node_names}") \
+    <(\builtin echo -ne "TOTAL_GPUS\n${gpus_installed}") \
+    <(\builtin echo -ne "USED_GPUS\n${gpus_used}") \
+    <(\builtin echo -ne "PARTITION\n${partition_names}") \
     | grep -v '(null)' \
     | "${column_bin}" -t;
     # | bat_fun -l tsv -pp;
-    return 0;
+   \builtin return 0;
 }
