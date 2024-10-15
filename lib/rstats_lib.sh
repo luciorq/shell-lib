@@ -54,7 +54,7 @@ function rstats::install_all_pkgs() {
     'local'
   )
   pkg_name_str=''
-  builtin declare -a pkg_name_arr
+  \builtin declare -a pkg_name_arr
   for _pkg_type in "${pkg_type_arr[@]}"; do
     builtin mapfile -t _pkg_name_arr < <(
       get_config rstats_packages "${_pkg_type}_packages"
@@ -137,7 +137,7 @@ function rstats::install_pkg() {
   pkg_name="${1:-}"
   if [[ -z ${pkg_name} ]]; then
     exit_fun 'Package name is not provided.'
-    return 1
+    \builtin return 1;
   fi
   pkg_type="${2:-cran}"
   r_bin="$(require 'R')"

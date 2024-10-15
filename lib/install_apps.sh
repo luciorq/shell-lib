@@ -12,7 +12,7 @@ function install_apps () {
   if [[ ${#} -eq 0 ]]; then
     install_type='--user';
   fi
-  for _arg in "${@}"; do
+  for _arg in "${@:-}"; do
     if [[ ${_arg} == --system ]]; then
       install_type='--system';
     elif [[ ${_arg} == --user ]]; then
@@ -20,22 +20,23 @@ function install_apps () {
     fi
   done
   apps_length="$(get_config apps apps | grep -c '^name:')";
-  builtin mapfile -t app_num_arr < <(
-    seq 0 $(( apps_length - 1 ))
+  require seq;
+  \builtin mapfile -t app_num_arr < <(
+    \seq 0 $(( apps_length - 1 ))
   );
   for app_num in "${app_num_arr[@]}"; do
-    builtin echo -ne "Installing App: '${app_num}':\n";
+    \builtin echo -ne "Installing App: '${app_num}':\n";
     __install_app "${install_type}" "${app_num}";
   done
-  builtin echo -ne "Completed 'install_apps'\n";
-  return 0;
+  \builtin echo -ne "Completed 'install_apps'\n";
+  \builtin return 0;
 }
 
 # Utils -----------------------------------------------------------------------
 function __install_path () {
   local base_path;
   local install_type;
-  install_type="${1}";
+  install_type="${1:-}";
   if [[ -z ${install_type} ]]; then
     install_type='--user';
   fi
@@ -45,7 +46,7 @@ function __install_path () {
     base_path="${HOME}/.local/opt/apps";
   fi
   builtin echo -ne "${base_path}";
-  return 0;
+  \builtin return 0;
 }
 
 function __get_gh_latest_release () {
@@ -53,7 +54,7 @@ function __get_gh_latest_release () {
   local release_url;
   local latest_version;
   local curl_bin;
-  repo="${1}";
+  repo="${1:-}";
   curl_bin="$(require 'curl')";
   release_url="$(
     "${curl_bin}" -fsSL \
@@ -62,8 +63,8 @@ function __get_gh_latest_release () {
   )";
   latest_version="${release_url//http*\/tag\//}";
   latest_version="${latest_version//http*\/releases/}";
-  builtin echo -ne "${latest_version}";
-  return 0;
+  \builtin echo -ne "${latest_version}";
+  \builtin return 0;
 }
 
 function __get_gh_latest_tag () {
@@ -77,7 +78,7 @@ function __get_gh_latest_tag () {
   local grep_bin;
   local curl_bin;
   local sort_bin;
-  repo="${1}";
+  repo="${1:-}";
   # Check required commands
   local required_commands=("grep" "sed" "cat" "curl" "sort");
   local cmd;
@@ -184,9 +185,9 @@ function __install_app_source () {
   local ls_bin;
   local make_bin;
   local num_threads;
-  install_path="${1}";
-  tarball_name="${2}";
-  get_url="${3}";
+  install_path="${1:-}";
+  tarball_name="${2:-}";
+  get_url="${3:-}";
   rm_bin="$(which_bin 'rm')";
   ls_bin="$(which_bin 'ls')";
   make_bin="$(which_bin 'gmake')";
@@ -199,7 +200,7 @@ function __install_app_source () {
   unpack "${dl_path}/${tarball_name}" "${dl_path}";
   "${rm_bin}" -rf "${dl_path}/${tarball_name}";
   builtin mapfile -t build_arr < <(
-    "${ls_bin}" -A1 "${dl_path}"
+    LC_ALL=C "${ls_bin}" -A1 -- "${dl_path}"
   );
   build_path="${dl_path}/${build_arr[0]}";
 
@@ -424,9 +425,9 @@ function __install_app_source () {
     ln_bin="$(require 'ln')";
 
     # Argument parsing -- -------------------------------------------------------
-    app_num="${2}";
+    app_num="${2:-}";
     if [[ -z ${app_num} ]]; then
-      app_num="${1}";
+      app_num="${1:-}";
     fi
 
     # get app_num if name was input
@@ -439,11 +440,11 @@ function __install_app_source () {
       return 1;
     fi
     link_inst_path='';
-    if [[ $# -eq 0 || $# -eq 1 ]]; then
+    if [[ ${#} -eq 0 || ${#} -eq 1 ]]; then
       link_inst_path="${HOME}/.local/bin";
       install_type='--user';
     fi
-    for _arg in "${@}"; do
+    for _arg in "${@:-}"; do
       if [[ ${_arg} == --system ]]; then
         link_inst_path="/usr/local/bin";
         install_type='--system';
@@ -665,11 +666,11 @@ function __install_app_source () {
         | sed "s|{[ ]*lib_path[ ]*}|${install_path}|g" \
         | sed "s|{[ ]*exec_path[ ]*}|${exec_path_arr[0]}|g"
       )
-      echo "${extra_cmd[*]}";
-      builtin eval $(echo ${extra_cmd[*]});
+      \builtin echo -ne "${extra_cmd[*]}\n";
+      \builtin eval $(\builtin echo ${extra_cmd[*]});
     done
   fi
-  builtin echo -ne \
+  \builtin echo -ne \
     "App: '${app_name}' (${app_version}) installed succesfully\n";
-  return 0;
+  \builtin return 0;
 }

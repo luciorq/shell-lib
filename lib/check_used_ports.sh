@@ -17,7 +17,7 @@ function check_used_ports () {
   fi
   "${ss_bin}" -tulpn \
     | "${grep_bin}" LISTEN \
-    | "${tr_bin}" -s " " \
+    | LC_COLLATE=C "${tr_bin}" -s " " \
     | "${cut_bin}" -d " " -f5 \
     | "${rev_bin}" \
     | "${cut_bin}" -d ":" -f1 \

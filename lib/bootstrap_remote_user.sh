@@ -53,7 +53,6 @@ function __check_req_cli_tools () {
   builtin return 0;
 }
 
-
 # Clean dotfiles not XDG base dir spec
 # + compliant in user home dir
 function __clean_home () {
@@ -151,7 +150,7 @@ function __build_rust_cargo () {
     ln_bin="$(require 'ln')";
     ls_bin="$(require 'ls')";
     builtin mapfile -t link_bin_arr < <(
-      "${ls_bin}" -A1 "${install_path}"
+      LC_ALL=C "${ls_bin}" -A1 -- "${install_path}"
     );
     for _link_bin in "${link_bin_arr[@]}"; do
       "${ln_bin}" -sf \
@@ -242,7 +241,7 @@ function __rebuild_rust_source_tools () {
     if [[ -n ${_check_bin} ]]; then
       _check_avail="$(\
         "${_check_bin}" --version 2> /dev/null > /dev/null \
-          || builtin echo -ne "${?}"\
+          || \builtin echo -ne "${?}"\
       )";
       if [[ -n ${_check_avail} ]]; then
         rebuild_arr+=(
@@ -252,15 +251,15 @@ function __rebuild_rust_source_tools () {
     fi
   done
   if [[ ${#rebuild_arr[@]} -eq 0 ]]; then
-    builtin echo -ne "No cargo app to rebuild.\n";
-    return 0;
+    \builtin echo -ne "No cargo app to rebuild.\n";
+    \builtin return 0;
   fi
   "${cargo_bin}" install \
     --quiet \
     --root "${install_path}" \
     "${cargo_arr[@]}";
-  builtin mapfile -t app_bin_arr < <(
-    "${ls_bin}" -A1 "${install_path}/bin"
+  \builtin mapfile -t app_bin_arr < <(
+    LC_ALL=C "${ls_bin}" -A1 -- "${install_path}/bin"
   );
   for _app_bin in "${app_bin_arr[@]}"; do
     _app_bin_path="${install_path}/bin/${_app_bin}";
@@ -268,7 +267,7 @@ function __rebuild_rust_source_tools () {
       "${_app_bin_path}" \
       "${link_path}/${_app_bin}";
   done
-  return 0;
+  \builtin return 0;
 }
 
 # Check version of the GLIBC library which the OS is built
@@ -596,14 +595,14 @@ function __install_node_cli_tools () {
   done
   npm_exec_arr='';
   builtin mapfile -t npm_exec_arr < <(
-    "${ls_bin}" -A1 "${HOME}/.local/share/npm/bin"
+    LC_ALL=C "${ls_bin}" -A1 -- "${HOME}/.local/share/npm/bin"
   );
   for _npm_exec in "${npm_exec_arr[@]}"; do
     "${ln_bin}" -sf \
       "${HOME}/.local/share/npm/bin/${_npm_exec}" \
       "${HOME}/.local/bin/${_npm_exec}";
   done
-  return 0;
+  \builtin return 0;
 }
 
 # ===================================================================

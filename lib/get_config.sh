@@ -12,13 +12,13 @@ function get_config () {
   local file_ext;
   local var_file;
   local argv;
-  if [[ ${1} == --priv ]] || [[ ${1} == -p ]]; then
+  if [[ ${1:-} == --priv ]] || [[ ${1:-} == -p ]]; then
     declare -a argv=("${@:3}");
-    file_base_name="${2}";
+    file_base_name="${2:-}";
     cfg_dir="$(get_config_path --priv)";
   else
     declare -a argv=("${@:2}");
-    file_base_name="${1}";
+    file_base_name="${1:-}";
     cfg_dir="$(get_config_path)";
   fi
   file_ext='yaml';
@@ -29,8 +29,8 @@ function get_config () {
   fi
   if [[ ! -f ${var_file} ]]; then
     exit_fun "Error: '${var_file}' no such file.";
-    return 1;
+    \builtin return 1;
   fi
   parse_yaml "${var_file}" main "${argv[@]}";
-  return 0;
+  \builtin return 0;
 }

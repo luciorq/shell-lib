@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-function conda_list_envs() {
-  conda_priv_fun 'env' 'list' -q --json
-  builtin return 0
+function conda_list_envs () {
+  conda_priv_fun 'env' 'list' -q --json;
+  \builtin return 0;
 }
 
 function conda_env_exists() {
@@ -43,7 +43,7 @@ function conda_run() {
   builtin return 0
 }
 
-function conda_create_env() {
+function conda_create_env () {
   builtin local _usage;
   _usage="${0} <ENV_NAME> <PKGS> [<CHANNELS>] [<PLATFORM>]";
   builtin unset _usage;

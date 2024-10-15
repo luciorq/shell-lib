@@ -6,8 +6,8 @@ function __unpack_deb () {
   local rm_bin cp_bin mkdir_bin ar_bin;
   local realpath_bin;
   local ls_bin;
-  deb_path="${1}";
-  dir_output="${2}";
+  deb_path="${1:-}";
+  dir_output="${2:-}";
   rm_bin="$(which_bin 'rm')";
   ls_bin="$(which_bin 'ls')";
   cp_bin="$(which_bin 'cp')";
@@ -20,23 +20,23 @@ function __unpack_deb () {
   deb_data_path=$("${realpath_bin}" "${dir_output}"/deb/dat*);
   unpack "${deb_data_path}" "${dir_output}";
   "${rm_bin}" -rf "${dir_output}/deb"
-  builtin mapfile -t content_dirs < <("${ls_bin}" "${dir_output}")
+  builtin mapfile -t content_dirs < <(LC_ALL=C "${ls_bin}" -- "${dir_output}")
   for _i in "${content_dirs[@]}"; do
     if [[ -d "${dir_output}/${_i}" ]]; then
       "${cp_bin}" -r "${dir_output}/${_i}"/* "${dir_output}";
       "${rm_bin}" -rf "${dir_output:?}/${_i}";
     fi
   done
-  return 0;
+  builtin return 0;
 }
 
 # Unpack compressed files to directory
 function unpack () {
   local _usage;
   function _usage () {
-    builtin echo >&2 -ne "Usage: ${0} <ZIP_FILE> [<OUTPUT_DIR>]\n";
+    \builtin echo >&2 -ne "Usage: ${0} <ZIP_FILE> [<OUTPUT_DIR>]\n";
   }
-  if [[ ${#} -eq 0 ]]; then _usage; unset _usage; return 1; fi
+  if [[ ${#} -eq 0 ]]; then _usage; unset _usage; \builtin return 1; fi
   unset _usage;
   local zip_path;
   local dir_output;
@@ -50,8 +50,8 @@ function unpack () {
   local unzip_bin;
   local gzip_bin;
   local unrar_bin;
-  zip_path="${1}";
-  dir_output="${2}";
+  zip_path="${1:-}";
+  dir_output="${2:-}";
   rm_bin="$(which_bin 'rm')";
   cp_bin="$(which_bin 'cp')";
   mkdir_bin="$(which_bin 'mkdir')";
@@ -79,8 +79,8 @@ function unpack () {
       *.tbz2)     "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"         ;;
       *.bz2)      "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"         ;;
       *.zip)      "${unzip_bin}" -qq -o "${zip_path}" -d "${dir_output}"     ;;
-      *.rar)      "${unrar_bin}" x -y "${zip_path}" "${dir_output}"             ;;
-      *.tar)      "${tar_bin}" -C "${dir_output}" -xf "${zip_path}"         ;;
+      *.rar)      "${unrar_bin}" x -y "${zip_path}" "${dir_output}"          ;;
+      *.tar)      "${tar_bin}" -C "${dir_output}" -xf "${zip_path}"          ;;
       *.gz)
         "${gzip_bin}" -q -dkc < "${zip_path}" > "${output_file_path/.gz/}";
       ;;
@@ -97,7 +97,7 @@ function unpack () {
     esac
   else
     exit_fun "'${zip_path}' is not a valid file";
-    return 1;
+    \builtin return 1;
   fi
-  return 0;
+  \builtin return 0;
 }

@@ -20,7 +20,7 @@ function dfh () {
   # + data directories at `/data/{ hostname }` also `/home`
   # + is usually a NFS endpoint.
   # Force NFS to mount prior to df execution
-  "${ls_bin}" /data/* /home 2> /dev/null 1> /dev/null \
+  LC_ALL=C "${ls_bin}" -- /data/* /home 2> /dev/null 1> /dev/null \
     || \builtin echo -ne '';
   body_str="$(
     "${df_bin}" -h -T -x squashfs -x devtmpfs \
