@@ -11,6 +11,10 @@ function conda_env_exists() {
   local grep_bin
   local list_envs_res
   jq_bin=$(require 'jq')
+  if [[ -z ${jq_bin} ]]; then
+    exit_fun 'Install `jq` CLI before continuing';
+    \builtin return 1;
+  fi
   grep_bin=$(require 'grep')
   env_name="${1:-}"
   if [[ -z ${env_name} ]]; then
