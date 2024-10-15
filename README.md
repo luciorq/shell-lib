@@ -60,4 +60,12 @@ E.g. for calling `dfh` script.
 
 ---
 
+## Further reading and curiosities about safe Bash code
+
+- [Common Bash pitfalls](https://mywiki.wooledge.org/BashPitfalls)
+- [Parsing `ls` ouput can be really dangerous](https://mywiki.wooledge.org/ParsingLs)
+- [Why you don't read lines with `for`](https://mywiki.wooledge.org/DontReadLinesWithFor)
+
+---
+
 > Source with caution and have fun!
