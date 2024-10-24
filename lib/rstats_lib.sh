@@ -265,9 +265,9 @@ function rstats::rstudio () {
   project_file_path="${2:-}"
 
   if [[ -z ${project_file_path} ]]; then
-    project_file_path="$(get_config rstats_projects default_project)"
+   #  project_file_path="$(get_config rstats_projects default_project)"
+   project_file_path="$(\builtin pwd -P)";
   fi
-  # basename $(realpath .)
 
   "${rig_bin}" rstudio "${r_version}" "${@:2}"
   \builtin return 0
@@ -281,16 +281,18 @@ function rstats::rstudio () {
 
 # Check R package
 function rstats::check_pkg () {
-  builtin local r_bin
-  r_bin="$(require 'R')"
-  builtin return 0
+  \builtin local r_bin;
+  r_bin="$(require 'R')";
+  "${r_bin}" CMD check "${1:-}" --as-cran;
+  builtin return 0;
 }
 
 # Build R package
 function rstats::build_pkg () {
-  builtin local r_bin
-  r_bin="$(require 'R')"
-  builtin return 0
+  \builtin local r_bin;
+  r_bin="$(require 'R')";
+  ${r_bin} CMD build "${1:-}" --no-build-vignettes;
+  \builtin return 0;
 }
 
 # Create an isolated R installation on a Conda environment

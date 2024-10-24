@@ -12,10 +12,10 @@ function create_log () {
   local mkdir_bin;
   local touch_bin;
   local rand_str;
-  app_name="${1}";
-  base_path="${2}";
+  app_name="${1:-}";
+  base_path="${2:-}";
   if [[ -z ${base_path} ]]; then
-    base_path="${PWD}";
+    base_path="$(\builtin pwd)";
   fi
   mkdir_bin="$(require 'mkdir')";
   if [[ ! -d ${base_path}/logs ]]; then
@@ -32,8 +32,8 @@ function create_log () {
   if [[ -n ${touch_bin} ]]; then
     "${touch_bin}" "${log_path}";
   fi
-  builtin echo -ne "${log_path}";
-  return 0;
+  \builtin echo -ne "${log_path}";
+  \builtin return 0;
 }
 
 # Get timezone fixed date and time for log timestamp
@@ -62,8 +62,8 @@ function __get_hash () {
   else
     hash_str="$(__get_hash_fallback "${hash_len}")";
   fi
-  builtin echo -ne "${hash_str: -${hash_len}}";
-  return 0;
+  \builtin echo -ne "${hash_str: -${hash_len}}";
+  \builtin return 0;
 }
 
 # Get a random str without with hex chars without openssl
@@ -72,7 +72,7 @@ function __get_hash_fallback () {
   local i;
   local rand_num;
   local hash_str;
-  hash_len="${1}";
+  hash_len="${1:-6}";
   hash_str='';
   for ((i = 0 ; i < hash_len ; i++)); do
     rand_num="$(( 1 + RANDOM % 16 ))";
@@ -95,6 +95,6 @@ function __get_hash_fallback () {
       *)  hash_str+='f' ;;
     esac
   done
-  builtin echo -ne "${hash_str: -${hash_len}}";
-  return 0;
+  \builtin echo -ne "${hash_str: -${hash_len}}";
+  \builtin return 0;
 }
