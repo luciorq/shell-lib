@@ -32,6 +32,10 @@ function conda_priv_fun () {
   local env_name;
   local conda_env_exports;
   conda_bin="$(get_conda_bin)";
+  if [[ -z ${1:-} ]]; then
+    "${conda_bin}" --help;
+    \builtin return 0;
+  fi
   if [[ ${1:-} =~ activate ]]; then
     env_name="${2-}";
     if [[ "${conda_bin}" =~ micromamba$ ]]; then
@@ -44,7 +48,7 @@ function conda_priv_fun () {
     builtin return 0;
   fi
   "${conda_bin}" "${@:-}";
-  builtin return 0;
+  \builtin return 0;
 }
 
 # Platform independent installation of micromamba

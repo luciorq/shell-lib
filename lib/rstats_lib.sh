@@ -2,7 +2,7 @@
 
 # Start rmote port redirection
 # + from: https://github.com/cloudyr/rmote
-function rstats::start_rmote() {
+function rstats::start_rmote () {
   local ssh_bin
   local remote_host
   remote_host="${1:-omega}"
@@ -12,7 +12,7 @@ function rstats::start_rmote() {
 }
 
 # Bootstrap Quarto Markdown Documents
-function rstats::boostrap_quarto_install() {
+function rstats::boostrap_quarto_install () {
   \builtin local quarto_bin
   quarto_bin="$(which_bin 'quarto')"
   if [[ -z ${quarto_bin} ]]; then
@@ -34,7 +34,7 @@ function rstats::boostrap_quarto_install() {
 
 # Install / update all packages from config file
 # TODO: @luciorq Actually implement the universe parsing
-function rstats::install_all_pkgs() {
+function rstats::install_all_pkgs () {
   local pkg_type_arr
   local pkg_name_arr
   local _pkg_type
@@ -122,7 +122,7 @@ function rstats::install_all_pkgs() {
 # Install R Packages
 # TODO: '--force' flag not implemented yet
 # TODO: 'universe' source not implemented yet
-function rstats::install_pkg() {
+function rstats::install_pkg () {
   local _usage="Usage: ${0} <PKG_NAME> [cran|gh|github|local|bioc*|[r]universe] [--force]"
   unset _usage
   local pkg_name
@@ -179,19 +179,19 @@ function rstats::install_pkg() {
   )"
 
   if [[ ${is_pak_available} == 'TRUE' ]]; then
-    script_str="pak::pkg_install('${pak_str}${pkg_name}', upgrade = TRUE, ask = FALSE)"
+    script_str="pak::pkg_install('${pak_str}${pkg_name}', upgrade = TRUE, ask = FALSE)";
   else
-    num_threads="$(get_nthreads 24)"
-    script_str="if(isFALSE(base::requireNamespace('${pkg_name}',quietly=TRUE))){${install_str}('${pkg_name}',Ncpus=${num_threads})}"
+    num_threads="$(get_nthreads 24)";
+    script_str="if(isFALSE(base::requireNamespace('${pkg_name}',quietly=TRUE))){${install_str}('${pkg_name}',Ncpus=${num_threads})}";
   fi
   "${r_bin}" -q -s -e \
-    "${script_str}"
-  return 0
+    "${script_str}";
+  \builtin return 0
 }
 
 # Update R language installation to the latest release version
 # + only works correctly with devel, release, next
-function rstats::install_rstats_version() {
+function rstats::install_rstats_version () {
   builtin local rig_bin
   local os_type
   local rstats_version
@@ -199,7 +199,7 @@ function rstats::install_rstats_version() {
   rig_bin="$(require 'rig')"
   if [[ -z ${rig_bin} ]]; then
     exit_fun '{rig} CLI is not installed.'
-    return 1
+    \builtin return 1
   fi
   rstats_version="${1-release}"
   os_type="$(get_os_type)"
@@ -214,12 +214,12 @@ function rstats::install_rstats_version() {
   "${rig_bin}" system setup-user-lib
   "${rig_bin}" system add-pak
   "${rig_bin}" system make-links
-  return 0
+  \builtin return 0
 }
 
 # Update current installed R versions
 # + devel, release, next
-function rstats::update_rstats_version() {
+function rstats::update_rstats_version () {
   rstats::install_rig
   rstats::install_rstats_version devel
   rstats::install_rstats_version next
@@ -228,7 +228,7 @@ function rstats::update_rstats_version() {
 }
 
 # Install RIG - R installation manager
-function rstats::install_rig() {
+function rstats::install_rig () {
   \builtin local rig_bin
   rig_bin="$(which_bin 'rig')"
   if [[ -z ${rig_bin} ]]; then
@@ -238,7 +238,7 @@ function rstats::install_rig() {
 }
 
 # Remove installed R package
-function rstats::remove_pkg() {
+function rstats::remove_pkg () {
   local r_bin
   local pkg_name
   local script_str
@@ -251,7 +251,7 @@ function rstats::remove_pkg() {
   \builtin return 0
 }
 
-function rstats::rstudio() {
+function rstats::rstudio () {
   builtin local rig_bin
   builtin local r_version
   rig_bin="$(require 'rig')"
@@ -280,28 +280,28 @@ function rstats::rstudio() {
 # TODO: Work in progress for checking and building source R packages
 
 # Check R package
-function rstats::check_pkg() {
+function rstats::check_pkg () {
   builtin local r_bin
   r_bin="$(require 'R')"
   builtin return 0
 }
 
 # Build R package
-function rstats::build_pkg() {
+function rstats::build_pkg () {
   builtin local r_bin
   r_bin="$(require 'R')"
   builtin return 0
 }
 
 # Create an isolated R installation on a Conda environment
-function rstats::create_conda_env() {
+function rstats::create_conda_env () {
   conda_create_env r-env \
     'r-base r-devtools r-tidyverse r-biocmanager r-pak r-renv'
   builtin return 0
 }
 
 # Install R Package inside Conda environment
-function rstats::install_pkg_conda() {
+function rstats::install_pkg_conda () {
   builtin local pkg_name
   pkg_name="${1:-}"
   conda_run r-env R -q -e "pak::pkg_install('${pkg_name}')"

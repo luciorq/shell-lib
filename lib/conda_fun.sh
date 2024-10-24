@@ -5,7 +5,7 @@ function conda_list_envs () {
   \builtin return 0;
 }
 
-function conda_env_exists() {
+function conda_env_exists () {
   local env_name
   local jq_bin
   local grep_bin
@@ -27,10 +27,10 @@ function conda_env_exists() {
       "${grep_bin}" "/${env_name}$"
   )"
   builtin echo -ne "${list_envs_res}"
-  builtin return 0
+  builtin return 0;
 }
 
-function conda_run() {
+function conda_run () {
   local env_name
   local conda_env_exists_res
   env_name="${1:-}"
