@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Functions and Wrappers around Docker CLI commands
 
 # Return available memory inside a docker container
