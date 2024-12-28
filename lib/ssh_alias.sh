@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 
 function ssh_alias () {
-  local host_info_avail;
-  local host_name;
-  local key_name;
-  local key_path;
-  local host_port;
-  local host_ip;
-  local remote_user;
-  local key_arg_arr;
-  local host_str;
-  host_name="${1}";
+  \builtin local host_info_avail;
+  \builtin local host_name;
+  \builtin local key_name;
+  \builtin local key_path;
+  \builtin local host_port;
+  \builtin local host_ip;
+  \builtin local remote_user;
+  \builtin local key_arg_arr;
+  \builtin local host_str;
+  host_name="${1:-}";
   host_info_avail="$(get_config --priv host_info "${host_name}")";
   if [[ -z ${host_info_avail} ]]; then
-    ssh_fun "${@}";
-    return 0;
+    ssh_fun "${@:-}";
+    \builtin return 0;
   fi
   key_name="$(get_config --priv host_info "${host_name}" key)";
   if [[ -n ${key_name} ]]; then
@@ -43,5 +43,5 @@ function ssh_alias () {
   fi
   __sync_user_config "${host_str}" "${host_port}" "${key_name}";
   ssh_fun "${key_arg_arr[@]}" -p "${host_port}" "${host_str}";
-  return 0;
+  \builtin return 0;
 }
