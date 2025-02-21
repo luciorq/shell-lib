@@ -70,6 +70,7 @@ function __sync_user_config () {
       --exclude '.gitattributes' \
       --exclude '.gitconfig' \
       --exclude '.github' \
+      --exclude '.pixi' \
       "${sync_path_arr[@]/#/${HOME}\/.\/}" \
       "${remote_host}":;
   \builtin return 0;
