@@ -14,7 +14,7 @@ import subprocess
 import sys
 from typing import Any
 
-import yaml
+import strictyaml
 
 # Util functions
 
@@ -86,8 +86,9 @@ def read_config(field: str) -> Any:
     """
     config_path = os.path.join("config", "build.yaml")
     with open(config_path, "r", encoding="utf-8") as config_file:
-        config_dict = yaml.safe_load(config_file)
-    return config_dict[field]
+        yaml_text = config_file.read()
+        config_dict = strictyaml.load(yaml_text)
+    return config_dict.data[field]
 
 
 # Find all function declarations in `lib` directory
@@ -176,7 +177,7 @@ def change_exec_permission(bin_dir: str):
 
 def build_app(app_name: str) -> None:
     """
-    Builds Bash apps using a library of bash functions
+    Builds Bash apps using a library of Bash functions
 
     Args:
         app_name (str): Name of the Bash application to be built.
@@ -211,12 +212,11 @@ def build_app(app_name: str) -> None:
     main_function = f"""
 function main () {{
     { function_name } "${{@:-}}";
-\\builtin return;
+    \\builtin return;
 }}
 
 main "${{@:-}}";
-\\builtin exit;
-"""
+\\builtin exit;"""
 
     script_text = header_str + main_function_def + main_function
     output_path = os.path.join("bin", function_name)
