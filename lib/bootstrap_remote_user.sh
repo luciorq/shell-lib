@@ -29,8 +29,28 @@ function bootstrap_user () {
   __clean_home;
   __update_configs;
   clean_pixi_and_conda_cache;
+  clean_homebrew_cache;
+  clean_rstats_cache;
   \builtin return 0;
 }
+
+# Clean Homebrew cache
+function clean_homebrew_cache () {
+  \builtin local brew_bin;
+  \builtin local rm_bin;
+  brew_bin="$(which_bin 'brew')";
+  rm_bin="$(which_bin 'rm')";
+  if [[ -n ${brew_bin} ]]; then
+    "${brew_bin}" cleanup;
+    "${brew_bin}" cleanup -s;
+    "${brew_bin}" cleanup --prune=all;
+    "${rm_bin}" -rf "$("${brew_bin}" --cache)";
+  fi
+  \builtin return 0;
+}
+
+# Clean R cache
+# function
 
 # Check for required system tools
 function __check_req_cli_tools () {
@@ -54,8 +74,8 @@ function __check_req_cli_tools () {
   builtin return 0;
 }
 
-# Clean dotfiles not XDG base dir spec
-# + compliant in user home dir
+# Clean configuration and dotfiles not in XDG base dir spec
+# + compliant in user home directory
 function __clean_home () {
   \builtin local remove_dirs_arr;
   \builtin local _dir;
@@ -63,7 +83,6 @@ function __clean_home () {
   \builtin local path_to_rm;
   rm_bin="$(which_bin 'rm')";
   remove_dirs_arr='';
-  # TODO: @luciorq Add .mamba, after solving xdg compliance to .mamba/proc/
   declare -a remove_dirs_arr=(
     .vim
     .vimrc
@@ -75,14 +94,19 @@ function __clean_home () {
     .lesshst
     .python_history
     .radian_history
+    .ipynb_checkpoints
     .subversion
     .conda
     .mamba
+    .nv
+    .ncbi
     .pki
     .rnd
+    .duckdb
     .Rhistory
     .bash_profile
     .bash_history
+    .shell_history
     .zshenv
     .zshrc
     .kitty-ssh-kitten*
@@ -92,9 +116,11 @@ function __clean_home () {
     .nextflow
     .fluffy
     .mozilla
+    .links
     .groovy
     .openjfx
     .emacs
+    .rustup
     .android
     .docker
     .spack
@@ -108,6 +134,7 @@ function __clean_home () {
     .yarnrc
     .yarn
     .slime_paste
+    .virtual_documents
   )
   for _dir in "${remove_dirs_arr[@]}"; do
     path_to_rm="${HOME}/${_dir}";
@@ -117,6 +144,11 @@ function __clean_home () {
       "${rm_bin}" -rf "${path_to_rm}";
     fi
   done;
+
+  if [[ -d "${HOME}/.Trash" ]]; then
+    "${rm_bin}" -rf "${HOME}"/.Trash/*;
+    "${rm_bin}" -rf "${HOME}"/.Trash/.*;
+  fi
   \builtin return 0;
 }
 
