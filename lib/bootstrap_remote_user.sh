@@ -3,8 +3,8 @@
 # Main function to install tools and
 # + reload user environment
 function bootstrap_user () {
-  builtin local install_type;
-  builtin local mkdir_bin;
+  \builtin local install_type;
+  \builtin local mkdir_bin;
   install_type='--user';
   mkdir_bin="$(require 'mkdir')";
   "${mkdir_bin}" -p "${HOME}/projects";
@@ -28,7 +28,8 @@ function bootstrap_user () {
   source_configs;
   __clean_home;
   __update_configs;
-  builtin return 0;
+  clean_pixi_and_conda_cache;
+  \builtin return 0;
 }
 
 # Check for required system tools
@@ -56,10 +57,10 @@ function __check_req_cli_tools () {
 # Clean dotfiles not XDG base dir spec
 # + compliant in user home dir
 function __clean_home () {
-  builtin local remove_dirs_arr;
-  builtin local _dir;
-  builtin local rm_bin;
-  builtin local path_to_rm;
+  \builtin local remove_dirs_arr;
+  \builtin local _dir;
+  \builtin local rm_bin;
+  \builtin local path_to_rm;
   rm_bin="$(which_bin 'rm')";
   remove_dirs_arr='';
   # TODO: @luciorq Add .mamba, after solving xdg compliance to .mamba/proc/
@@ -116,7 +117,7 @@ function __clean_home () {
       "${rm_bin}" -rf "${path_to_rm}";
     fi
   done;
-  builtin return 0;
+  \builtin return 0;
 }
 
 # ======================================================================
