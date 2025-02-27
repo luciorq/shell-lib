@@ -20,7 +20,7 @@ apps:
     - exit_fun
 
 # TODO: @luciorq WIP
-# - Probably not going to use the build
+# - Probably not going to use the build field
 build:
   - bat_fun
   - cat_color

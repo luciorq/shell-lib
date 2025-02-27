@@ -11,8 +11,8 @@
 
 [[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { \builtin echo >&2 "Error: Bash >=4 required"; \builtin exit 1; }
 
-dfh () 
-{ 
+function dfh ()
+{
     \builtin local ls_bin;
     \builtin local df_bin;
     \builtin local grep_bin;
@@ -33,8 +33,9 @@ dfh ()
     CLICOLOR_FORCE=1 builtin echo -ne "${header_str}${align_str}${body_str}\n" | bat_fun -l csv -pp --color=always | "${sed_bin}" 's/,/ | /g' | "${sed_bin}" 's/^/| /g' | "${sed_bin}" 's/$/ |/g' | "${column_bin}" -t;
     \builtin return 0
 }
-which_bin () 
-{ 
+
+function which_bin ()
+{
     \builtin local cmd_arg;
     \builtin local path_dir_arr;
     \builtin local path_dir;
@@ -54,8 +55,9 @@ which_bin ()
     \builtin echo -ne "${cmd_bin}";
     \builtin return 0
 }
-bat_fun () 
-{ 
+
+function bat_fun ()
+{
     builtin local bat_bin;
     builtin local cat_bin;
     builtin local bat_avail;
@@ -77,9 +79,8 @@ bat_fun ()
 
 function main () {
     dfh "${@:-}";
-\builtin return;
+    \builtin return;
 }
 
 main "${@:-}";
 \builtin exit;
-

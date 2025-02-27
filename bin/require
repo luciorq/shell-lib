@@ -11,8 +11,8 @@
 
 [[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { \builtin echo >&2 "Error: Bash >=4 required"; \builtin exit 1; }
 
-require () 
-{ 
+function require ()
+{
     local cmd_str;
     \builtin local cmd_bin;
     \builtin local cmd_res;
@@ -38,8 +38,9 @@ require ()
     fi;
     \builtin return 0
 }
-which_bin () 
-{ 
+
+function which_bin ()
+{
     \builtin local cmd_arg;
     \builtin local path_dir_arr;
     \builtin local path_dir;
@@ -59,17 +60,17 @@ which_bin ()
     \builtin echo -ne "${cmd_bin}";
     \builtin return 0
 }
-exit_fun () 
-{ 
+
+function exit_fun ()
+{
     : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
     \builtin exit 1
 }
 
 function main () {
     require "${@:-}";
-\builtin return;
+    \builtin return;
 }
 
 main "${@:-}";
 \builtin exit;
-

@@ -11,10 +11,10 @@
 
 [[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { \builtin echo >&2 "Error: Bash >=4 required"; \builtin exit 1; }
 
-download () 
-{ 
-    function download_usage () 
-    { 
+function download ()
+{
+    function download_usage ()
+    {
         builtin echo -ne "usage: download <URL> [<OUTPUT_DIR>] [<THREADS>]\n" 1>&2
     };
     if [[ ${#} -eq 0 ]]; then
@@ -71,8 +71,9 @@ download ()
     fi;
     return 0
 }
-which_bin () 
-{ 
+
+function which_bin ()
+{
     \builtin local cmd_arg;
     \builtin local path_dir_arr;
     \builtin local path_dir;
@@ -92,13 +93,15 @@ which_bin ()
     \builtin echo -ne "${cmd_bin}";
     \builtin return 0
 }
-exit_fun () 
-{ 
+
+function exit_fun ()
+{
     : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
     \builtin exit 1
 }
-get_nthreads () 
-{ 
+
+function get_nthreads ()
+{
     local nproc_bin;
     local lscpu_bin;
     local grep_bin;
@@ -132,8 +135,9 @@ get_nthreads ()
     builtin echo -ne "${threads_to_use}";
     return 0
 }
-require () 
-{ 
+
+function require ()
+{
     local cmd_str;
     \builtin local cmd_bin;
     \builtin local cmd_res;
@@ -162,9 +166,8 @@ require ()
 
 function main () {
     download "${@:-}";
-\builtin return;
+    \builtin return;
 }
 
 main "${@:-}";
 \builtin exit;
-
