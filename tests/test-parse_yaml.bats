@@ -8,9 +8,9 @@ function setup () {
 
 @test "'parse_yaml' - missing key on list - py" {
   local py_bin;
-  py_bin="$(which_bin python3)";
+  py_bin="$(which_bin python)";
   if [[ -z ${py_bin} ]]; then
-    py_bin="$(which_bin python)";
+    py_bin="$(which_bin python3)";
   fi
 
   # TODO: test if module is installed
@@ -29,11 +29,13 @@ function setup () {
   [ "${status}" -eq 0 ];
   [ "${output}" = '' ];
 }
+
 @test "'parse_yaml' - missing key on list - ruby" {
   run __parse_yaml_ruby tests/test_data.yaml global sample_input 1 property3;
   [ "${status}" -eq 0 ];
   [ "${output}" = '' ];
 }
+
 @test "'parse_yaml' - missing key on list - yq" {
   run __parse_yaml_yq tests/test_data.yaml global sample_input 1 property3;
   [ "${status}" -eq 0 ];
