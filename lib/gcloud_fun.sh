@@ -6,7 +6,9 @@ function gcloud_fun () {
   env_name="gcloud-env"
   # pkgs_str="google-cloud-sdk";
   # channels_str="";
-  conda_create_env "${env_name}" "google-cloud-sdk python numpy" "-c conda-forge";
+  conda_create_env "${env_name}" \
+  "google-cloud-sdk python numpy google-crc32c" \
+  "-c conda-forge";
   # TODO(luciorq): Check if command actually exists in the environment
   # + before running
   # + Also, probably add it inside conda_run
