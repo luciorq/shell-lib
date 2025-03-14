@@ -34,8 +34,8 @@ Documentation = "https://github.com/luciorq/appbuilder#readme"
 Issues = "https://github.com/luciorq/appbuilder/issues"
 Source = "https://github.com/luciorq/appbuilder"
 
-# [project.scripts]
-# appbuilder = "appbuilder.cli:appbuilder"
+[project.scripts]
+appbuilder = "appbuilder.build_execs:main"
 
 [tool.hatch.version]
 path = "src/appbuilder/__about__.py"
