@@ -66,6 +66,11 @@ function __parse_yaml_ruby () {
   \builtin return 0;
 }
 
+# TODO: @luciorq need to test if the right {yq} binary is used.
+# + e.g. in conda-forge there is `yq` and `go-yq` packages.
+# + `yq` is a python library wrapping `jq` and `pyyaml`.
+# + `go-yq` is the right one, it is a Go based single binary. Also found at:
+# + <https://github.com/mikefarah/yq>
 function __parse_yaml_yq () {
   \builtin local yq_bin;
   \builtin local yq_str;
