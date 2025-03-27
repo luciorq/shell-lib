@@ -2,7 +2,7 @@
 
 # Load Spack environment for BASH
 # + from: https://spack.readthedocs.io/en/latest/getting_started.html
-function spack::load_env () {
+function spack_load_env () {
   local spack_dir;
   # Load Spack environment
   spack_dir="${1:-${SPACK_ROOT}}";

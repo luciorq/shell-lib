@@ -669,7 +669,7 @@ function __install_python_cli_tools () {
 # Bootstrap R environment
 # ===================================================================
 
-# TODO: @luciorq Check rstats::install_all_pkgs
+# TODO: @luciorq Check rstats_install_all_pkgs
 # Install R packages to local installation of R
 #function __install_rstats_packages () {
 # return 0;
