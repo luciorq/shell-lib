@@ -576,7 +576,7 @@ function __install_yq () {
     Linux-aarch64)    bin_arch="linux_arm64"    ;;
     Darwin-x86_64)    bin_arch="darwin_amd64"   ;;
     Darwin-arm64)     bin_arch="darwin_arm64"   ;;
-    *) exit_fun "Error: Unknown CPU architecture '${sys_arch}'\n" ;;
+    *) exit_fun "Unknown CPU architecture '${sys_arch}'\n" ;;
   esac
   ln_bin="$(require 'ln')";
   chmod_bin="$(require 'chmod')";

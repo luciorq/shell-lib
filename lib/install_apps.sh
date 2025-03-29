@@ -621,7 +621,7 @@ function __install_app_source () {
         __install_app_mamba "${install_type}" "${app_name}" "${exec_path_arr[@]}";
       ;;
       *)
-        exit_fun "Error: Unknown installation type: '${app_type}'.";
+        exit_fun "Unknown installation type: '${app_type}'.";
         return 1;
       ;;
   esac

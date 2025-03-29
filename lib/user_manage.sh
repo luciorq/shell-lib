@@ -20,12 +20,12 @@ function __user_create() {
   local is_hashed_pw
   user_name="${1:-}"
   if [[ -z ${user_name} ]]; then
-    exit_fun 'Error: User name can not be empty'
+    exit_fun 'User name can not be empty'
     \builtin return 1
   fi
   user_uid=${2:-}
   if [[ -z ${user_uid} ]]; then
-    exit_fun 'Error: User UID need to be provided'
+    exit_fun 'User UID need to be provided'
     \builtin return 1
   fi
   grep_bin="$(which_bin 'grep')"
@@ -109,7 +109,7 @@ function __user_remove() {
   sudo_bin="$(require 'sudo')"
   user_name="${1:-}"
   if [[ -z ${user_name} ]]; then
-    exit_fun 'Error: User name not supplied'
+    exit_fun 'User name not supplied'
     \builtin return 1
   fi
   "${sudo_bin}" "${userdel_bin}" -r "${user_name}"

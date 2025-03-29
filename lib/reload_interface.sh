@@ -47,9 +47,12 @@ function __reload_yabai () {
   user_id=$(id -u);
   sudo_bin="$(require 'sudo')";
   yabai_bin="$(require 'yabai')";
+  # if using HEAD version of yabai
+  # + `echo "$(whoami) ALL=(root) NOPASSWD: sha256:$(shasum -a 256 $(which yabai) | cut -d " " -f 1) $(which yabai) --load-sa" | sudo tee /private/etc/sudoers.d/yabai`
+  # + `__reload_yabai_code_signature`
   "${sudo_bin}" "${yabai_bin}" --load-sa;
   launchctl kickstart -k "gui/${user_id}/homebrew.mxcl.yabai";
-  return 0;
+  \builtin return 0;
 }
 
 # Reload SKHD - Keybinding manager
@@ -67,7 +70,7 @@ function __reload_karabiner () {
   user_id=$(id -u);
   launchctl kickstart \
     -k "gui/${user_id}/org.pqrs.karabiner.karabiner_console_user_server";
-  return 0;
+  \builtin return 0;
 }
 
 # =============================================================================
@@ -79,7 +82,7 @@ function __reload_yabai_code_signature () {
   # check_macos();
   require 'codesign';
   codesign -fs 'yabai-cert' $(which_bin 'yabai');
-  return 0;
+  \builtin return 0;
 }
 
 # reload yabai signatures after reinstall

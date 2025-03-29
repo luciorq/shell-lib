@@ -25,7 +25,7 @@ function gen_passwd() {
   fi
 
   if [[ -z ${pw_str} ]]; then
-    exit_fun 'Error: Password String can not be empty'
+    exit_fun 'Password String can not be empty'
     \builtin return 1
   fi
 

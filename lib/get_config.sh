@@ -28,7 +28,7 @@ function get_config () {
     var_file="${cfg_dir}/vars/${file_base_name}.${file_ext}";
   fi
   if [[ ! -f ${var_file} ]]; then
-    exit_fun "Error: '${var_file}' no such file.";
+    exit_fun "'${var_file}' no such file.";
     \builtin return 1;
   fi
   parse_yaml "${var_file}" main "${argv[@]}";

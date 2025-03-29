@@ -12,7 +12,7 @@ function sudo_fun () {
   builtin local cmd_prep;
   sudo_bin="$(which_bin 'sudo')";
   if [[ -z "${sudo_bin}" ]]; then
-    exit_fun "Error: 'sudo' is not available ...";
+    exit_fun "'sudo' is not available ...";
     \builtin return 1;
   fi
   if [[ ${#} -eq 0 ]]; then
@@ -31,7 +31,7 @@ function sudo_fun () {
   fi
 
   if [[ -d "${cmd_str}" ]]; then
-    exit_fun "Error: '${cmd_str}' is a directory.";
+    exit_fun "'${cmd_str}' is a directory.";
     \builtin return 1;
   fi
 
@@ -53,7 +53,7 @@ function sudo_fun () {
     builtin) type_str="Shell Builtin";;
     alias) type_str="Alias";;
     function) type_str="Function";;
-    *) exit_fun "Error: Unknown command '${cmd_type}' type for '${cmd_str}'."; \builtin return 1;;
+    *) exit_fun "Unknown command '${cmd_type}' type for '${cmd_str}'."; \builtin return 1;;
   esac
 
   \builtin echo >&2 -ne "* Command type:\n";
