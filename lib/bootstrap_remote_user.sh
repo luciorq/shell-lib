@@ -200,9 +200,9 @@ function __build_rust_cargo () {
 
 # Rebuild specific Rust app using local cargo
 function __rebuild_rust_source_app () {
-  local _usage;
+  \builtin local _usage;
   _usage="usage: ${0} <CARGO_PKG_NAME> <APP_BINARIY>";
-  unset _usage;
+  \builtin unset _usage;
   local pkg_name;
   local app_bin;
   local cargo_bin;

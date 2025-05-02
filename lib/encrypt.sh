@@ -12,7 +12,7 @@ function encrypt_file_password () {
     exit_fun "{gpg} is not installed.";
     return 1;
   fi
-  file_name="${1}";
+  file_name="${1:-}";
   "${gpg_bin}" \
     -R \
     --encrypt \
@@ -35,7 +35,7 @@ function unencrypt_file_password () {
     exit_fun "{gpg} is not installed.";
     return 1;
   fi
-  file_name="${1}";
+  file_name="${1:-}";
   file_name="${file_name%\.gpg}"
   "${gpg_bin}" -d "${file_name}.gpg" > "${file_name}";
   return 0;
@@ -59,8 +59,8 @@ function encrypt_file_key () {
     return 1;
   fi
   key_user="$(get_config --priv user email)";
-  input_file="${1}";
-  output_file="${2:-${1}.gpg}";
+  input_file="${1:-}";
+  output_file="${2:-${input_file}.gpg}";
   "${gpg_bin}" \
     --output "${output_file}" \
     --recipient "${key_user}" \
@@ -84,8 +84,8 @@ function unencrypt_file_key () {
     return 1;
   fi
   key_user="$(get_config --priv user email)";
-  input_file="${1}";
-  output_file="${2:-${1%.gpg}}";
+  input_file="${1:-}";
+  output_file="${2:-${input_file%.gpg}}";
   "${gpg_bin}" \
     --output "${output_file}" \
     --recipient "${key_user}" \
@@ -101,7 +101,7 @@ function unencrypt_file_key () {
 function encrypt_str () {
   local str_value;
   #local base64_bin;
-  str_value="${1}";
+  str_value="${1:-}";
   #base64_bin="$(require 'base64')";
 
   #PASSWD=`cat secret.txt \
@@ -115,6 +115,6 @@ function encrypt_str () {
 # Unencrypt Variable string content
 function unencrypt_str () {
   local str_value;
-  str_value="${1}";
+  str_value="${1:-}";
   return 0;
 }
