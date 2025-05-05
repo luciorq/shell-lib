@@ -71,6 +71,8 @@ function __sync_user_config () {
       --exclude '.gitconfig' \
       --exclude '.github' \
       --exclude '.pixi' \
+      --exclude '.DS_Store' \
+      --exclude '._.DS_Store' \
       "${sync_path_arr[@]/#/${HOME}\/.\/}" \
       "${remote_host}":;
   \builtin return 0;
