@@ -161,3 +161,5 @@ cython_debug/
 
 # luciorq added this
 .DS_Store
+._.DS_Store
+.vscode/
