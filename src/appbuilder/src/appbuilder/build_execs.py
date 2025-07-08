@@ -10,7 +10,6 @@ from appbuilder.utils import (
     build_app,
     change_exec_permission,
     clean_dir,
-    find_all_functions,
     read_config,
     stop_if_not_project_root,
 )
@@ -20,9 +19,9 @@ from appbuilder.utils import (
 def main() -> int:
     stop_if_not_project_root()
     clean_dir("bin")
-    bin_list = read_config("build")
+    # bin_list = read_config("build")
 
-    function_names = find_all_functions()
+    # function_names = find_all_functions()
 
     # print(f"Function names: {function_names}")
 
@@ -37,10 +36,8 @@ def main() -> int:
     # bash_file = "lib/dfh.sh"
     print("Ready for start building!")
 
-    build_app("dfh")
-    build_app("which_bin")
-    build_app("require")
-    build_app("download")
+    for app_name in read_config("apps").keys():
+        build_app(app_name)
 
     change_exec_permission("bin")
 
