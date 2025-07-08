@@ -9,7 +9,7 @@ apps:
     - exit_fun
     - get_nthreads
     - require
-  which_bin: ''
+  which_bin: ""
   bat_fun:
     - which_bin
   dfh:
@@ -18,62 +18,132 @@ apps:
   require:
     - which_bin
     - exit_fun
-
-# TODO: @luciorq WIP
-# - Probably not going to use the build field
-build:
-  - bat_fun
-  - cat_color
-  - cd_fun
-  - exa_fun
-  - conda_priv_fun
-  - create_log
-  - create_temp
-  - dfh
-  - exit_fun
-  - download
-  - unpack
-  - install_app
-  - bootstrap_user
-  - exec_remote
-  - follow_logs
-  - get_nthreads
-  - parse_yaml
-  - reload_interface
-  - require
-  - which_bin
-  - rm_safe
-  - source_remote
-  - ssh_forget
-  - ssh_alias
-  - ssh_fun
-  - ssh_generate_key
-  - ssh_key_create_and_push
-  - ssha_fun
-  - sudo_check
-  - sudo_fun
-  - type_color
-  - type_fun
-  - yc
-  - get_os_arch
-  - get_os_type
-  - get_hostname
-  - scan_port
-  - scan_ssh_ports
-  - radian_fun
-
-  # Slurm functions
-  - slurm_check_gpus
-  - slurm_check_job
-  - slurm_check_limits
-  - slurm_check_nodes
-  - slurm_check_partitions
-  - slurm_check_queue
-  - slurm_interactive_gpu_session
-  - slurm_interactive_session
-
-  # pure bash functions
-  - cat_pure
-  - clear_pure
-  - head_pure
-  - sleep_pure
+  cat_color:
+    - require
+    - which_bin
+    - bat_fun
+  cd_fun:
+    - which_bin
+  exa_fun:
+    - require
+    - which_bin
+  conda_priv_fun:
+    - get_conda_bin
+  create_log:
+    - require
+    - __get_tz_timestamp
+    - __get_hash
+  create_temp:
+    - which_bin
+  exit_fun: ""
+  unpack:
+    - __unpack_deb
+    - which_bin
+    - is_compressed
+    - exit_fun
+  install_apps:
+    - get_config
+    - require
+    - __install_app
+  bootstrap_user:
+    - require
+    - __check_req_cli_tools
+    - __build_git
+    - __install_yq
+    - __build_bash
+    - __install_python_cli_tools
+    - __build_rust_cargo
+    - __clean_home
+    - install_apps
+    - __rebuild_rust_source_tools
+    - __install_node_cli_tools
+    - clean_pixi_and_conda_cache
+  exec_remote:
+    - require
+  follow_logs:
+    - which_bin
+    - bat_fun
+  get_nthreads:
+    - which_bin
+    - require
+  parse_yaml:
+    - which_bin
+    - exit_fun
+    - __parse_yaml_yq
+    - __parse_yaml_ruby
+    - __parse_yaml_python
+  reload_interface:
+    - __reload_skhd
+    - __reload_sketchybar
+    - __reload_yabai
+  rm_safe:
+    - which_bin
+    - exit_fun
+  source_remote: ""
+  ssh_forget:
+    - which_bin
+    - require
+    - exit_fun
+  ssh_alias:
+    - get_config
+    - ssh_fun
+    - __sync_user_config
+  ssh_fun:
+    - require
+  ssh_generate_key:
+    - require
+  ssh_key_create_and_push:
+    - require
+    - ssh_generate_key
+    - ssha_fun
+    - ssh_send_key
+  ssha_fun:
+    - require
+    - get_os_type
+  sudo_check:
+    - which_bin
+    - exit_fun
+  sudo_fun:
+    - which_bin
+    - exit_fun
+  type_color:
+    - which_bin
+    - bat_fun
+  yc:
+    - require
+  get_os_arch:
+    - which_bin
+    - exit_fun
+  get_os_type:
+    - which_bin
+    - exit_fun
+  get_hostname:
+    - which_bin
+    - exit_fun
+  scan_port:
+    - require
+  scan_ssh_ports:
+    - require
+  radian_fun: ""
+  slurm_check_gpus:
+    - require
+  slurm_check_job:
+    - require
+  slurm_check_limits:
+    - require
+  slurm_check_nodes:
+    - require
+  slurm_check_partitions:
+    - require
+  slurm_check_queue:
+    - require
+  slurm_interactive_gpu_session:
+    - slurm_interactive_session
+  slurm_interactive_session:
+    - require
+  cat_pure: ""
+  clear_pure:
+    - which_bin
+  head_pure: ""
+  sleep_pure:
+    - exit_fun
