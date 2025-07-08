@@ -31,6 +31,8 @@ applications to abide by the XDG Base Directory Specification.
   ⊢ 📄 `test-app-*.py` tests for individual executables\
   ⊢ 📄 `test-*.bats` tests for functions loaded in a Bash Shell
 
+Check the dependency graph in [docs/dependency_graph.md](./docs/dependency_graph.md).
+
 ## Usage
 
 ### Using as executable tools
