@@ -1,0 +1,189 @@
+#!/usr/bin/env bash
+
+# Do NOT modify this file manually.
+# Change source code at: https://github.com/luciorq/shell-lib
+# Author: Lucio Rezende Queiroz
+# License: MIT
+
+\builtin set -o errexit;    # abort on nonzero exitstatus
+\builtin set -o nounset;    # abort on unbound variable
+\builtin set -o pipefail;   # do not hide errors within pipes
+
+[[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { \builtin echo >&2 "Error: Bash >=4 required"; \builtin exit 1; }
+
+function unpack ()
+{
+    local _usage;
+    function _usage ()
+    {
+        \builtin echo -ne "Usage: ${0} <ZIP_FILE> [<OUTPUT_DIR>]\n" 1>&2
+    };
+    if [[ ${#} -eq 0 ]]; then
+        _usage;
+        unset _usage;
+        \builtin exit 1;
+    fi;
+    unset _usage;
+    local zip_path;
+    local dir_output;
+    local output_file_path;
+    local rm_bin;
+    local cp_bin;
+    local mkdir_bin;
+    local tar_bin;
+    local realpath_bin;
+    local basename_bin;
+    local unzip_bin;
+    local gzip_bin;
+    local unrar_bin;
+    zip_path="${1:-}";
+    dir_output="${2:-}";
+    rm_bin="$(which_bin 'rm')";
+    cp_bin="$(which_bin 'cp')";
+    mkdir_bin="$(which_bin 'mkdir')";
+    tar_bin="$(which_bin 'tar')";
+    realpath_bin="$(which_bin 'realpath')";
+    basename_bin="$(which_bin 'basename')";
+    unzip_bin="$(which_bin 'unzip')";
+    gzip_bin="$(which_bin 'gzip')";
+    unrar_bin="$(which_bin 'unrar')";
+    if [[ -z ${dir_output} ]]; then
+        dir_output="$("${realpath_bin}" ./)";
+    fi;
+    output_file_path="${dir_output}/$("${basename_bin}" "${zip_path}")";
+    "${mkdir_bin}" -p "${dir_output}";
+    if [[ -n ${zip_path} && -f ${zip_path} ]]; then
+        case "${zip_path}" in
+            *.tar.gz)
+                "${tar_bin}" -C "${dir_output}" -xzf "${zip_path}"
+            ;;
+            *.tgz)
+                "${tar_bin}" -C "${dir_output}" -xzf "${zip_path}"
+            ;;
+            *.tar.xz)
+                "${tar_bin}" -C "${dir_output}" -xJf "${zip_path}"
+            ;;
+            *.txz)
+                "${tar_bin}" -C "${dir_output}" -xJf "${zip_path}"
+            ;;
+            *.tar.bz2)
+                "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"
+            ;;
+            *.tbz2)
+                "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"
+            ;;
+            *.bz2)
+                "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"
+            ;;
+            *.zip)
+                "${unzip_bin}" -qq -o "${zip_path}" -d "${dir_output}"
+            ;;
+            *.rar)
+                "${unrar_bin}" x -y "${zip_path}" "${dir_output}"
+            ;;
+            *.tar)
+                "${tar_bin}" -C "${dir_output}" -xf "${zip_path}"
+            ;;
+            *.gz)
+                "${gzip_bin}" -q -dkc < "${zip_path}" > "${output_file_path/.gz/}"
+            ;;
+            *.deb)
+                __unpack_deb "${zip_path}" "${dir_output}"
+            ;;
+            *)
+                if [[ $(is_compressed "${zip_path}") == true ]]; then
+                    "${tar_bin}" -C "${dir_output}" -xf "${zip_path}";
+                else
+                    "${cp_bin}" -r "${zip_path}" "${dir_output}"/;
+                fi
+            ;;
+        esac;
+    else
+        exit_fun "'${zip_path}' is not a valid file";
+        \builtin exit 1;
+    fi;
+    \builtin return 0
+}
+
+function __unpack_deb ()
+{
+    local deb_path dir_output deb_data_path _i;
+    local rm_bin cp_bin mkdir_bin ar_bin;
+    local realpath_bin;
+    local ls_bin;
+    deb_path="${1:-}";
+    dir_output="${2:-}";
+    rm_bin="$(which_bin 'rm')";
+    ls_bin="$(which_bin 'ls')";
+    cp_bin="$(which_bin 'cp')";
+    mkdir_bin="$(which_bin 'mkdir')";
+    ar_bin="$(which_bin 'ar')";
+    realpath_bin="$(which_bin 'realpath')";
+    "${mkdir_bin}" -p "${dir_output}/deb";
+    "${ar_bin}" --output="${dir_output}/deb" x "${deb_path}";
+    deb_data_path=$("${realpath_bin}" "${dir_output}"/deb/dat*);
+    unpack "${deb_data_path}" "${dir_output}";
+    "${rm_bin}" -rf "${dir_output}/deb";
+    builtin mapfile -t content_dirs < <(LC_ALL=C "${ls_bin}" -- "${dir_output}");
+    for _i in "${content_dirs[@]}";
+    do
+        if [[ -d "${dir_output}/${_i}" ]]; then
+            "${cp_bin}" -r "${dir_output}/${_i}"/* "${dir_output}";
+            "${rm_bin}" -rf "${dir_output:?}/${_i}";
+        fi;
+    done;
+    builtin return 0
+}
+
+function exit_fun ()
+{
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    \builtin exit 1
+}
+
+function is_compressed ()
+{
+    local input_file;
+    local is_zip_var;
+    local file_bin;
+    input_file="${1}";
+    file_bin="$(which_bin 'file')";
+    res_txt="$("${file_bin}" -b "${input_file}")";
+    if [[ ${res_txt} =~ "compressed" ]]; then
+        is_zip_var='true';
+    else
+        is_zip_var='false';
+    fi;
+    builtin echo -ne "${is_zip_var}";
+    return 0
+}
+
+function which_bin ()
+{
+    \builtin local cmd_arg;
+    \builtin local path_dir_arr;
+    \builtin local path_dir;
+    \builtin local file_name;
+    \builtin local cmd_bin;
+    cmd_arg="${1:-}";
+    cmd_bin='';
+    IFS=: \builtin read -r -a path_dir_arr <<< "${PATH:-}";
+    for path_dir in "${path_dir_arr[@]}";
+    do
+        file_name="${path_dir}/${cmd_arg}";
+        if [[ -x "${file_name}" && ! -d "${file_name}" ]] && [[ "${file_name}" =~ ${cmd_arg}$ ]]; then
+            cmd_bin="${file_name}";
+            \builtin break;
+        fi;
+    done;
+    \builtin echo -ne "${cmd_bin}";
+    \builtin return 0
+}
+
+function main () {
+    unpack "${@:-}";
+    \builtin return;
+}
+
+main "${@:-}";
+\builtin exit;

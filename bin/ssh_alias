@@ -1,0 +1,387 @@
+#!/usr/bin/env bash
+
+# Do NOT modify this file manually.
+# Change source code at: https://github.com/luciorq/shell-lib
+# Author: Lucio Rezende Queiroz
+# License: MIT
+
+\builtin set -o errexit;    # abort on nonzero exitstatus
+\builtin set -o nounset;    # abort on unbound variable
+\builtin set -o pipefail;   # do not hide errors within pipes
+
+[[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { \builtin echo >&2 "Error: Bash >=4 required"; \builtin exit 1; }
+
+function ssh_alias ()
+{
+    \builtin local host_info_avail;
+    \builtin local host_name;
+    \builtin local key_name;
+    \builtin local key_path;
+    \builtin local host_port;
+    \builtin local host_ip;
+    \builtin local remote_user;
+    \builtin local key_arg_arr;
+    \builtin local host_str;
+    host_name="${1:-}";
+    host_info_avail="$(get_config --priv host_info "${host_name}")";
+    if [[ -z ${host_info_avail} ]]; then
+        ssh_fun "${@:-}";
+        \builtin return 0;
+    fi;
+    key_name="$(get_config --priv host_info "${host_name}" key)";
+    if [[ -n ${key_name} ]]; then
+        key_path="${HOME}/.ssh/keys/${key_name}";
+        declare -a key_arg_arr=(-i "${key_path}");
+    fi;
+    host_ip="$(get_config --priv host_info "${host_name}" host)";
+    if [[ -z ${host_ip} ]]; then
+        host_ip="$(get_config --priv host_info "${host_name}" ip)";
+        if [[ -z ${host_ip} ]]; then
+            host_ip="${host_name}";
+        fi;
+    fi;
+    host_port="$(get_config --priv host_info "${host_name}" port)";
+    if [[ -z ${host_port} ]]; then
+        host_port='22';
+    fi;
+    remote_user="$(get_config --priv host_info "${host_name}" user)";
+    if [[ -n ${remote_user} ]]; then
+        host_str="${remote_user}@${host_ip}";
+    else
+        host_str="${host_ip}";
+    fi;
+    __sync_user_config "${host_str}" "${host_port}" "${key_name}";
+    ssh_fun "${key_arg_arr[@]}" -p "${host_port}" "${host_str}";
+    \builtin return 0
+}
+
+function __parse_yaml_python ()
+{
+    \builtin local py_bin;
+    \builtin local yaml_path;
+    \builtin local _level;
+    \builtin local levels_str;
+    \builtin local py_script;
+    \builtin local int_regex;
+    \builtin local module_res;
+    \builtin local has_yaml_module;
+    py_bin="$(which_bin 'python')";
+    has_yaml_module='';
+    if [[ -n ${py_bin} ]]; then
+        module_res=$("${py_bin}" -c 'import yaml' 2> /dev/null);
+        if [[ $? -eq 0 ]]; then
+            has_yaml_module='true';
+        fi;
+    fi;
+    if [[ -z ${py_bin} ]]; then
+        py_bin="$(which_bin 'python3')";
+        if [[ -n ${py_bin} ]]; then
+            module_res=$("${py_bin}" -c 'import yaml' 2> /dev/null);
+            if [[ $? -eq 0 ]]; then
+                has_yaml_module='true';
+            fi;
+        fi;
+    fi;
+    if [[ -z ${py_bin} ]]; then
+        exit_fun "'python' is not available.";
+        \builtin exit 1;
+    fi;
+    if [[ -z ${has_yaml_module} ]]; then
+        exit_fun 'Python {yaml} module is not installed.';
+        \builtin exit 1;
+    fi;
+    yaml_path="${1:-}";
+    levels_str='';
+    int_regex='^[0-9]+$';
+    for _level in "${@:2}";
+    do
+        if [[ ${_level} =~ ${int_regex} ]]; then
+            levels_str="${levels_str}[${_level}]";
+        else
+            levels_str="${levels_str}['${_level}']";
+        fi;
+    done;
+    py_script="import yaml;x = yaml.safe_load(open('${yaml_path}', 'r'))";
+    py_script="${py_script}${levels_str}";
+    py_script="${py_script}; print(x) if isinstance(x, str) else [print(yaml.dump(i)) for i in x] if isinstance(x, list) else print(yaml.dump(x)) if isinstance(x, dict) else False;";
+    module_res=$("${py_bin}" -c "${py_script}" 2>&1);
+    if [[ ${module_res} =~ KeyError: ]]; then
+        \builtin echo -ne '\n';
+        \builtin return 0;
+    fi;
+    \builtin echo -ne "${module_res}";
+    \builtin return 0
+}
+
+function __parse_yaml_ruby ()
+{
+    \builtin local ruby_bin;
+    \builtin local ruby_script;
+    \builtin local yaml_path;
+    \builtin local _level;
+    \builtin local int_regex;
+    \builtin local yaml_res;
+    ruby_bin="$(which_bin 'ruby')";
+    yaml_path="${1:-}";
+    ruby_script="var_res=YAML::load(open(ARGV.first).read)";
+    int_regex='^[0-9]+$';
+    for _level in "${@:2}";
+    do
+        if [[ ${_level} =~ ${int_regex} ]]; then
+            ruby_script="${ruby_script}[${_level}]";
+        else
+            ruby_script="${ruby_script}['${_level}']";
+        fi;
+    done;
+    ruby_script="${ruby_script}; if var_res.class == Hash; puts YAML::dump(var_res) elsif var_res.class == Array; for item in var_res; puts YAML::dump(item) end; else puts var_res end;";
+    yaml_res=$("${ruby_bin}" -ryaml -e "${ruby_script}" "${yaml_path}" | grep -v '^---');
+    \builtin echo -ne "${yaml_res}";
+    \builtin return 0
+}
+
+function __parse_yaml_yq ()
+{
+    \builtin local yq_bin;
+    \builtin local yq_str;
+    \builtin local yaml_path;
+    \builtin local _level;
+    \builtin local levels_str;
+    \builtin local yaml_res;
+    yq_bin="$(which_bin 'yq')";
+    yaml_path="${1:-}";
+    levels_str='';
+    for _level in "${@:2}";
+    do
+        levels_str="${levels_str}.${_level}";
+    done;
+    if [[ -z ${levels_str} ]]; then
+        levels_str='.';
+    fi;
+    yq_str="... comments=\"\" | ${levels_str} | ( select( has(0) ) | .[]) // .";
+    yaml_res=$("${yq_bin}" eval --no-doc "${yq_str}" "${yaml_path}");
+    if [[ ${yaml_res} == null ]]; then
+        yaml_res='\n';
+    fi;
+    \builtin echo -ne "${yaml_res}";
+    \builtin return 0
+}
+
+function __sync_user_config ()
+{
+    \builtin local _usage;
+    _usage="Usage: ${0} [USER@]HOST [PORT] [KEY_PATH]";
+    \builtin unset -v _usage;
+    \builtin local ssh_bin;
+    \builtin local rsync_bin;
+    \builtin local sync_path_arr;
+    \builtin local remote_host;
+    \builtin local host_port;
+    \builtin local key_path;
+    \builtin local key_name;
+    \builtin local id_flag;
+    remote_host="${1:-}";
+    host_port="${2:-22}";
+    key_name="${3:-}";
+    key_path='';
+    id_flag='';
+    if [[ -z ${remote_host} ]]; then
+        exit_fun 'No remote host provided.';
+        \builtin exit 1;
+    fi;
+    if [[ -n ${key_name} ]]; then
+        if [[ -f ${HOME}/.ssh/keys/${key_name} ]]; then
+            id_flag=" -i";
+            key_path="${HOME}/.ssh/keys/${key_name}";
+        else
+            if [[ -f ${key_name} ]]; then
+                id_flag=" -i";
+                key_path="${key_name}";
+            else
+                id_flag='';
+                key_path='';
+            fi;
+        fi;
+    fi;
+    ssh_bin="$(require 'ssh' '-V')";
+    rsync_bin="$(require 'rsync')";
+    if [[ -z ${rsync_bin} ]]; then
+        exit_fun "'rsync' is not installed";
+        \builtin exit 1;
+    fi;
+    \builtin mapfile -t sync_path_arr < <(get_config 'config_sync' 'paths');
+    "${rsync_bin}" -e "ssh -p ${host_port}${id_flag}${key_path} -o LogLevel=error" --delete --relative --recursive -az --exclude '.git' --exclude '.gitignore' --exclude '.gitmodules' --exclude '.gitattributes' --exclude '.gitconfig' --exclude '.github' --exclude '.pixi' --exclude '.DS_Store' --exclude '._.DS_Store' "${sync_path_arr[@]/#/${HOME}\/.\/}" "${remote_host}":;
+    \builtin return 0
+}
+
+function exit_fun ()
+{
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    \builtin exit 1
+}
+
+function get_config ()
+{
+    local _usage="Usage: ${0} <{--priv|-p]>";
+    unset _usage;
+    local cfg_dir;
+    local file_base_name;
+    local file_ext;
+    local var_file;
+    local argv;
+    if [[ ${1:-} == --priv ]] || [[ ${1:-} == -p ]]; then
+        declare -a argv=("${@:3}");
+        file_base_name="${2:-}";
+        cfg_dir="$(get_config_path --priv)";
+    else
+        declare -a argv=("${@:2}");
+        file_base_name="${1:-}";
+        cfg_dir="$(get_config_path)";
+    fi;
+    file_ext='yaml';
+    var_file="${cfg_dir}/vars/${file_base_name}.${file_ext}";
+    if [[ ! -f ${var_file} ]]; then
+        file_ext="yml";
+        var_file="${cfg_dir}/vars/${file_base_name}.${file_ext}";
+    fi;
+    if [[ ! -f ${var_file} ]]; then
+        exit_fun "'${var_file}' no such file.";
+        \builtin exit 1;
+    fi;
+    parse_yaml "${var_file}" main "${argv[@]}";
+    \builtin return 0
+}
+
+function get_config_path ()
+{
+    local cfg_path;
+    local private_dir;
+    if [[ ${1} == --priv ]] || [[ ${1} == -p ]]; then
+        private_dir="$(get_config env priv)";
+        cfg_path="${XDG_CONFIG_HOME:-${HOME}/.config}/${private_dir}";
+    else
+        private_dir="${1}";
+        cfg_path="${_LOCAL_CONFIG:-${XDG_CONFIG_HOME:-${HOME}/.config}/${private_dir}}";
+    fi;
+    builtin echo -ne "${cfg_path}";
+    return 0
+}
+
+function parse_yaml ()
+{
+    \builtin local _usage;
+    _usage="Usage: ${0} <FILE_NAME> [<KEY_1>...<KEY_N>]";
+    \builtin unset _usage;
+    \builtin local yq_bin;
+    \builtin local ruby_bin;
+    \builtin local py3_bin;
+    \builtin local py_bin;
+    \builtin local method;
+    \builtin local file_path;
+    yq_bin="$(which_bin 'yq')";
+    ruby_bin="$(which_bin 'ruby')";
+    py_bin="$(which_bin 'python')";
+    py3_bin="$(which_bin 'python3')";
+    file_path="${1:-}";
+    if [[ ! -f ${file_path} ]]; then
+        exit_fun "File '${file_path}' does not exist";
+        \builtin exit 1;
+    fi;
+    method='';
+    if [[ -n ${yq_bin} ]]; then
+        method='yq';
+    else
+        if [[ -n ${ruby_bin} ]]; then
+            method='ruby';
+        else
+            if [[ -n ${py3_bin} || -n ${py_bin} ]]; then
+                method='python';
+            fi;
+        fi;
+    fi;
+    case "${method}" in
+        yq)
+            __parse_yaml_yq "${@}"
+        ;;
+        ruby)
+            __parse_yaml_ruby "${@}"
+        ;;
+        python)
+            __parse_yaml_python "${@}"
+        ;;
+        *)
+            exit_fun 'No method available for parsing YAML.';
+            \builtin exit 1
+        ;;
+    esac
+}
+
+function require ()
+{
+    local cmd_str;
+    \builtin local cmd_bin;
+    \builtin local cmd_res;
+    \builtin local full_cmd;
+    cmd_str="${1:-}";
+    cmd_bin="$(which_bin "${cmd_str}")";
+    if [[ -z ${cmd_bin} ]]; then
+        exit_fun "'${cmd_str}' executable not found in '\${PATH}'";
+        \builtin exit 1;
+    fi;
+    if [[ ${#} -eq 1 ]]; then
+        cmd_res="$("${cmd_bin}" --version 2>&1 || \builtin echo -ne '')";
+        full_cmd="${cmd_bin} --version";
+    else
+        cmd_res="$("${cmd_bin}" "${@:2}" 2>&1 || \builtin echo -ne '')";
+        full_cmd="${cmd_bin} ${*:2}";
+    fi;
+    if [[ -n ${cmd_res} ]]; then
+        \builtin echo -ne "${cmd_bin}";
+    else
+        exit_fun "'${full_cmd}' can't be executed";
+        \builtin exit 1;
+    fi;
+    \builtin return 0
+}
+
+function ssh_fun ()
+{
+    \builtin local ssh_bin;
+    \builtin local _usage;
+    _usage="Usage: ${0} <[SSH_ARGS]>";
+    \builtin unset -v _usage;
+    ssh_bin="$(require 'ssh' '-V')";
+    \builtin set -x;
+    "${ssh_bin}" -A -X -Y "${@:1}";
+    \builtin set +x;
+    \builtin return 0
+}
+
+function which_bin ()
+{
+    \builtin local cmd_arg;
+    \builtin local path_dir_arr;
+    \builtin local path_dir;
+    \builtin local file_name;
+    \builtin local cmd_bin;
+    cmd_arg="${1:-}";
+    cmd_bin='';
+    IFS=: \builtin read -r -a path_dir_arr <<< "${PATH:-}";
+    for path_dir in "${path_dir_arr[@]}";
+    do
+        file_name="${path_dir}/${cmd_arg}";
+        if [[ -x "${file_name}" && ! -d "${file_name}" ]] && [[ "${file_name}" =~ ${cmd_arg}$ ]]; then
+            cmd_bin="${file_name}";
+            \builtin break;
+        fi;
+    done;
+    \builtin echo -ne "${cmd_bin}";
+    \builtin return 0
+}
+
+function main () {
+    ssh_alias "${@:-}";
+    \builtin return;
+}
+
+main "${@:-}";
+\builtin exit;

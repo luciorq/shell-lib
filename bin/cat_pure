@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# Do NOT modify this file manually.
+# Change source code at: https://github.com/luciorq/shell-lib
+# Author: Lucio Rezende Queiroz
+# License: MIT
+
+\builtin set -o errexit;    # abort on nonzero exitstatus
+\builtin set -o nounset;    # abort on unbound variable
+\builtin set -o pipefail;   # do not hide errors within pipes
+
+[[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { \builtin echo >&2 "Error: Bash >=4 required"; \builtin exit 1; }
+
+function cat_pure ()
+{
+    local file="${1:-}";
+    builtin echo "$(< "${file}")";
+    return 0
+}
+
+function main () {
+    cat_pure "${@:-}";
+    \builtin return;
+}
+
+main "${@:-}";
+\builtin exit;

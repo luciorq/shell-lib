@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+# Do NOT modify this file manually.
+# Change source code at: https://github.com/luciorq/shell-lib
+# Author: Lucio Rezende Queiroz
+# License: MIT
+
+\builtin set -o errexit;    # abort on nonzero exitstatus
+\builtin set -o nounset;    # abort on unbound variable
+\builtin set -o pipefail;   # do not hide errors within pipes
+
+[[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { \builtin echo >&2 "Error: Bash >=4 required"; \builtin exit 1; }
+
+function type_color ()
+{
+    builtin local bat_bin;
+    bat_bin="$(which_bin 'bat')";
+    if [[ -z ${bat_bin} ]]; then
+        builtin type "${@}";
+    else
+        builtin type "${@}" | bat_fun -l 'bash' --style=plain --paging=never --theme 'gruvbox-dark';
+    fi;
+    return 0
+}
+
+function bat_fun ()
+{
+    builtin local bat_bin;
+    builtin local cat_bin;
+    builtin local bat_avail;
+    bat_bin="$(which_bin 'bat')";
+    if [[ -z ${bat_bin} ]]; then
+        bat_bin="$(which_bin 'batcat')";
+    fi;
+    if [[ -n ${bat_bin} ]]; then
+        bat_avail="$("${bat_bin}" -V 2> /dev/null > /dev/null || builtin echo -ne "${?}")";
+    fi;
+    cat_bin="$(which_bin 'cat')";
+    if [[ -n ${bat_bin} && -z ${bat_avail} ]]; then
+        "${bat_bin}" "${@}" --theme 'gruvbox-dark';
+    else
+        "${cat_bin}";
+    fi;
+    builtin return 0
+}
+
+function which_bin ()
+{
+    \builtin local cmd_arg;
+    \builtin local path_dir_arr;
+    \builtin local path_dir;
+    \builtin local file_name;
+    \builtin local cmd_bin;
+    cmd_arg="${1:-}";
+    cmd_bin='';
+    IFS=: \builtin read -r -a path_dir_arr <<< "${PATH:-}";
+    for path_dir in "${path_dir_arr[@]}";
+    do
+        file_name="${path_dir}/${cmd_arg}";
+        if [[ -x "${file_name}" && ! -d "${file_name}" ]] && [[ "${file_name}" =~ ${cmd_arg}$ ]]; then
+            cmd_bin="${file_name}";
+            \builtin break;
+        fi;
+    done;
+    \builtin echo -ne "${cmd_bin}";
+    \builtin return 0
+}
+
+function main () {
+    type_color "${@:-}";
+    \builtin return;
+}
+
+main "${@:-}";
+\builtin exit;

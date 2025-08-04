@@ -1,0 +1,1479 @@
+#!/usr/bin/env bash
+
+# Do NOT modify this file manually.
+# Change source code at: https://github.com/luciorq/shell-lib
+# Author: Lucio Rezende Queiroz
+# License: MIT
+
+\builtin set -o errexit;    # abort on nonzero exitstatus
+\builtin set -o nounset;    # abort on unbound variable
+\builtin set -o pipefail;   # do not hide errors within pipes
+
+[[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { \builtin echo >&2 "Error: Bash >=4 required"; \builtin exit 1; }
+
+function bootstrap_user ()
+{
+    \builtin local install_type;
+    \builtin local mkdir_bin;
+    install_type='--user';
+    mkdir_bin="$(require 'mkdir')";
+    "${mkdir_bin}" -p "${HOME}/projects";
+    "${mkdir_bin}" -p "${HOME}/workspaces";
+    "${mkdir_bin}" -p "${HOME}/.local/bin";
+    "${mkdir_bin}" -p "${HOME}/.local/lib";
+    "${mkdir_bin}" -p "${HOME}/.local/opt/apps";
+    __check_req_cli_tools;
+    __build_git "${install_type}";
+    __install_yq;
+    __build_bash "${install_type}";
+    __install_python_cli_tools;
+    __build_rust_cargo "${install_type}";
+    __clean_home;
+    install_apps "${install_type}";
+    __rebuild_rust_source_tools;
+    __install_node_cli_tools;
+    source_configs;
+    __clean_home;
+    __update_configs;
+    clean_pixi_and_conda_cache;
+    clean_homebrew_cache;
+    clean_rstats_cache;
+    \builtin return 0
+}
+
+function __build_bash ()
+{
+    local latest_tag;
+    local latest_release_version;
+    local mirror_repo;
+    local build_version;
+    local build_path;
+    local inst_path;
+    local num_threads;
+    local get_url;
+    local rm_bin;
+    local make_bin;
+    local curl_bin;
+    local grep_bin;
+    local sed_bin;
+    local sort_bin;
+    rm_bin="$(which_bin 'rm')";
+    sort_bin="$(which_bin 'sort')";
+    sed_bin="$(which_bin 'sed')";
+    grep_bin="$(which_bin 'grep')";
+    curl_bin="$(which_bin 'curl')";
+    make_bin="$(which_bin 'gmake')";
+    if [[ -z ${make_bin} ]]; then
+        make_bin="$(require 'make')";
+    fi;
+    inst_path="${HOME}/.local";
+    if [[ -f ${inst_path}/bin/bash ]]; then
+        return 0;
+    fi;
+    mirror_repo='bminor/bash';
+    latest_tag="$("${curl_bin}" -fsSL --insecure "https://api.github.com/repos/${mirror_repo}/tags")";
+    latest_release_version="$(builtin echo "${latest_tag[@]}" | "${sed_bin}" 's/\(\"name\"\):/\n\1/g' | "${grep_bin}" '"name"' | "${sed_bin}" -e 's/\"name\"[[:space:]]\"\(.*\)/\1/g' | "${sed_bin}" -e 's/\",//g' | "${grep_bin}" -v '\-rc\|\-beta\|\-alpha\|devel' | "${grep_bin}" 'bash' | "${sed_bin}" 's/bash\-//g' | "${sort_bin}" -rV)";
+    build_version="${latest_release_version/[[:space:]]*/}";
+    num_threads="$(get_nthreads 8)";
+    get_url="https://ftp.gnu.org/gnu/bash/bash-${build_version}.tar.gz";
+    build_path="$(create_temp bash-inst)";
+    download "${get_url}" "${build_path}";
+    unpack "${build_path}/bash-${build_version}.tar.gz" "${build_path}";
+    local __build_app_bash;
+    function __build_app_bash ()
+    {
+        ( builtin cd "${build_path}/bash-${build_version}" || exit 1;
+        ./configure --prefix="${inst_path}" )
+    };
+    __build_app_bash;
+    unset __build_app_bash;
+    "${make_bin}" -C "${build_path}/bash-${build_version}" -j "${num_threads}";
+    "${make_bin}" -C "${build_path}/bash-${build_version}" install -j "${num_threads}";
+    "${rm_bin}" -rf "${build_path}/bash-${build_version}" "${build_path}/bash-${build_version}.tar.gz";
+    "${rm_bin}" -rf "${build_path}";
+    "${inst_path}/bin/bash" --version;
+    return 0
+}
+
+function __build_git ()
+{
+    local build_path;
+    local inst_path;
+    local num_threads;
+    local get_url;
+    local rm_bin;
+    local make_bin;
+    local __build_app_git;
+    rm_bin="$(which_bin 'rm')";
+    make_bin="$(which_bin 'gmake')";
+    if [[ -z ${make_bin} ]]; then
+        make_bin="$(require 'make')";
+    fi;
+    inst_path="${HOME}/.local";
+    if [[ -f ${inst_path}/bin/git ]]; then
+        return 0;
+    fi;
+    num_threads="$(get_nthreads 8)";
+    get_url='https://github.com/git/git/archive/refs/heads/main.zip';
+    build_path="$(create_temp 'git-inst')";
+    download "${get_url}" "${build_path}";
+    unpack "${build_path}/main.zip" "${build_path}";
+    "${make_bin}" -C "${build_path}/git-main" configure -j "${num_threads}";
+    function __build_app_git ()
+    {
+        ( builtin cd "${build_path}/git-main" || exit 1;
+        ./configure --prefix="${inst_path}" )
+    };
+    __build_app_git;
+    unset __build_app_git;
+    "${make_bin}" -C "${build_path}/git-main" -j "${num_threads}";
+    "${make_bin}" -C "${build_path}/git-main" install -j "${num_threads}";
+    "${rm_bin}" -rf "${build_path}/git-main" "${build_path}/main.zip";
+    "${rm_bin}" -rf "${build_path}";
+    "${inst_path}/bin/git" --version;
+    return 0
+}
+
+function __build_rust_cargo ()
+{
+    local cargo_bin;
+    local curl_bin;
+    local bash_bin;
+    local ln_bin;
+    local ls_bin;
+    local install_path;
+    local link_path;
+    local cargo_path;
+    local _link_bin;
+    local link_bin_arr;
+    cargo_bin="$(which_bin 'cargo')";
+    install_path="${HOME}/.local/share/cargo/bin";
+    link_path="${HOME}/.local/bin";
+    cargo_path="${install_path}/cargo";
+    if [[ -z ${cargo_bin} ]]; then
+        if [[ ! -f ${cargo_path} ]]; then
+            curl_bin="$(require 'curl')";
+            bash_bin="$(require 'bash')";
+            "${bash_bin}" <("${curl_bin}" --proto '=https' --tlsv1.2 -sSf 'https://sh.rustup.rs') --no-modify-path --quiet -y;
+        fi;
+        ln_bin="$(require 'ln')";
+        ls_bin="$(require 'ls')";
+        builtin mapfile -t link_bin_arr < <(LC_ALL=C "${ls_bin}" -A1 -- "${install_path}");
+        for _link_bin in "${link_bin_arr[@]}";
+        do
+            "${ln_bin}" -sf "${install_path}/${_link_bin}" "${link_path}/${_link_bin}";
+        done;
+    fi;
+    rustup_bin="$(which_bin 'rustup')";
+    if [[ -n ${rustup_bin} ]]; then
+        "${rustup_bin}" default stable;
+    fi;
+    return 0
+}
+
+function __check_req_cli_tools ()
+{
+    builtin local cli_arr;
+    builtin local _cli;
+    builtin local cli_bin;
+    cli_arr='';
+    declare -a cli_arr=(curl gcc npm git rsync);
+    for _cli in "${cli_arr[@]}";
+    do
+        cli_bin=$(require "${_cli}");
+        if [[ -z ${cli_bin} ]]; then
+            builtin echo -ne "Install '${_cli}' to continue.\n";
+        fi;
+    done;
+    builtin return 0
+}
+
+function __clean_home ()
+{
+    \builtin local remove_dirs_arr;
+    \builtin local _dir;
+    \builtin local rm_bin;
+    \builtin local path_to_rm;
+    rm_bin="$(which_bin 'rm')";
+    remove_dirs_arr='';
+    declare -a remove_dirs_arr=(.vim .vimrc .viminfo .npm .gem .sudo_as_admin_successful .wget-hsts .lesshst .python_history .radian_history .ipynb_checkpoints .subversion .conda .mamba .nv .ncbi .pki .rnd .duckdb .Rhistory .bash_profile .bash_history .shell_history .zshenv .zshrc .kitty-ssh-kitten* .thunderbird .TinyTeX .gnome .nextflow .fluffy .mozilla .links .groovy .openjfx .emacs .rustup .android .docker .spack .dockstore .git-credentials .minikube .mini-kube .terminfo .keras .Xauthority .yarnrc .yarn .slime_paste .virtual_documents .DS_Store);
+    for _dir in "${remove_dirs_arr[@]}";
+    do
+        path_to_rm="${HOME}/${_dir}";
+        if [[ -f ${path_to_rm} ]]; then
+            "${rm_bin}" -f "${path_to_rm}";
+        else
+            if [[ -d ${path_to_rm} ]]; then
+                "${rm_bin}" -rf "${path_to_rm}";
+            fi;
+        fi;
+    done;
+    if [[ -d "${HOME}/.Trash" ]]; then
+        "${rm_bin}" -rf "${HOME}"/.Trash/*;
+        "${rm_bin}" -rf "${HOME}"/.Trash/.*;
+    fi;
+    \builtin return 0
+}
+
+function __get_app_num_from_app_name ()
+{
+    local input_name;
+    local apps_length;
+    local _app_num;
+    local app_num_arr;
+    local app_num_res;
+    local app_name;
+    local seq_bin;
+    seq_bin="$(require 'seq')";
+    input_name="${1}";
+    apps_length="$(get_config apps apps | grep -c '^name:')";
+    builtin mapfile -t app_num_arr < <("${seq_bin}" 0 $(( apps_length - 1 )));
+    app_num_res='';
+    for _app_num in "${app_num_arr[@]}";
+    do
+        app_name="$(get_config apps apps "${_app_num}" name 2> /dev/null || builtin echo -ne '')";
+        if [[ ${input_name} == "${app_name}" && -n ${input_name} && -n ${app_name} ]]; then
+            app_num_res="${_app_num}";
+        fi;
+    done;
+    if [[ -z ${app_num_res} ]]; then
+        builtin echo -ne "${input_name}";
+    else
+        builtin echo -ne "${app_num_res}";
+    fi;
+    return 0
+}
+
+function __get_gh_latest_release ()
+{
+    local repo;
+    local release_url;
+    local latest_version;
+    local curl_bin;
+    repo="${1:-}";
+    curl_bin="$(require 'curl')";
+    release_url="$("${curl_bin}" -fsSL --insecure -I -o /dev/null -w '%{url_effective}' "https://github.com/${repo}/releases/latest")";
+    latest_version="${release_url//http*\/tag\//}";
+    latest_version="${latest_version//http*\/releases/}";
+    \builtin echo -ne "${latest_version}";
+    \builtin return 0
+}
+
+function __get_gh_latest_tag ()
+{
+    local repo;
+    local latest_tag;
+    local tag_arr;
+    local tag_sort_arr;
+    local final_tag;
+    local cat_bin;
+    local sed_bin;
+    local grep_bin;
+    local curl_bin;
+    local sort_bin;
+    repo="${1:-}";
+    local required_commands=("grep" "sed" "cat" "curl" "sort");
+    local cmd;
+    for cmd in "${required_commands[@]}";
+    do
+        builtin command -v "${cmd}" > /dev/null 2>&1 || {
+            builtin echo -ne "Error: '${cmd}' command not found\n";
+            exit 1
+        };
+    done;
+    grep_bin="$(require 'grep')";
+    sed_bin="$(require 'sed')";
+    sort_bin="$(require 'sort')";
+    cat_bin="$(which_bin 'cat')";
+    curl_bin="$(which_bin 'curl')";
+    latest_tag="$("${curl_bin}" -fsSL --insecure "https://api.github.com/repos/${repo}/tags" 2> /dev/null)";
+    if [[ -z "${latest_tag}" ]]; then
+        builtin echo -ne "Error: Failed to fetch tags from GitHub API\n";
+        exit 1;
+    fi;
+    builtin mapfile -t latest_tag_arr < <(builtin echo -ne "${latest_tag}" | "${grep_bin}" '"name": ' | "${grep_bin}" -v "\-rc\|\-beta\|\-alpha\|devel");
+    builtin mapfile -t tag_arr < <(builtin echo "${latest_tag_arr[@]}" | "${sed_bin}" 's|\"name\":||g' | sed 's|\"||g' | sed 's|\\s+||g' | sed 's|\,||g');
+    if [[ ${#tag_arr[@]} -eq 0 ]]; then
+        builtin echo -ne "Error: No valid tags found\n";
+        exit 1;
+    fi;
+    builtin mapfile -t tag_sort_arr < <("${cat_bin}" <(for _i in ${tag_arr[@]};
+do
+    builtin echo -ne "${_i}\n";
+done) | grep '^v*[0-9]' | sort -rV);
+    final_tag="${tag_sort_arr[0]}";
+    builtin echo -ne "${final_tag}\n";
+    return 0
+}
+
+function __install_app ()
+{
+    local _usage="usage: ${0} [--user|--system] <APP_NUM/APP_NAME>";
+    local sed_bin rm_bin;
+    local mkdir_bin ln_bin chmod_bin;
+    local _arg;
+    local install_type;
+    local app_num;
+    local num_regex;
+    local link_inst_path;
+    local app_name;
+    local app_version;
+    local app_repo;
+    local app_url;
+    local base_url get_url;
+    local app_type;
+    local tarball_version;
+    local tarball_name;
+    local exec_path_arr;
+    local exec_path;
+    local extra_cmd_arr;
+    local _extra_cmd;
+    local extra_cmd;
+    local app_link;
+    local dl_path lib_path;
+    local install_path;
+    local missing_install;
+    local _link_exec;
+    sed_bin=$(which_bin 'gsed');
+    if [[ -z ${sed_bin} ]]; then
+        sed_bin="$(require 'sed')";
+    fi;
+    rm_bin="$(require 'rm')";
+    mkdir_bin="$(require 'mkdir')";
+    ln_bin="$(require 'ln')";
+    app_num="${2:-}";
+    if [[ -z ${app_num} ]]; then
+        app_num="${1:-}";
+    fi;
+    num_regex='^[0-9]+$';
+    if ! [[ ${app_num} =~ ${num_regex} ]]; then
+        app_num="$(__get_app_num_from_app_name "${app_num}")";
+    fi;
+    if [[ -z ${app_num} ]]; then
+        exit_fun "App {${app_num}} is not available.";
+        exit 1;
+    fi;
+    link_inst_path='';
+    if [[ ${#} -eq 0 || ${#} -eq 1 ]]; then
+        link_inst_path="${HOME}/.local/bin";
+        install_type='--user';
+    fi;
+    for _arg in "${@:-}";
+    do
+        if [[ ${_arg} == --system ]]; then
+            link_inst_path="/usr/local/bin";
+            install_type='--system';
+        else
+            if [[ ${_arg} == --user ]]; then
+                link_inst_path="${HOME}/.local/bin";
+                install_type='--user';
+            fi;
+        fi;
+    done;
+    app_name="$(get_config apps apps "${app_num}" name 2> /dev/null || builtin echo -ne '')";
+    builtin echo -ne "  --> ${app_name}\n";
+    if [[ -z ${app_name} || ${app_name} == null ]]; then
+        exit_fun "'name' not found for '${app_num}'.
+        Each element of the app list need a 'name' value.";
+        exit 1;
+    fi;
+    app_version="$(get_config apps apps "${app_num}" version 2> /dev/null || builtin echo -ne '')";
+    if [[ -z ${app_version} || ${app_version} == null ]]; then
+        app_version='latest';
+    fi;
+    app_repo="$(get_config apps apps "${app_num}" repo 2> /dev/null || builtin echo -ne '')";
+    if [[ ${app_repo} == null ]]; then
+        app_repo='';
+    fi;
+    if [[ ${app_version} == latest && -n ${app_repo} ]]; then
+        app_version="$(__get_gh_latest_release "${app_repo}")";
+        if [[ -z ${app_version} ]]; then
+            app_version="$(__get_gh_latest_tag "${app_repo}")";
+        fi;
+    fi;
+    tarball_version="${app_version#v*}";
+    app_url="$(get_config apps apps "${app_num}" url 2> /dev/null || builtin echo -ne '')";
+    if [[ ${app_url} == null ]]; then
+        app_url='';
+    fi;
+    app_url="$(builtin echo -ne "$(get_config apps apps "${app_num}" url 2> /dev/null || builtin echo -ne '')" | sed "s|{[ ]*name[ ]*}|${app_name}|g" | sed "s|{[ ]*version[ ]*}|${tarball_version}|g")";
+    if [[ ${app_url} == null ]]; then
+        app_url='';
+    fi;
+    app_type="$(get_config apps apps "${app_num}" type 2> /dev/null || builtin echo -ne '')";
+    if [[ ${app_type} == null || -z ${app_type} ]]; then
+        app_type='binary';
+    fi;
+    if [[ ${app_type} == 'mamba' ]]; then
+        app_type='conda';
+    fi;
+    if [[ -n ${app_repo} && -z ${app_url} ]]; then
+        app_type="${app_type}_github";
+    fi;
+    tarball_name="$(builtin echo -ne "$(get_config apps apps "${app_num}" tarball 2> /dev/null || builtin echo -ne '')" | sed "s|{[ ]*name[ ]*}|${app_name}|g" | sed "s|{[ ]*version[ ]*}|${tarball_version}|g")";
+    if [[ -n ${app_url} ]]; then
+        if [[ ${tarball_name} == null || -z ${tarball_name} ]]; then
+            tarball_name="$(basename "${app_url}")";
+        fi;
+    fi;
+    builtin mapfile -t exec_path_arr < <(builtin echo -ne "$(get_config apps apps "${app_num}" exec_path 2> /dev/null || builtin echo -ne '')" | sed "s|{[ ]*name[ ]*}|${app_name}|g" | sed "s|{[ ]*version[ ]*}|${tarball_version}|g" | sed "s|{[ ]*repo[ ]*}|${app_repo}|g" | sed "s|{[ ]*tarball[ ]*}|${tarball_name}|g" | sed "s|{[ ]*install_path[ ]*}|${install_path}|g" | sed "s|{[ ]*lib_path[ ]*}|${lib_path}|g");
+    if [[ ${exec_path_arr[0]} == null ]]; then
+        declare -a exec_path_arr=();
+        unset -v exec_path_arr;
+        exec_path_arr='';
+    fi;
+    if [[ -z ${exec_path_arr[0]} ]]; then
+        exec_path_arr="${app_name}";
+    fi;
+    app_link="$(get_config apps apps "${app_num}" link 2> /dev/null || builtin echo -ne '')";
+    if [[ -z ${app_link} || ${app_link} == null ]]; then
+        app_link='true';
+    else
+        if [[ ${app_link} == no || ${app_link} == false || ${app_link} == FALSE || ${app_link} == False ]]; then
+            app_link='false';
+        else
+            if [[ ${app_link} == yes || ${app_link} == true || ${app_link} == TRUE || ${app_link} == True ]]; then
+                app_link='true';
+            fi;
+        fi;
+    fi;
+    case "${app_type}" in
+        source_github)
+            base_url="https://github.com/${app_repo}/releases/download/${app_version}";
+            get_url="${base_url}/${tarball_name}";
+            app_type="source"
+        ;;
+        binary_github)
+            base_url="https://github.com/${app_repo}/releases/download/${app_version}";
+            get_url="${base_url}/${tarball_name}";
+            app_type="binary"
+        ;;
+        cargo_github)
+            base_url='';
+            get_url="https://github.com/${app_repo}";
+            app_type="cargo"
+        ;;
+        *)
+            base_url='';
+            get_url="${app_url}"
+        ;;
+    esac;
+    lib_path="$(__install_path "${install_type}")";
+    install_path="${lib_path}/${app_name}/${app_version}";
+    missing_install='false';
+    for exec_path in "${exec_path_arr[@]}";
+    do
+        if [[ ! -f ${install_path}/${exec_path} ]]; then
+            missing_install='true';
+        fi;
+    done;
+    local skip_download_step;
+    skip_download_step='false';
+    local skip_link_step;
+    skip_link_step='false';
+    if [[ ${app_type} != cargo && ${app_type} != conda && ${missing_install} == false ]]; then
+        skip_download_step='true;';
+    fi;
+    if [[ ! -d ${install_path} ]]; then
+        "${mkdir_bin}" -p "${install_path}";
+    fi;
+    if [[ ${skip_download_step} == false ]]; then
+        case "${app_type}" in
+            source)
+                __install_app_source "${install_path}" "${tarball_name}" "${get_url}"
+            ;;
+            binary)
+                __install_app_binary "${install_path}" "${tarball_name}" "${get_url}"
+            ;;
+            cargo)
+                __install_app_cargo "${install_path}" "${app_name}" "${get_url}"
+            ;;
+            conda)
+                __install_app_mamba "${install_type}" "${app_name}" "${exec_path_arr[@]}"
+            ;;
+            *)
+                exit_fun "Unknown installation type: '${app_type}'.";
+                exit 1
+            ;;
+        esac;
+    fi;
+    if [[ ! -d ${link_inst_path} ]]; then
+        "${mkdir_bin}" -p "${link_inst_path}";
+    fi;
+    if [[ ${skip_link_step} == false ]]; then
+        if [[ ! ${app_type} == conda ]]; then
+            chmod_bin="$(which_bin 'chmod')";
+            "${chmod_bin}" +x "${install_path}/${exec_path_arr[0]}";
+            if [[ ${app_link} == true ]]; then
+                for exec_path in "${exec_path_arr[@]}";
+                do
+                    _link_exec="${link_inst_path}/$(basename "${exec_path}")";
+                    if [[ -f ${_link_exec} ]]; then
+                        "${rm_bin}" "${_link_exec}";
+                    fi;
+                    "${chmod_bin}" +x "${install_path}/${exec_path}";
+                    "${ln_bin}" -sf "${install_path}/${exec_path}" "${link_inst_path}/$(basename "${exec_path}")";
+                done;
+            fi;
+        fi;
+    fi;
+    builtin mapfile -t extra_cmd_arr < <(get_config apps apps "${app_num}" extra_cmd 2> /dev/null || builtin echo -ne '');
+    if [[ -z ${extra_cmd_arr[0]} ]]; then
+        extra_cmd_arr[0]='';
+    fi;
+    if [[ -n ${extra_cmd_arr[0]} ]]; then
+        for _extra_cmd in "${extra_cmd_arr[@]}";
+        do
+            extra_cmd=$(builtin echo "${_extra_cmd}" | sed "s|{[ ]*name[ ]*}|${app_name}|g" | sed "s|{[ ]*version[ ]*}|${tarball_version}|g" | sed "s|{[ ]*repo[ ]*}|${app_repo}|g" | sed "s|{[ ]*tarball[ ]*}|${tarball_name}|g" | sed "s|{[ ]*install_path[ ]*}|${link_inst_path}|g" | sed "s|{[ ]*lib_path[ ]*}|${install_path}|g" | sed "s|{[ ]*exec_path[ ]*}|${exec_path_arr[0]}|g");
+            \builtin echo -ne "${extra_cmd[*]}\n";
+            \builtin eval $(\builtin echo ${extra_cmd[*]});
+        done;
+    fi;
+    \builtin echo -ne "App: '${app_name}' (${app_version}) installed succesfully\n";
+    \builtin return 0
+}
+
+function __install_app_binary ()
+{
+    local install_path;
+    local tarball_name;
+    local get_url;
+    local dl_path;
+    local rm_bin;
+    rm_bin="$(which_bin 'rm')";
+    install_path="${1}";
+    tarball_name="${2}";
+    get_url="${3}";
+    dl_path="$(create_temp 'install_app')";
+    download "${get_url}" "${dl_path}";
+    unpack "${dl_path}/${tarball_name}" "${install_path}";
+    "${rm_bin}" -rf "${dl_path}/${tarball_name}";
+    "${rm_bin}" -rf "${dl_path}";
+    return 0
+}
+
+function __install_app_cargo ()
+{
+    local cargo_bin;
+    local install_path;
+    local app_name;
+    local app_url;
+    local git_var;
+    cargo_bin="$(which_bin 'cargo')";
+    if [[ -z ${cargo_bin} ]]; then
+        exit_fun "'{cargo}' is not available for installing rust apps.";
+        exit 1;
+    fi;
+    install_path="${1}";
+    app_name="${2}";
+    get_url="${3}";
+    git_var='';
+    if [[ -n ${get_url} ]]; then
+        git_var='--git ';
+        app_name="${get_url}";
+    fi;
+    "${cargo_bin}" install --quiet --all-features --root "${install_path}" ${git_var}${app_name};
+    local exit_code="$?";
+    if [[ ${exit_code} -ne 0 ]]; then
+        builtin echo "Error: Failed to install rust app";
+        exit 1;
+    fi;
+    return 0
+}
+
+function __install_app_mamba ()
+{
+    local _usage="Usage: ${0} <--user|--system> <APP_NAME> <BIN_NAME_1> [<BIN_NAME_2> ... <BIN_NAME_N>]";
+    unset -v _usage;
+    local install_path;
+    local app_name;
+    local install_type;
+    local prefix_path;
+    local envs_path;
+    local link_path;
+    local install_path;
+    local mamba_bin;
+    local mkdir_bin;
+    local ln_bin;
+    local chmod_bin;
+    local touch_bin;
+    local _exec_bin;
+    local exec_file;
+    install_type="${1}";
+    app_name="${2}";
+    mamba_bin="$(which_bin 'micromamba')";
+    if [[ -z ${mamba_bin} ]]; then
+        mamba_bin="$(which_bin 'mamba')";
+    fi;
+    if [[ -z ${mamba_bin} ]]; then
+        mamba_bin="$(which_bin 'conda')";
+    fi;
+    if [[ -z ${mamba_bin} ]]; then
+        exit_fun '{mamba} is not available in {PATH}';
+        exit 1;
+    fi;
+    mkdir_bin="$(which_bin 'mkdir')";
+    ln_bin="$(which_bin 'ln')";
+    chmod_bin="$(which_bin 'chmod')";
+    touch_bin="$(which_bin 'touch')";
+    if [[ ${install_type} == "--user" ]]; then
+        envs_path="${HOME}/.local/opt/apps/${app_name}/envs";
+        install_path="${HOME}/.local/opt/apps/${app_name}/bin";
+        link_path="${HOME}/.local/bin";
+    else
+        if [[ ${install_type} == "--system" ]]; then
+            envs_path="/opt/apps/${app_name}/envs";
+            install_path="/opt/apps/${app_name}/bin";
+            link_path='/usr/local/bin';
+        fi;
+    fi;
+    \mkdir -p "${envs_path}";
+    if [[ ! -d ${envs_path}/${app_name} ]]; then
+        "${mamba_bin}" create --yes --quiet --no-rc --no-env -c conda-forge -c bioconda -c nodefaults --no-channel-priority --override-channels --channel-priority=0 --prefix "${envs_path}/${app_name}" "${app_name}";
+    fi;
+    "${mkdir_bin}" -p "${install_path}";
+    for _exec_bin in "${@:3}";
+    do
+        exec_file="${install_path}/${_exec_bin}";
+        "${touch_bin}" "${exec_file}";
+        builtin echo -ne '#!/usr/bin/env bash\n\n' > "${exec_file}";
+        builtin echo "${mamba_bin} run --prefix ${envs_path}/${app_name} ${_exec_bin} \"\${@}\"" >> "${exec_file}";
+        "${chmod_bin}" +x "${exec_file}";
+        "${ln_bin}" -sf "${exec_file}" "${link_path}/${_exec_bin}";
+    done;
+    return 0
+}
+
+function __install_app_source ()
+{
+    local install_path;
+    local tarball_name;
+    local get_url;
+    local dl_path;
+    local build_arr;
+    local build_path;
+    local rm_bin;
+    local ls_bin;
+    local make_bin;
+    local num_threads;
+    install_path="${1:-}";
+    tarball_name="${2:-}";
+    get_url="${3:-}";
+    rm_bin="$(which_bin 'rm')";
+    ls_bin="$(which_bin 'ls')";
+    make_bin="$(which_bin 'gmake')";
+    if [[ -z ${make_bin} ]]; then
+        make_bin="$(require 'make')";
+    fi;
+    num_threads="$(get_nthreads 8)";
+    dl_path="$(create_temp 'install_app')";
+    download "${get_url}" "${dl_path}";
+    unpack "${dl_path}/${tarball_name}" "${dl_path}";
+    "${rm_bin}" -rf "${dl_path}/${tarball_name}";
+    builtin mapfile -t build_arr < <(LC_ALL=C "${ls_bin}" -A1 -- "${dl_path}");
+    build_path="${dl_path}/${build_arr[0]}";
+    function __build_app ()
+    {
+        local build_path="${1}";
+        local install_path="${2}";
+        ( builtin cd "${build_path}" || {
+            builtin echo -ne "Error: Failed to change directory to '${build_path}'\n";
+            builtin exit 1
+        };
+        ./configure --prefix="${install_path}" || {
+            builtin echo -ne "Error: Failed to execute 'configure' script\n";
+            builtin exit 1
+        } )
+    };
+    __build_app "${build_path}" "${install_path}";
+    "${make_bin}" -C "${build_path}" -j "${num_threads}";
+    "${make_bin}" -C "${build_path}" install -j "${num_threads}";
+    "${rm_bin}" -rf "${build_path}";
+    "${rm_bin}" -rf "${dl_path}";
+    return 0
+}
+
+function __install_node_cli_tools ()
+{
+    local npm_bin;
+    local npm_pkg_arr;
+    local _npm_pkg;
+    local npm_exec_arr;
+    local _npm_exec;
+    local ls_bin;
+    local ln_bin;
+    ls_bin="$(which_bin 'ls')";
+    ln_bin="$(which_bin 'ln')";
+    npm_bin="$(which_bin 'npm')";
+    if [[ -z ${npm_bin} ]]; then
+        builtin echo -ne "'npm' is not installed\n";
+        return 0;
+    fi;
+    "${npm_bin}" install -g npm;
+    npm_pkg_arr='';
+    builtin mapfile -t npm_pkg_arr < <(get_config 'node_packages' 'npm');
+    for _npm_pkg in "${npm_pkg_arr[@]}";
+    do
+        "${npm_bin}" install -g "${_npm_pkg}";
+    done;
+    npm_exec_arr='';
+    builtin mapfile -t npm_exec_arr < <(LC_ALL=C "${ls_bin}" -A1 -- "${HOME}/.local/share/npm/bin");
+    for _npm_exec in "${npm_exec_arr[@]}";
+    do
+        "${ln_bin}" -sf "${HOME}/.local/share/npm/bin/${_npm_exec}" "${HOME}/.local/bin/${_npm_exec}";
+    done;
+    \builtin return 0
+}
+
+function __install_path ()
+{
+    local base_path;
+    local install_type;
+    install_type="${1:-}";
+    if [[ -z ${install_type} ]]; then
+        install_type='--user';
+    fi;
+    if [[ ${install_type} == --system ]]; then
+        base_path="/opt/apps";
+    else
+        if [[ ${install_type} == --user ]]; then
+            base_path="${HOME}/.local/opt/apps";
+        fi;
+    fi;
+    builtin echo -ne "${base_path}";
+    \builtin return 0
+}
+
+function __install_python_cli_tools ()
+{
+    local py_bin;
+    local pip_pkg_arr;
+    local _pip_pkg;
+    local ln_bin;
+    __install_app --user 'micromamba';
+    __install_app --user 'python';
+    ln_bin="$(which_bin 'ln')";
+    py_bin="$(which_bin 'python3')";
+    if [[ -z ${py_bin} ]]; then
+        py_bin="$(which_bin 'python')";
+    fi;
+    pip_pkg_arr='';
+    builtin mapfile -t pip_pkg_arr < <(get_config 'python_packages' 'pip');
+    for _pip_pkg in "${pip_pkg_arr[@]}";
+    do
+        "${py_bin}" -m pip install "${_pip_pkg}";
+    done;
+    builtin return 0
+}
+
+function __install_yq ()
+{
+    builtin local latest_version;
+    builtin local gh_repo;
+    builtin local get_url;
+    builtin local sys_arch;
+    builtin local bin_arch;
+    builtin local ln_bin;
+    builtin local chmod_bin;
+    builtin local mkdir_bin;
+    builtin local uname_bin;
+    builtin local link_inst_path;
+    inst_path="$(__install_path --user)";
+    link_inst_path="${HOME}/.local/bin";
+    uname_bin="$(require 'uname')";
+    sys_arch="$("${uname_bin}" -s)-$("${uname_bin}" -m)";
+    case "${sys_arch}" in
+        Linux-x86_64)
+            bin_arch="linux_amd64"
+        ;;
+        Linux-aarch64)
+            bin_arch="linux_arm64"
+        ;;
+        Darwin-x86_64)
+            bin_arch="darwin_amd64"
+        ;;
+        Darwin-arm64)
+            bin_arch="darwin_arm64"
+        ;;
+        *)
+            exit_fun "Unknown CPU architecture '${sys_arch}'\n"
+        ;;
+    esac;
+    ln_bin="$(require 'ln')";
+    chmod_bin="$(require 'chmod')";
+    mkdir_bin="$(require 'mkdir')";
+    gh_repo='mikefarah/yq';
+    latest_version="$(__get_gh_latest_release "${gh_repo}")";
+    base_url="https://github.com/${gh_repo}/releases/download";
+    get_url="${base_url}/${latest_version}/yq_${bin_arch}";
+    "${mkdir_bin}" -p "${inst_path}/yq/temp";
+    download "${get_url}" "${inst_path}/yq/temp";
+    "${chmod_bin}" +x "${inst_path}/yq/temp/yq_${bin_arch}";
+    if [[ ! -d ${link_inst_path} ]]; then
+        "${mkdir_bin}" -p "${link_inst_path}";
+    fi;
+    "${ln_bin}" -sf "${inst_path}/yq/temp/yq_${bin_arch}" "${link_inst_path}/yq";
+    return 0
+}
+
+function __parse_yaml_python ()
+{
+    \builtin local py_bin;
+    \builtin local yaml_path;
+    \builtin local _level;
+    \builtin local levels_str;
+    \builtin local py_script;
+    \builtin local int_regex;
+    \builtin local module_res;
+    \builtin local has_yaml_module;
+    py_bin="$(which_bin 'python')";
+    has_yaml_module='';
+    if [[ -n ${py_bin} ]]; then
+        module_res=$("${py_bin}" -c 'import yaml' 2> /dev/null);
+        if [[ $? -eq 0 ]]; then
+            has_yaml_module='true';
+        fi;
+    fi;
+    if [[ -z ${py_bin} ]]; then
+        py_bin="$(which_bin 'python3')";
+        if [[ -n ${py_bin} ]]; then
+            module_res=$("${py_bin}" -c 'import yaml' 2> /dev/null);
+            if [[ $? -eq 0 ]]; then
+                has_yaml_module='true';
+            fi;
+        fi;
+    fi;
+    if [[ -z ${py_bin} ]]; then
+        exit_fun "'python' is not available.";
+        \builtin exit 1;
+    fi;
+    if [[ -z ${has_yaml_module} ]]; then
+        exit_fun 'Python {yaml} module is not installed.';
+        \builtin exit 1;
+    fi;
+    yaml_path="${1:-}";
+    levels_str='';
+    int_regex='^[0-9]+$';
+    for _level in "${@:2}";
+    do
+        if [[ ${_level} =~ ${int_regex} ]]; then
+            levels_str="${levels_str}[${_level}]";
+        else
+            levels_str="${levels_str}['${_level}']";
+        fi;
+    done;
+    py_script="import yaml;x = yaml.safe_load(open('${yaml_path}', 'r'))";
+    py_script="${py_script}${levels_str}";
+    py_script="${py_script}; print(x) if isinstance(x, str) else [print(yaml.dump(i)) for i in x] if isinstance(x, list) else print(yaml.dump(x)) if isinstance(x, dict) else False;";
+    module_res=$("${py_bin}" -c "${py_script}" 2>&1);
+    if [[ ${module_res} =~ KeyError: ]]; then
+        \builtin echo -ne '\n';
+        \builtin return 0;
+    fi;
+    \builtin echo -ne "${module_res}";
+    \builtin return 0
+}
+
+function __parse_yaml_ruby ()
+{
+    \builtin local ruby_bin;
+    \builtin local ruby_script;
+    \builtin local yaml_path;
+    \builtin local _level;
+    \builtin local int_regex;
+    \builtin local yaml_res;
+    ruby_bin="$(which_bin 'ruby')";
+    yaml_path="${1:-}";
+    ruby_script="var_res=YAML::load(open(ARGV.first).read)";
+    int_regex='^[0-9]+$';
+    for _level in "${@:2}";
+    do
+        if [[ ${_level} =~ ${int_regex} ]]; then
+            ruby_script="${ruby_script}[${_level}]";
+        else
+            ruby_script="${ruby_script}['${_level}']";
+        fi;
+    done;
+    ruby_script="${ruby_script}; if var_res.class == Hash; puts YAML::dump(var_res) elsif var_res.class == Array; for item in var_res; puts YAML::dump(item) end; else puts var_res end;";
+    yaml_res=$("${ruby_bin}" -ryaml -e "${ruby_script}" "${yaml_path}" | grep -v '^---');
+    \builtin echo -ne "${yaml_res}";
+    \builtin return 0
+}
+
+function __parse_yaml_yq ()
+{
+    \builtin local yq_bin;
+    \builtin local yq_str;
+    \builtin local yaml_path;
+    \builtin local _level;
+    \builtin local levels_str;
+    \builtin local yaml_res;
+    yq_bin="$(which_bin 'yq')";
+    yaml_path="${1:-}";
+    levels_str='';
+    for _level in "${@:2}";
+    do
+        levels_str="${levels_str}.${_level}";
+    done;
+    if [[ -z ${levels_str} ]]; then
+        levels_str='.';
+    fi;
+    yq_str="... comments=\"\" | ${levels_str} | ( select( has(0) ) | .[]) // .";
+    yaml_res=$("${yq_bin}" eval --no-doc "${yq_str}" "${yaml_path}");
+    if [[ ${yaml_res} == null ]]; then
+        yaml_res='\n';
+    fi;
+    \builtin echo -ne "${yaml_res}";
+    \builtin return 0
+}
+
+function __rebuild_rust_source_tools ()
+{
+    local install_path;
+    local link_path;
+    local cargo_arr;
+    local app_bin_arr;
+    local _app_bin;
+    local _app_bin_path;
+    local cargo_bin;
+    local ls_bin;
+    local ln_bin;
+    local check_bin_arr;
+    local _check_name;
+    local _check_bin;
+    local rebuild_arr;
+    local _check_avail;
+    declare -a cargo_arr=(starship eza bat du-dust fd-find sd hck);
+    cargo_bin="$(which_bin 'cargo')";
+    ls_bin="$(require 'ls')";
+    ln_bin="$(require 'ln')";
+    install_path="${HOME}/.local/opt/apps/temp";
+    link_path="${HOME}/.local/bin";
+    declare -a check_bin_arr=(starship eza bat dust fd sd hck);
+    declare -a rebuild_arr=();
+    for _check_name in "${check_bin_arr[@]}";
+    do
+        _check_bin="$(which_bin "${_check_name}")";
+        if [[ -n ${_check_bin} ]]; then
+            _check_avail="$("${_check_bin}" --version 2> /dev/null > /dev/null || \builtin echo -ne "${?}")";
+            if [[ -n ${_check_avail} ]]; then
+                rebuild_arr+=("${_check_name}");
+            fi;
+        fi;
+    done;
+    if [[ ${#rebuild_arr[@]} -eq 0 ]]; then
+        \builtin echo -ne "No cargo app to rebuild.\n";
+        \builtin return 0;
+    fi;
+    "${cargo_bin}" install --quiet --root "${install_path}" "${cargo_arr[@]}";
+    \builtin mapfile -t app_bin_arr < <(LC_ALL=C "${ls_bin}" -A1 -- "${install_path}/bin");
+    for _app_bin in "${app_bin_arr[@]}";
+    do
+        _app_bin_path="${install_path}/bin/${_app_bin}";
+        "${ln_bin}" -sf "${_app_bin_path}" "${link_path}/${_app_bin}";
+    done;
+    \builtin return 0
+}
+
+function __unpack_deb ()
+{
+    local deb_path dir_output deb_data_path _i;
+    local rm_bin cp_bin mkdir_bin ar_bin;
+    local realpath_bin;
+    local ls_bin;
+    deb_path="${1:-}";
+    dir_output="${2:-}";
+    rm_bin="$(which_bin 'rm')";
+    ls_bin="$(which_bin 'ls')";
+    cp_bin="$(which_bin 'cp')";
+    mkdir_bin="$(which_bin 'mkdir')";
+    ar_bin="$(which_bin 'ar')";
+    realpath_bin="$(which_bin 'realpath')";
+    "${mkdir_bin}" -p "${dir_output}/deb";
+    "${ar_bin}" --output="${dir_output}/deb" x "${deb_path}";
+    deb_data_path=$("${realpath_bin}" "${dir_output}"/deb/dat*);
+    unpack "${deb_data_path}" "${dir_output}";
+    "${rm_bin}" -rf "${dir_output}/deb";
+    builtin mapfile -t content_dirs < <(LC_ALL=C "${ls_bin}" -- "${dir_output}");
+    for _i in "${content_dirs[@]}";
+    do
+        if [[ -d "${dir_output}/${_i}" ]]; then
+            "${cp_bin}" -r "${dir_output}/${_i}"/* "${dir_output}";
+            "${rm_bin}" -rf "${dir_output:?}/${_i}";
+        fi;
+    done;
+    builtin return 0
+}
+
+function __update_configs ()
+{
+    local tldr_bin;
+    local bat_bin;
+    tldr_bin="$(which_bin 'tldr')";
+    bat_bin="$(which_bin 'bat')";
+    if [[ -n ${tldr_bin} ]]; then
+        "${tldr_bin}" --update;
+    fi;
+    if [[ -n ${bat_bin} ]]; then
+        "${bat_bin}" cache --build;
+    fi;
+    return 0
+}
+
+function clean_homebrew_cache ()
+{
+    \builtin local brew_bin;
+    \builtin local rm_bin;
+    brew_bin="$(which_bin 'brew')";
+    rm_bin="$(which_bin 'rm')";
+    if [[ -n ${brew_bin} ]]; then
+        "${brew_bin}" cleanup;
+        "${brew_bin}" cleanup -s;
+        "${brew_bin}" cleanup --prune=all;
+        "${rm_bin}" -rf "$("${brew_bin}" --cache)";
+    fi;
+    \builtin return 0
+}
+
+function clean_pixi_and_conda_cache ()
+{
+    \builtin local pixi_bin;
+    \builtin local micromamba_bin;
+    \builtin local mamba_bin;
+    \builtin local conda_bin;
+    pixi_bin="$(which_bin 'pixi')";
+    conda_bin="$(which_bin 'conda')";
+    micromamba_bin="$(which_bin 'micromamba')";
+    mamba_bin="$(which_bin 'mamba')";
+    if [[ -n ${pixi_bin} ]]; then
+        "${pixi_bin}" clean cache --yes;
+    fi;
+    if [[ -n ${micromamba_bin} ]]; then
+        "${micromamba_bin}" clean --all --yes;
+    fi;
+    if [[ -n ${mamba_bin} ]]; then
+        "${mamba_bin}" clean --all --yes;
+    fi;
+    if [[ -n ${conda_bin} ]]; then
+        "${conda_bin}" clean --all --yes;
+    fi;
+    \builtin return 0
+}
+
+function create_temp ()
+{
+    local suff_str exec_cmd mktemp_bin;
+    local usage="create_temp <SUFFIX>";
+    if [[ $1 == -h ]]; then
+        builtin echo -ne "${usage}\n";
+    fi;
+    suff_str='';
+    mktemp_bin="$(which_bin 'mktemp')";
+    exec_cmd="${mktemp_bin} -d -t 'tmp.XXXXXXXXX'";
+    if [[ ! "$1" == "" ]]; then
+        suff_str=" --suffix \"-$1\"";
+        exec_cmd="${exec_cmd} ${suff_str}";
+    fi;
+    builtin eval "${exec_cmd}"
+}
+
+function download ()
+{
+    function download_usage ()
+    {
+        builtin echo -ne "usage: download <URL> [<OUTPUT_DIR>] [<THREADS>]\n" 1>&2
+    };
+    if [[ ${#} -eq 0 ]]; then
+        download_usage;
+        unset download_usage;
+        exit 1;
+    fi;
+    if [[ ${1:-} == '-h' ]]; then
+        download_usage;
+        unset download_usage;
+        return 0;
+    fi;
+    unset download_usage;
+    local get_url;
+    local dir_output;
+    local thread_num;
+    local output_filename;
+    local output_basename;
+    local realpath_bin;
+    local wget_bin;
+    local curl_bin;
+    local aria_bin;
+    local cache_path;
+    get_url="${1:-}";
+    dir_output="${2:-}";
+    realpath_bin="$(require 'realpath')";
+    if [[ -z ${dir_output} ]]; then
+        dir_output="$("${realpath_bin}" ./)";
+    fi;
+    thread_num="$(get_nthreads '8')";
+    if [[ ! -d ${dir_output} ]]; then
+        "$(which_bin mkdir)" -p "${dir_output}";
+    fi;
+    output_basename="$(basename "${get_url}")";
+    output_filename="${dir_output}/${output_basename}";
+    cache_path="${XDG_CACHE_HOME:-${HOME}/.cache}";
+    wget_bin="$(which_bin 'wget')";
+    curl_bin="$(which_bin 'curl')";
+    aria_bin="$(which_bin 'aria2c')";
+    if [[ -n ${curl_bin} ]]; then
+        "${curl_bin}" -f -s -S -L --create-dirs --insecure --silent -o "${output_filename}" -C - "${get_url}";
+    else
+        if [[ -n ${wget_bin} ]]; then
+            cache_path="${cache_path}/wget/wget-hsts";
+            "${wget_bin}" --continue -L -nv -q -np -nH --hsts-file="${cache_path}" --no-check-certificate --output-document="${output_filename}" "${get_url}";
+        else
+            if [[ -n ${aria_bin} ]]; then
+                "${aria_bin}" --continue=true -s "${thread_num}" -x "${thread_num}" -j 1 -k 1M -d "${dir_output}" --out="${output_basename}" --quiet=true --check-integrity=true --check-certificate=false "${get_url}";
+            else
+                exit_fun 'No download method available';
+                exit 1;
+            fi;
+        fi;
+    fi;
+    return 0
+}
+
+function exit_fun ()
+{
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    \builtin exit 1
+}
+
+function get_config ()
+{
+    local _usage="Usage: ${0} <{--priv|-p]>";
+    unset _usage;
+    local cfg_dir;
+    local file_base_name;
+    local file_ext;
+    local var_file;
+    local argv;
+    if [[ ${1:-} == --priv ]] || [[ ${1:-} == -p ]]; then
+        declare -a argv=("${@:3}");
+        file_base_name="${2:-}";
+        cfg_dir="$(get_config_path --priv)";
+    else
+        declare -a argv=("${@:2}");
+        file_base_name="${1:-}";
+        cfg_dir="$(get_config_path)";
+    fi;
+    file_ext='yaml';
+    var_file="${cfg_dir}/vars/${file_base_name}.${file_ext}";
+    if [[ ! -f ${var_file} ]]; then
+        file_ext="yml";
+        var_file="${cfg_dir}/vars/${file_base_name}.${file_ext}";
+    fi;
+    if [[ ! -f ${var_file} ]]; then
+        exit_fun "'${var_file}' no such file.";
+        \builtin exit 1;
+    fi;
+    parse_yaml "${var_file}" main "${argv[@]}";
+    \builtin return 0
+}
+
+function get_config_path ()
+{
+    local cfg_path;
+    local private_dir;
+    if [[ ${1} == --priv ]] || [[ ${1} == -p ]]; then
+        private_dir="$(get_config env priv)";
+        cfg_path="${XDG_CONFIG_HOME:-${HOME}/.config}/${private_dir}";
+    else
+        private_dir="${1}";
+        cfg_path="${_LOCAL_CONFIG:-${XDG_CONFIG_HOME:-${HOME}/.config}/${private_dir}}";
+    fi;
+    builtin echo -ne "${cfg_path}";
+    return 0
+}
+
+function get_nthreads ()
+{
+    local nproc_bin;
+    local lscpu_bin;
+    local grep_bin;
+    local num_threads;
+    local half_threads;
+    local max_threads_to_use;
+    local threads_to_use;
+    max_threads_to_use="${1:-8}";
+    nproc_bin="$(which_bin 'nproc')";
+    lscpu_bin="$(which_bin 'lscpu')";
+    grep_bin="$(require 'grep')";
+    if [[ -n ${nproc_bin} ]]; then
+        num_threads="$("${nproc_bin}")";
+    else
+        if [[ -e /proc/cpuinfo ]]; then
+            num_threads="$("${grep_bin}" -c 'processor' '/proc/cpuinfo')";
+        else
+            if [[ -n ${lscpu_bin} ]]; then
+                num_threads="$("${lscpu_bin}" | "${grep_bin}" '^CPU(' | awk '{print $2}')";
+            else
+                builtin echo -ne "4";
+                return 0;
+            fi;
+        fi;
+    fi;
+    half_threads="$((num_threads/2))";
+    threads_to_use="${half_threads}";
+    if [[ ${threads_to_use} -gt ${max_threads_to_use} ]]; then
+        threads_to_use="${max_threads_to_use}";
+    fi;
+    builtin echo -ne "${threads_to_use}";
+    return 0
+}
+
+function install_apps ()
+{
+    local _usage="usage: ${0} [--user|--system]";
+    local _arg;
+    local install_type;
+    local apps_length;
+    local app_num_arr;
+    local app_num;
+    if [[ ${#} -eq 0 ]]; then
+        install_type='--user';
+    fi;
+    for _arg in "${@:-}";
+    do
+        if [[ ${_arg} == --system ]]; then
+            install_type='--system';
+        else
+            if [[ ${_arg} == --user ]]; then
+                install_type='--user';
+            fi;
+        fi;
+    done;
+    apps_length="$(get_config apps apps | grep -c '^name:')";
+    require seq;
+    \builtin mapfile -t app_num_arr < <(\seq 0 $(( apps_length - 1 )));
+    for app_num in "${app_num_arr[@]}";
+    do
+        \builtin echo -ne "Installing App: '${app_num}':\n";
+        __install_app "${install_type}" "${app_num}";
+    done;
+    \builtin echo -ne "Completed 'install_apps'\n";
+    \builtin return 0
+}
+
+function is_compressed ()
+{
+    local input_file;
+    local is_zip_var;
+    local file_bin;
+    input_file="${1}";
+    file_bin="$(which_bin 'file')";
+    res_txt="$("${file_bin}" -b "${input_file}")";
+    if [[ ${res_txt} =~ "compressed" ]]; then
+        is_zip_var='true';
+    else
+        is_zip_var='false';
+    fi;
+    builtin echo -ne "${is_zip_var}";
+    return 0
+}
+
+function parse_yaml ()
+{
+    \builtin local _usage;
+    _usage="Usage: ${0} <FILE_NAME> [<KEY_1>...<KEY_N>]";
+    \builtin unset _usage;
+    \builtin local yq_bin;
+    \builtin local ruby_bin;
+    \builtin local py3_bin;
+    \builtin local py_bin;
+    \builtin local method;
+    \builtin local file_path;
+    yq_bin="$(which_bin 'yq')";
+    ruby_bin="$(which_bin 'ruby')";
+    py_bin="$(which_bin 'python')";
+    py3_bin="$(which_bin 'python3')";
+    file_path="${1:-}";
+    if [[ ! -f ${file_path} ]]; then
+        exit_fun "File '${file_path}' does not exist";
+        \builtin exit 1;
+    fi;
+    method='';
+    if [[ -n ${yq_bin} ]]; then
+        method='yq';
+    else
+        if [[ -n ${ruby_bin} ]]; then
+            method='ruby';
+        else
+            if [[ -n ${py3_bin} || -n ${py_bin} ]]; then
+                method='python';
+            fi;
+        fi;
+    fi;
+    case "${method}" in
+        yq)
+            __parse_yaml_yq "${@}"
+        ;;
+        ruby)
+            __parse_yaml_ruby "${@}"
+        ;;
+        python)
+            __parse_yaml_python "${@}"
+        ;;
+        *)
+            exit_fun 'No method available for parsing YAML.';
+            \builtin exit 1
+        ;;
+    esac
+}
+
+function require ()
+{
+    local cmd_str;
+    \builtin local cmd_bin;
+    \builtin local cmd_res;
+    \builtin local full_cmd;
+    cmd_str="${1:-}";
+    cmd_bin="$(which_bin "${cmd_str}")";
+    if [[ -z ${cmd_bin} ]]; then
+        exit_fun "'${cmd_str}' executable not found in '\${PATH}'";
+        \builtin exit 1;
+    fi;
+    if [[ ${#} -eq 1 ]]; then
+        cmd_res="$("${cmd_bin}" --version 2>&1 || \builtin echo -ne '')";
+        full_cmd="${cmd_bin} --version";
+    else
+        cmd_res="$("${cmd_bin}" "${@:2}" 2>&1 || \builtin echo -ne '')";
+        full_cmd="${cmd_bin} ${*:2}";
+    fi;
+    if [[ -n ${cmd_res} ]]; then
+        \builtin echo -ne "${cmd_bin}";
+    else
+        exit_fun "'${full_cmd}' can't be executed";
+        \builtin exit 1;
+    fi;
+    \builtin return 0
+}
+
+function unpack ()
+{
+    local _usage;
+    function _usage ()
+    {
+        \builtin echo -ne "Usage: ${0} <ZIP_FILE> [<OUTPUT_DIR>]\n" 1>&2
+    };
+    if [[ ${#} -eq 0 ]]; then
+        _usage;
+        unset _usage;
+        \builtin exit 1;
+    fi;
+    unset _usage;
+    local zip_path;
+    local dir_output;
+    local output_file_path;
+    local rm_bin;
+    local cp_bin;
+    local mkdir_bin;
+    local tar_bin;
+    local realpath_bin;
+    local basename_bin;
+    local unzip_bin;
+    local gzip_bin;
+    local unrar_bin;
+    zip_path="${1:-}";
+    dir_output="${2:-}";
+    rm_bin="$(which_bin 'rm')";
+    cp_bin="$(which_bin 'cp')";
+    mkdir_bin="$(which_bin 'mkdir')";
+    tar_bin="$(which_bin 'tar')";
+    realpath_bin="$(which_bin 'realpath')";
+    basename_bin="$(which_bin 'basename')";
+    unzip_bin="$(which_bin 'unzip')";
+    gzip_bin="$(which_bin 'gzip')";
+    unrar_bin="$(which_bin 'unrar')";
+    if [[ -z ${dir_output} ]]; then
+        dir_output="$("${realpath_bin}" ./)";
+    fi;
+    output_file_path="${dir_output}/$("${basename_bin}" "${zip_path}")";
+    "${mkdir_bin}" -p "${dir_output}";
+    if [[ -n ${zip_path} && -f ${zip_path} ]]; then
+        case "${zip_path}" in
+            *.tar.gz)
+                "${tar_bin}" -C "${dir_output}" -xzf "${zip_path}"
+            ;;
+            *.tgz)
+                "${tar_bin}" -C "${dir_output}" -xzf "${zip_path}"
+            ;;
+            *.tar.xz)
+                "${tar_bin}" -C "${dir_output}" -xJf "${zip_path}"
+            ;;
+            *.txz)
+                "${tar_bin}" -C "${dir_output}" -xJf "${zip_path}"
+            ;;
+            *.tar.bz2)
+                "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"
+            ;;
+            *.tbz2)
+                "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"
+            ;;
+            *.bz2)
+                "${tar_bin}" -C "${dir_output}" -xjf "${zip_path}"
+            ;;
+            *.zip)
+                "${unzip_bin}" -qq -o "${zip_path}" -d "${dir_output}"
+            ;;
+            *.rar)
+                "${unrar_bin}" x -y "${zip_path}" "${dir_output}"
+            ;;
+            *.tar)
+                "${tar_bin}" -C "${dir_output}" -xf "${zip_path}"
+            ;;
+            *.gz)
+                "${gzip_bin}" -q -dkc < "${zip_path}" > "${output_file_path/.gz/}"
+            ;;
+            *.deb)
+                __unpack_deb "${zip_path}" "${dir_output}"
+            ;;
+            *)
+                if [[ $(is_compressed "${zip_path}") == true ]]; then
+                    "${tar_bin}" -C "${dir_output}" -xf "${zip_path}";
+                else
+                    "${cp_bin}" -r "${zip_path}" "${dir_output}"/;
+                fi
+            ;;
+        esac;
+    else
+        exit_fun "'${zip_path}' is not a valid file";
+        \builtin exit 1;
+    fi;
+    \builtin return 0
+}
+
+function which_bin ()
+{
+    \builtin local cmd_arg;
+    \builtin local path_dir_arr;
+    \builtin local path_dir;
+    \builtin local file_name;
+    \builtin local cmd_bin;
+    cmd_arg="${1:-}";
+    cmd_bin='';
+    IFS=: \builtin read -r -a path_dir_arr <<< "${PATH:-}";
+    for path_dir in "${path_dir_arr[@]}";
+    do
+        file_name="${path_dir}/${cmd_arg}";
+        if [[ -x "${file_name}" && ! -d "${file_name}" ]] && [[ "${file_name}" =~ ${cmd_arg}$ ]]; then
+            cmd_bin="${file_name}";
+            \builtin break;
+        fi;
+    done;
+    \builtin echo -ne "${cmd_bin}";
+    \builtin return 0
+}
+
+function main () {
+    bootstrap_user "${@:-}";
+    \builtin return;
+}
+
+main "${@:-}";
+\builtin exit;

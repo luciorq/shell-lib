@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+
+# Do NOT modify this file manually.
+# Change source code at: https://github.com/luciorq/shell-lib
+# Author: Lucio Rezende Queiroz
+# License: MIT
+
+\builtin set -o errexit;    # abort on nonzero exitstatus
+\builtin set -o nounset;    # abort on unbound variable
+\builtin set -o pipefail;   # do not hide errors within pipes
+
+[[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { \builtin echo >&2 "Error: Bash >=4 required"; \builtin exit 1; }
+
+function get_nthreads ()
+{
+    local nproc_bin;
+    local lscpu_bin;
+    local grep_bin;
+    local num_threads;
+    local half_threads;
+    local max_threads_to_use;
+    local threads_to_use;
+    max_threads_to_use="${1:-8}";
+    nproc_bin="$(which_bin 'nproc')";
+    lscpu_bin="$(which_bin 'lscpu')";
+    grep_bin="$(require 'grep')";
+    if [[ -n ${nproc_bin} ]]; then
+        num_threads="$("${nproc_bin}")";
+    else
+        if [[ -e /proc/cpuinfo ]]; then
+            num_threads="$("${grep_bin}" -c 'processor' '/proc/cpuinfo')";
+        else
+            if [[ -n ${lscpu_bin} ]]; then
+                num_threads="$("${lscpu_bin}" | "${grep_bin}" '^CPU(' | awk '{print $2}')";
+            else
+                builtin echo -ne "4";
+                return 0;
+            fi;
+        fi;
+    fi;
+    half_threads="$((num_threads/2))";
+    threads_to_use="${half_threads}";
+    if [[ ${threads_to_use} -gt ${max_threads_to_use} ]]; then
+        threads_to_use="${max_threads_to_use}";
+    fi;
+    builtin echo -ne "${threads_to_use}";
+    return 0
+}
+
+function exit_fun ()
+{
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    \builtin exit 1
+}
+
+function require ()
+{
+    local cmd_str;
+    \builtin local cmd_bin;
+    \builtin local cmd_res;
+    \builtin local full_cmd;
+    cmd_str="${1:-}";
+    cmd_bin="$(which_bin "${cmd_str}")";
+    if [[ -z ${cmd_bin} ]]; then
+        exit_fun "'${cmd_str}' executable not found in '\${PATH}'";
+        \builtin exit 1;
+    fi;
+    if [[ ${#} -eq 1 ]]; then
+        cmd_res="$("${cmd_bin}" --version 2>&1 || \builtin echo -ne '')";
+        full_cmd="${cmd_bin} --version";
+    else
+        cmd_res="$("${cmd_bin}" "${@:2}" 2>&1 || \builtin echo -ne '')";
+        full_cmd="${cmd_bin} ${*:2}";
+    fi;
+    if [[ -n ${cmd_res} ]]; then
+        \builtin echo -ne "${cmd_bin}";
+    else
+        exit_fun "'${full_cmd}' can't be executed";
+        \builtin exit 1;
+    fi;
+    \builtin return 0
+}
+
+function which_bin ()
+{
+    \builtin local cmd_arg;
+    \builtin local path_dir_arr;
+    \builtin local path_dir;
+    \builtin local file_name;
+    \builtin local cmd_bin;
+    cmd_arg="${1:-}";
+    cmd_bin='';
+    IFS=: \builtin read -r -a path_dir_arr <<< "${PATH:-}";
+    for path_dir in "${path_dir_arr[@]}";
+    do
+        file_name="${path_dir}/${cmd_arg}";
+        if [[ -x "${file_name}" && ! -d "${file_name}" ]] && [[ "${file_name}" =~ ${cmd_arg}$ ]]; then
+            cmd_bin="${file_name}";
+            \builtin break;
+        fi;
+    done;
+    \builtin echo -ne "${cmd_bin}";
+    \builtin return 0
+}
+
+function main () {
+    get_nthreads "${@:-}";
+    \builtin return;
+}
+
+main "${@:-}";
+\builtin exit;

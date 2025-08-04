@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+# Do NOT modify this file manually.
+# Change source code at: https://github.com/luciorq/shell-lib
+# Author: Lucio Rezende Queiroz
+# License: MIT
+
+\builtin set -o errexit;    # abort on nonzero exitstatus
+\builtin set -o nounset;    # abort on unbound variable
+\builtin set -o pipefail;   # do not hide errors within pipes
+
+[[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { \builtin echo >&2 "Error: Bash >=4 required"; \builtin exit 1; }
+
+function head_pure ()
+{
+    local line_arr;
+    local file_path;
+    n_arg="${1}";
+    if [[ $# -eq 1 ]]; then
+        n_arg='5';
+    fi;
+    file_path="${2:-${1}}";
+    builtin mapfile -tn "${n_arg}" line_arr < "${file_path}";
+    builtin printf '%s\n' "${line_arr[@]:-${n_arg}}";
+    return 0
+}
+
+function main () {
+    head_pure "${@:-}";
+    \builtin return;
+}
+
+main "${@:-}";
+\builtin exit;

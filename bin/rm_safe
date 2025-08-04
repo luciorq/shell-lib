@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+
+# Do NOT modify this file manually.
+# Change source code at: https://github.com/luciorq/shell-lib
+# Author: Lucio Rezende Queiroz
+# License: MIT
+
+\builtin set -o errexit;    # abort on nonzero exitstatus
+\builtin set -o nounset;    # abort on unbound variable
+\builtin set -o pipefail;   # do not hide errors within pipes
+
+[[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { \builtin echo >&2 "Error: Bash >=4 required"; \builtin exit 1; }
+
+function rm_safe ()
+{
+    builtin local rm_bin;
+    builtin local realpath_bin;
+    builtin local safe_dirs_arr;
+    builtin local _safe_dir;
+    builtin local safe_path;
+    builtin local _arg;
+    builtin local path_arg;
+    rm_bin="$(which_bin 'rm')";
+    if [[ -z ${rm_bin} ]]; then
+        exit_fun "'rm' command not available on \${PATH}";
+        builtin exit 1;
+    fi;
+    realpath_bin="$(which_bin 'realpath')";
+    declare -a safe_dirs_arr=("${HOME}" "${HOME}/Documents" "${HOME}/documents" "${HOME}/projects" "${HOME}/workspaces" "/Users/${USER}" "/home/${USER}" '${HOME}' '/Users/${USER}' '/home/${USER}' '/root' '/home' '/data' '/System' '/User' '/Volumes' '/');
+    for _arg in "${@}";
+    do
+        path_arg="$("${realpath_bin}" "${_arg}" 2> /dev/null || builtin echo -ne '')";
+        if [[ -n ${path_arg} ]]; then
+            for _safe_dir in "${safe_dirs_arr[@]}";
+            do
+                safe_path="$("${realpath_bin}" "${_safe_dir}" 2> /dev/null || builtin echo -ne '')";
+                if [[ ${safe_path} == "${path_arg}" ]]; then
+                    builtin echo -ne "Error: '${safe_path}' is a **protected** directory. Don't delete it!\n";
+                    builtin exit 1;
+                fi;
+            done;
+        fi;
+    done;
+    "${rm_bin}" "${@}";
+    builtin return 0
+}
+
+function exit_fun ()
+{
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    \builtin exit 1
+}
+
+function which_bin ()
+{
+    \builtin local cmd_arg;
+    \builtin local path_dir_arr;
+    \builtin local path_dir;
+    \builtin local file_name;
+    \builtin local cmd_bin;
+    cmd_arg="${1:-}";
+    cmd_bin='';
+    IFS=: \builtin read -r -a path_dir_arr <<< "${PATH:-}";
+    for path_dir in "${path_dir_arr[@]}";
+    do
+        file_name="${path_dir}/${cmd_arg}";
+        if [[ -x "${file_name}" && ! -d "${file_name}" ]] && [[ "${file_name}" =~ ${cmd_arg}$ ]]; then
+            cmd_bin="${file_name}";
+            \builtin break;
+        fi;
+    done;
+    \builtin echo -ne "${cmd_bin}";
+    \builtin return 0
+}
+
+function main () {
+    rm_safe "${@:-}";
+    \builtin return;
+}
+
+main "${@:-}";
+\builtin exit;

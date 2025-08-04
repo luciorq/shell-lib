@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+
+# Do NOT modify this file manually.
+# Change source code at: https://github.com/luciorq/shell-lib
+# Author: Lucio Rezende Queiroz
+# License: MIT
+
+\builtin set -o errexit;    # abort on nonzero exitstatus
+\builtin set -o nounset;    # abort on unbound variable
+\builtin set -o pipefail;   # do not hide errors within pipes
+
+[[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { \builtin echo >&2 "Error: Bash >=4 required"; \builtin exit 1; }
+
+function slurm_check_gpus ()
+{
+    \builtin local scontrol_bin;
+    \builtin local grep_bin;
+    \builtin local gpu_output;
+    \builtin local gpu_node_names;
+    \builtin local gpus_installed;
+    \builtin local gpus_used;
+    \builtin local partition_names;
+    \builtin local gpus_model;
+    \builtin local sed_bin;
+    \builtin local paste_bin;
+    \builtin local column_bin;
+    scontrol_bin="$(require 'scontrol')";
+    grep_bin="$(require 'grep')";
+    sed_bin="$(require 'sed')";
+    paste_bin="$(require 'paste')";
+    column_bin="$(require 'column')";
+    gpu_output="$("${scontrol_bin}" show nodes | "${grep_bin}" -i -e CfgTRES= -e AllocTRES= -e NodeName= -e Gres= -e Partitions=)";
+    gpu_node_names="$(\builtin echo -ne "${gpu_output}" | grep 'NodeName=' | sed -e 's|\s.*||g' | sed -e 's|NodeName=||g')";
+    gpus_installed="$(\builtin echo -ne "${gpu_output}" | grep 'Gres=' | sed -e 's|Gres\=||g' | sed -e 's|gpu\:||g')";
+    gpus_used="$(\builtin echo -ne "${gpu_output}" | grep 'AllocTRES=' | sed -e 's|.*gres/gpu:||g' | sed -e 's|AllocTRES\=|0|g')";
+    partition_names="$(\builtin echo -ne "${gpu_output}" | grep -v 'Gres=' | grep -v 'AllocTRES=' | grep -v 'CfgTRES=' | sed -e 's|NodeName\=.*|NA|g' | sed -e ':a;N;$!ba;s/\n//g' | sed -e 's|Partitions\=||g' | sed -e 's/,/|/g' | sed -e 's|NA|\n|g')";
+    CLICOLOR_FORCE=1 "${paste_bin}" <(\builtin echo -ne "NODENAME\n${gpu_node_names}") <(\builtin echo -ne "TOTAL_GPUS\n${gpus_installed}") <(\builtin echo -ne "USED_GPUS\n${gpus_used}") <(\builtin echo -ne "PARTITION\n${partition_names}") | grep -v '(null)' | "${column_bin}" -t;
+    \builtin return 0
+}
+
+function exit_fun ()
+{
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    \builtin exit 1
+}
+
+function require ()
+{
+    local cmd_str;
+    \builtin local cmd_bin;
+    \builtin local cmd_res;
+    \builtin local full_cmd;
+    cmd_str="${1:-}";
+    cmd_bin="$(which_bin "${cmd_str}")";
+    if [[ -z ${cmd_bin} ]]; then
+        exit_fun "'${cmd_str}' executable not found in '\${PATH}'";
+        \builtin exit 1;
+    fi;
+    if [[ ${#} -eq 1 ]]; then
+        cmd_res="$("${cmd_bin}" --version 2>&1 || \builtin echo -ne '')";
+        full_cmd="${cmd_bin} --version";
+    else
+        cmd_res="$("${cmd_bin}" "${@:2}" 2>&1 || \builtin echo -ne '')";
+        full_cmd="${cmd_bin} ${*:2}";
+    fi;
+    if [[ -n ${cmd_res} ]]; then
+        \builtin echo -ne "${cmd_bin}";
+    else
+        exit_fun "'${full_cmd}' can't be executed";
+        \builtin exit 1;
+    fi;
+    \builtin return 0
+}
+
+function which_bin ()
+{
+    \builtin local cmd_arg;
+    \builtin local path_dir_arr;
+    \builtin local path_dir;
+    \builtin local file_name;
+    \builtin local cmd_bin;
+    cmd_arg="${1:-}";
+    cmd_bin='';
+    IFS=: \builtin read -r -a path_dir_arr <<< "${PATH:-}";
+    for path_dir in "${path_dir_arr[@]}";
+    do
+        file_name="${path_dir}/${cmd_arg}";
+        if [[ -x "${file_name}" && ! -d "${file_name}" ]] && [[ "${file_name}" =~ ${cmd_arg}$ ]]; then
+            cmd_bin="${file_name}";
+            \builtin break;
+        fi;
+    done;
+    \builtin echo -ne "${cmd_bin}";
+    \builtin return 0
+}
+
+function main () {
+    slurm_check_gpus "${@:-}";
+    \builtin return;
+}
+
+main "${@:-}";
+\builtin exit;

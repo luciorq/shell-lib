@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+# Do NOT modify this file manually.
+# Change source code at: https://github.com/luciorq/shell-lib
+# Author: Lucio Rezende Queiroz
+# License: MIT
+
+\builtin set -o errexit;    # abort on nonzero exitstatus
+\builtin set -o nounset;    # abort on unbound variable
+\builtin set -o pipefail;   # do not hide errors within pipes
+
+[[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { \builtin echo >&2 "Error: Bash >=4 required"; \builtin exit 1; }
+
+function source_remote ()
+{
+    builtin local script_url="$1";
+    builtin local curl_bin;
+    builtin local wget_bin;
+    curl_bin=($(which -a 'curl' || builtin echo -ne ''));
+    curl_bin="${curl_bin[0]}";
+    wget_bin=($(which -a 'wget' || builtin echo -ne ''));
+    wget_bin="${wget_bin[0]}";
+    if [[ -n ${curl_bin} ]]; then
+        builtin source /dev/stdin <<< "$("${curl_bin}" -f -s -S -L "${script_url}")";
+    else
+        if [[ -n ${wget_bin} ]]; then
+            builtin source /dev/stdin <<< "$("${wget_bin}" -q -L -nv -O - "${script_url}")";
+        else
+            builtin echo -ne "Download tool not available. Install 'curl' or 'wget' to continue.\n" 1>&2;
+            builtin exit 1;
+        fi;
+    fi
+}
+
+function main () {
+    source_remote "${@:-}";
+    \builtin return;
+}
+
+main "${@:-}";
+\builtin exit;

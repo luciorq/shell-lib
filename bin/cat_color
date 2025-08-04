@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+
+# Do NOT modify this file manually.
+# Change source code at: https://github.com/luciorq/shell-lib
+# Author: Lucio Rezende Queiroz
+# License: MIT
+
+\builtin set -o errexit;    # abort on nonzero exitstatus
+\builtin set -o nounset;    # abort on unbound variable
+\builtin set -o pipefail;   # do not hide errors within pipes
+
+[[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { \builtin echo >&2 "Error: Bash >=4 required"; \builtin exit 1; }
+
+function cat_color ()
+{
+    builtin local bat_bin;
+    builtin local bat_filename;
+    builtin local cat_bin;
+    builtin local _arg;
+    cat_bin="$(require 'cat')";
+    if [[ -z ${cat_bin} ]]; then
+        builtin exit 1;
+    fi;
+    bat_bin="$(which_bin 'bat')";
+    if [[ -z ${bat_bin} ]]; then
+        "${cat_bin}" "${@}";
+        builtin return 0;
+    fi;
+    bat_filename='';
+    for _arg in "${@}";
+    do
+        if [[ -z ${bat_filename} && -f ${_arg} ]]; then
+            declare -a bat_filename=(--file-name "${_arg}");
+        fi;
+    done;
+    if [[ -d ${1:-} ]]; then
+        "${cat_bin}" "${@}";
+        builtin return 0;
+    fi;
+    "${cat_bin}" "${@}" | bat_fun --style=plain --paging=never --theme 'gruvbox-dark' "${bat_filename[@]}" --color auto;
+    builtin return 0
+}
+
+function bat_fun ()
+{
+    builtin local bat_bin;
+    builtin local cat_bin;
+    builtin local bat_avail;
+    bat_bin="$(which_bin 'bat')";
+    if [[ -z ${bat_bin} ]]; then
+        bat_bin="$(which_bin 'batcat')";
+    fi;
+    if [[ -n ${bat_bin} ]]; then
+        bat_avail="$("${bat_bin}" -V 2> /dev/null > /dev/null || builtin echo -ne "${?}")";
+    fi;
+    cat_bin="$(which_bin 'cat')";
+    if [[ -n ${bat_bin} && -z ${bat_avail} ]]; then
+        "${bat_bin}" "${@}" --theme 'gruvbox-dark';
+    else
+        "${cat_bin}";
+    fi;
+    builtin return 0
+}
+
+function exit_fun ()
+{
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    \builtin exit 1
+}
+
+function require ()
+{
+    local cmd_str;
+    \builtin local cmd_bin;
+    \builtin local cmd_res;
+    \builtin local full_cmd;
+    cmd_str="${1:-}";
+    cmd_bin="$(which_bin "${cmd_str}")";
+    if [[ -z ${cmd_bin} ]]; then
+        exit_fun "'${cmd_str}' executable not found in '\${PATH}'";
+        \builtin exit 1;
+    fi;
+    if [[ ${#} -eq 1 ]]; then
+        cmd_res="$("${cmd_bin}" --version 2>&1 || \builtin echo -ne '')";
+        full_cmd="${cmd_bin} --version";
+    else
+        cmd_res="$("${cmd_bin}" "${@:2}" 2>&1 || \builtin echo -ne '')";
+        full_cmd="${cmd_bin} ${*:2}";
+    fi;
+    if [[ -n ${cmd_res} ]]; then
+        \builtin echo -ne "${cmd_bin}";
+    else
+        exit_fun "'${full_cmd}' can't be executed";
+        \builtin exit 1;
+    fi;
+    \builtin return 0
+}
+
+function which_bin ()
+{
+    \builtin local cmd_arg;
+    \builtin local path_dir_arr;
+    \builtin local path_dir;
+    \builtin local file_name;
+    \builtin local cmd_bin;
+    cmd_arg="${1:-}";
+    cmd_bin='';
+    IFS=: \builtin read -r -a path_dir_arr <<< "${PATH:-}";
+    for path_dir in "${path_dir_arr[@]}";
+    do
+        file_name="${path_dir}/${cmd_arg}";
+        if [[ -x "${file_name}" && ! -d "${file_name}" ]] && [[ "${file_name}" =~ ${cmd_arg}$ ]]; then
+            cmd_bin="${file_name}";
+            \builtin break;
+        fi;
+    done;
+    \builtin echo -ne "${cmd_bin}";
+    \builtin return 0
+}
+
+function main () {
+    cat_color "${@:-}";
+    \builtin return;
+}
+
+main "${@:-}";
+\builtin exit;

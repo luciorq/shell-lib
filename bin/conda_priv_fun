@@ -1,0 +1,392 @@
+#!/usr/bin/env bash
+
+# Do NOT modify this file manually.
+# Change source code at: https://github.com/luciorq/shell-lib
+# Author: Lucio Rezende Queiroz
+# License: MIT
+
+\builtin set -o errexit;    # abort on nonzero exitstatus
+\builtin set -o nounset;    # abort on unbound variable
+\builtin set -o pipefail;   # do not hide errors within pipes
+
+[[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { \builtin echo >&2 "Error: Bash >=4 required"; \builtin exit 1; }
+
+function conda_priv_fun ()
+{
+    local conda_bin;
+    local env_name;
+    local conda_env_exports;
+    conda_bin="$(get_conda_bin)";
+    if [[ -z ${1:-} ]]; then
+        "${conda_bin}" --help;
+        \builtin return 0;
+    fi;
+    if [[ ${1:-} =~ activate ]]; then
+        env_name="${2-}";
+        if [[ "${conda_bin}" =~ micromamba$ ]]; then
+            conda_env_exports="$("${conda_bin}" shell "${env_name}" activate --shell bash)";
+        else
+            conda_env_exports="$("${conda_bin}" shell.posix activate "${env_name}")";
+        fi;
+        builtin eval "${conda_env_exports}";
+        builtin hash -r;
+        builtin return 0;
+    fi;
+    "${conda_bin}" "${@:-}";
+    \builtin return 0
+}
+
+function dirname_pure ()
+{
+    local tmp=${1:-.};
+    [[ $tmp != *[!/]* ]] && {
+        builtin printf '/\n';
+        builtin return
+    };
+    tmp=${tmp%%"${tmp##*[!/]}"};
+    [[ $tmp != */* ]] && {
+        builtin printf '.\n';
+        builtin return
+    };
+    tmp=${tmp%/*};
+    tmp=${tmp%%"${tmp##*[!/]}"};
+    printf '%s\n' "${tmp:-/}"
+}
+
+function download ()
+{
+    function download_usage ()
+    {
+        builtin echo -ne "usage: download <URL> [<OUTPUT_DIR>] [<THREADS>]\n" 1>&2
+    };
+    if [[ ${#} -eq 0 ]]; then
+        download_usage;
+        unset download_usage;
+        exit 1;
+    fi;
+    if [[ ${1:-} == '-h' ]]; then
+        download_usage;
+        unset download_usage;
+        return 0;
+    fi;
+    unset download_usage;
+    local get_url;
+    local dir_output;
+    local thread_num;
+    local output_filename;
+    local output_basename;
+    local realpath_bin;
+    local wget_bin;
+    local curl_bin;
+    local aria_bin;
+    local cache_path;
+    get_url="${1:-}";
+    dir_output="${2:-}";
+    realpath_bin="$(require 'realpath')";
+    if [[ -z ${dir_output} ]]; then
+        dir_output="$("${realpath_bin}" ./)";
+    fi;
+    thread_num="$(get_nthreads '8')";
+    if [[ ! -d ${dir_output} ]]; then
+        "$(which_bin mkdir)" -p "${dir_output}";
+    fi;
+    output_basename="$(basename "${get_url}")";
+    output_filename="${dir_output}/${output_basename}";
+    cache_path="${XDG_CACHE_HOME:-${HOME}/.cache}";
+    wget_bin="$(which_bin 'wget')";
+    curl_bin="$(which_bin 'curl')";
+    aria_bin="$(which_bin 'aria2c')";
+    if [[ -n ${curl_bin} ]]; then
+        "${curl_bin}" -f -s -S -L --create-dirs --insecure --silent -o "${output_filename}" -C - "${get_url}";
+    else
+        if [[ -n ${wget_bin} ]]; then
+            cache_path="${cache_path}/wget/wget-hsts";
+            "${wget_bin}" --continue -L -nv -q -np -nH --hsts-file="${cache_path}" --no-check-certificate --output-document="${output_filename}" "${get_url}";
+        else
+            if [[ -n ${aria_bin} ]]; then
+                "${aria_bin}" --continue=true -s "${thread_num}" -x "${thread_num}" -j 1 -k 1M -d "${dir_output}" --out="${output_basename}" --quiet=true --check-integrity=true --check-certificate=false "${get_url}";
+            else
+                exit_fun 'No download method available';
+                exit 1;
+            fi;
+        fi;
+    fi;
+    return 0
+}
+
+function exit_fun ()
+{
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    \builtin exit 1
+}
+
+function get_conda_bin ()
+{
+    builtin local conda_bin;
+    conda_bin="$(which_bin 'micromamba')";
+    if [[ -z ${conda_bin} ]]; then
+        conda_bin="$(which_bin 'mamba')";
+    fi;
+    if [[ -z ${conda_bin} ]]; then
+        conda_bin="$(which_bin 'conda')";
+    fi;
+    if [[ -z ${conda_bin} ]]; then
+        install_micromamba --force;
+        conda_bin="$(which_bin 'micromamba')";
+    fi;
+    if [[ -z ${conda_bin} ]]; then
+        exit_fun '`conda`, `mamba`, and `micromamba` are not available for this system';
+        builtin exit 1;
+    fi;
+    builtin echo -ne "${conda_bin}";
+    builtin return 0
+}
+
+function get_conda_platform ()
+{
+    \builtin local os_type;
+    \builtin local os_arch;
+    \builtin local platform_str;
+    os_type="$(get_os_type)";
+    os_arch="$(get_os_arch)";
+    case "${os_type}" in
+        linux)
+            os_type="linux"
+        ;;
+        darwin)
+            os_type="osx"
+        ;;
+        *nt*)
+            os_type="win"
+        ;;
+    esac;
+    case "${os_arch}" in
+        aarch64 | ppc64le | arm64)
+
+        ;;
+        *)
+            os_arch="64"
+        ;;
+    esac;
+    platform_str="${os_type}-${os_arch}";
+    case "${platform_str}" in
+        osx-aarch64)
+            platform_str="osx-arm64"
+        ;;
+        *)
+
+        ;;
+    esac;
+    case "${platform_str}" in
+        linux-aarch64 | linux-ppc64le | linux-64 | osx-arm64 | osx-64 | win-64)
+
+        ;;
+        *)
+            exit_fun 'get_conda_platform: Failed to detect supported OS';
+            \builtin exit 1
+        ;;
+    esac;
+    \builtin echo -ne "${platform_str}";
+    \builtin return 0
+}
+
+function get_nthreads ()
+{
+    local nproc_bin;
+    local lscpu_bin;
+    local grep_bin;
+    local num_threads;
+    local half_threads;
+    local max_threads_to_use;
+    local threads_to_use;
+    max_threads_to_use="${1:-8}";
+    nproc_bin="$(which_bin 'nproc')";
+    lscpu_bin="$(which_bin 'lscpu')";
+    grep_bin="$(require 'grep')";
+    if [[ -n ${nproc_bin} ]]; then
+        num_threads="$("${nproc_bin}")";
+    else
+        if [[ -e /proc/cpuinfo ]]; then
+            num_threads="$("${grep_bin}" -c 'processor' '/proc/cpuinfo')";
+        else
+            if [[ -n ${lscpu_bin} ]]; then
+                num_threads="$("${lscpu_bin}" | "${grep_bin}" '^CPU(' | awk '{print $2}')";
+            else
+                builtin echo -ne "4";
+                return 0;
+            fi;
+        fi;
+    fi;
+    half_threads="$((num_threads/2))";
+    threads_to_use="${half_threads}";
+    if [[ ${threads_to_use} -gt ${max_threads_to_use} ]]; then
+        threads_to_use="${max_threads_to_use}";
+    fi;
+    builtin echo -ne "${threads_to_use}";
+    return 0
+}
+
+function get_os_arch ()
+{
+    local os_arch_str;
+    local uname_bin;
+    os_arch_str="${HOSTTYPE}";
+    uname_bin="$(which_bin 'uname')";
+    if [[ -z ${os_arch_str} ]]; then
+        if [[ -n ${uname_bin} ]]; then
+            os_arch_str="$("${uname_bin}" -m)";
+        else
+            exit_fun "'uname' command not available";
+        fi;
+    fi;
+    builtin echo -ne "${os_arch_str}";
+    return 0
+}
+
+function get_os_type ()
+{
+    local os_type_str;
+    local uname_bin;
+    os_type_str="${OSTYPE}";
+    uname_bin="$(which_bin 'uname')";
+    if [[ -z ${os_type_str} ]]; then
+        if [[ -n ${uname_bin} ]]; then
+            os_type_str="$("${uname_bin}" -s)";
+        else
+            exit_fun "'uname' command not available";
+        fi;
+    fi;
+    os_type_str="${os_type_str/[\-1-9]*/}";
+    os_type_str="${os_type_str,,}";
+    builtin echo -ne "${os_type_str}";
+    return 0
+}
+
+function install_micromamba ()
+{
+    builtin local _usage="Usage: ${0} [--force] [--system]";
+    builtin unset _usage;
+    builtin local micromamba_bin;
+    builtin local conda_platform;
+    builtin local download_url;
+    builtin local _arg;
+    builtin local install_type;
+    builtin local force_flag;
+    builtin local inst_path;
+    builtin local link_path;
+    builtin local link_dir;
+    builtin local dl_path;
+    builtin local chmod_bin;
+    builtin local ln_bin;
+    builtin local rm_bin;
+    builtin local mkdir_bin;
+    force_flag='0';
+    for _arg in "${@}";
+    do
+        if [[ ${_arg} == --force ]]; then
+            force_flag='1';
+        fi;
+    done;
+    micromamba_bin="$(which_bin 'micromamba')";
+    if [[ -n ${micromamba_bin} ]] && [[ ${force_flag} == '0' ]]; then
+        \builtin echo -ne "\`micromamba\` already installed at \`${micromamba_bin}\`";
+        \builtin return 0;
+    fi;
+    chmod_bin="$(which_bin 'chmod')";
+    ln_bin="$(which_bin 'ln')";
+    rm_bin="$(which_bin 'rm')";
+    mkdir_bin="$(which_bin 'mkdir')";
+    conda_platform="$(get_conda_platform)";
+    download_url="https://github.com/mamba-org/micromamba-releases/releases/latest/download/micromamba-${conda_platform}";
+    inst_path="${HOME}/.local/opt/apps/micromamba";
+    link_path="${HOME}/.local/bin/micromamba";
+    dl_path="${inst_path}/micromamba-${conda_platform}";
+    for _arg in "${@}";
+    do
+        if [[ ${_arg} == --system ]]; then
+            install_type="system";
+        fi;
+    done;
+    if [[ ${install_type} == system ]]; then
+        inst_path="/opt/apps/micromamba";
+        link_path="/usr/local/bin/micromamba";
+        dl_path="/tmp/micromamba-${conda_platform}";
+    fi;
+    if [[ ${force_flag} == '1' ]]; then
+        if [[ -d "${inst_path}" ]]; then
+            "${rm_bin}" -rf "${inst_path}";
+        fi;
+        if [[ -f "${link_path}" ]]; then
+            "${rm_bin}" -f "${link_path}";
+        fi;
+    fi;
+    if [[ -f ${dl_path} ]]; then
+        "${rm_bin}" -f "${dl_path}";
+    fi;
+    download "${download_url}" "${inst_path}";
+    "${chmod_bin}" +x "${dl_path}";
+    link_dir="$(dirname_pure "${link_path}")";
+    if [[ ! -d ${link_dir} ]]; then
+        "${mkdir_bin}" -p "${link_dir}";
+    fi;
+    "${ln_bin}" -sf "${dl_path}" "${link_path}";
+    \builtin return 0
+}
+
+function require ()
+{
+    local cmd_str;
+    \builtin local cmd_bin;
+    \builtin local cmd_res;
+    \builtin local full_cmd;
+    cmd_str="${1:-}";
+    cmd_bin="$(which_bin "${cmd_str}")";
+    if [[ -z ${cmd_bin} ]]; then
+        exit_fun "'${cmd_str}' executable not found in '\${PATH}'";
+        \builtin exit 1;
+    fi;
+    if [[ ${#} -eq 1 ]]; then
+        cmd_res="$("${cmd_bin}" --version 2>&1 || \builtin echo -ne '')";
+        full_cmd="${cmd_bin} --version";
+    else
+        cmd_res="$("${cmd_bin}" "${@:2}" 2>&1 || \builtin echo -ne '')";
+        full_cmd="${cmd_bin} ${*:2}";
+    fi;
+    if [[ -n ${cmd_res} ]]; then
+        \builtin echo -ne "${cmd_bin}";
+    else
+        exit_fun "'${full_cmd}' can't be executed";
+        \builtin exit 1;
+    fi;
+    \builtin return 0
+}
+
+function which_bin ()
+{
+    \builtin local cmd_arg;
+    \builtin local path_dir_arr;
+    \builtin local path_dir;
+    \builtin local file_name;
+    \builtin local cmd_bin;
+    cmd_arg="${1:-}";
+    cmd_bin='';
+    IFS=: \builtin read -r -a path_dir_arr <<< "${PATH:-}";
+    for path_dir in "${path_dir_arr[@]}";
+    do
+        file_name="${path_dir}/${cmd_arg}";
+        if [[ -x "${file_name}" && ! -d "${file_name}" ]] && [[ "${file_name}" =~ ${cmd_arg}$ ]]; then
+            cmd_bin="${file_name}";
+            \builtin break;
+        fi;
+    done;
+    \builtin echo -ne "${cmd_bin}";
+    \builtin return 0
+}
+
+function main () {
+    conda_priv_fun "${@:-}";
+    \builtin return;
+}
+
+main "${@:-}";
+\builtin exit;
