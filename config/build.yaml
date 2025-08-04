@@ -147,3 +147,5 @@ apps:
   head_pure: ""
   sleep_pure:
     - exit_fun
+  highlight_fun:
+    - require
