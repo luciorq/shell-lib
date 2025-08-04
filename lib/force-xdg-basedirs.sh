@@ -139,7 +139,7 @@ export WGETRC="${XDG_CONFIG_HOME}/wget/wgetrc";
 if [[ ! -d ${XDG_CACHE_HOME}/wget ]]; then
   \mkdir -p "${XDG_CACHE_HOME}/wget";
 fi
-builtin alias wget='wget --hsts-file="${XDG_CACHE_HOME}/wget/wget-hsts"';
+\builtin alias wget='wget --hsts-file="${XDG_CACHE_HOME}/wget/wget-hsts"';
 
 # =============================================================================
 # Programming Languages
@@ -231,7 +231,7 @@ export ANDROID_HOME="${XDG_DATA_HOME}/android";
 
 # Subversion (svn) - some homebrew formulas used it
 \mkdir -p "${XDG_CONFIG_HOME}/subversion";
-builtin alias svn='svn --config-dir "${XDG_CONFIG_HOME}/subversion" ';
+\builtin alias svn='svn --config-dir "${XDG_CONFIG_HOME}/subversion" ';
 
 # TeamSpeak
 export TS3_CONFIG_DIR="${XDG_CONFIG_HOME}/ts3client";
@@ -276,7 +276,7 @@ if [[ ! -f "${NPM_CONFIG_USERCONFIG}" ]]; then
   \touch "${NPM_CONFIG_USERCONFIG}";
 fi
 # Yarn
-alias yarn='yarn --use-yarnrc "${XDG_CONFIG_HOME}/yarn/config"';
+\builtin alias yarn='yarn --use-yarnrc "${XDG_CONFIG_HOME}/yarn/config"';
 if [[ ! -d "${XDG_CONFIG_HOME}/yarn" ]]; then
   \mkdir -p "${XDG_CONFIG_HOME}/yarn";
 fi
@@ -285,7 +285,7 @@ if [[ ! -f "${XDG_CONFIG_HOME}/yarn/config" ]]; then
 fi
 
 # subversion - svn
-builtin alias svn='svn --config-dir "${XDG_CONFIG_HOME}/subversion"';
+\builtin alias svn='svn --config-dir "${XDG_CONFIG_HOME}/subversion"';
 
 # Anaconda / Conda / Mamba
 export CONDARC="${XDG_CONFIG_HOME}/conda/condarc";
@@ -316,7 +316,7 @@ fi
 if [[ ! -f "${XDG_CONFIG_HOME}/dockstore/config" ]]; then
   \touch "${XDG_CONFIG_HOME}/dockstore/config";
 fi
-builtin alias \
+\builtin alias \
   dockstore='dockstore --script --config "${HOME}/.config/dockstore/config"';
 
 # Zellij - session manager
