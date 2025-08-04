@@ -71,7 +71,7 @@ def clean_dir(bin_dir: str) -> None:
 
 
 # Define functions to be created from config YAML file
-def read_config(field: str) -> Any:
+def read_config(field: str) -> dict[str, Any]:
     """
     Read a specific field from the configuration file.
 
@@ -87,12 +87,16 @@ def read_config(field: str) -> Any:
     config_path = os.path.join("config", "build.yaml")
     with open(config_path, "r", encoding="utf-8") as config_file:
         yaml_text = config_file.read()
-        config_dict = strictyaml.load(yaml_text)
-    return config_dict.data[field]
+        config_dict: strictyaml.YAML = strictyaml.load(yaml_text)
+
+    # Fail if config_dict.data is not a dict
+    if not isinstance(config_dict.data, dict):
+        raise ValueError(f"Expected a dictionary for field '{field}', got {type(config_dict.data)}")
+    return config_dict[field].data
 
 
 # Find all function declarations in `lib` directory
-def find_all_functions():
+def find_all_functions() -> list[str]:
     directory = "lib"
     bash_scripts = glob.glob(os.path.join(directory, "*.sh"))
     function_names = []
@@ -135,35 +139,33 @@ def extract_function_definition(function_name: str) -> str:
     return function_declaration
 
 
-# Find all function requests per file
-# TODO: @luciorq WIP
-def find_function_deps(script_name: str, function_names: str):
-    """_summary_
+def get_dependencies(function_code: str, all_functions: list[str]) -> list[str]:
+    """
+    Finds all function calls within a given function's code.
 
     Args:
-        script_name (str): _description_
-        function_names (str): _description_
+        function_code (str): The source code of the function to analyze.
+        all_functions (list[str]): A list of all possible function names to look for.
 
     Returns:
-        _type_: _description_
+        list[str]: A list of function names that are called within the given code.
     """
-    script_file = os.path.join("lib", script_name + (".sh"))
-    function_calls = []
-    with open(script_file, mode="r", encoding="utf-8") as file:
-        for line in file:
-            for fun_name in function_names:
-                matches = re.findall(fun_name, line)
-                function_calls.extend(matches)
-        # print(script_file)
-    unique_defs = list(set(function_names))
-    unique_defs.sort()
-    function_dep_dict = {script_name: set(function_calls)}
+    dependencies = []
+    # Do not search for dependencies in the function declaration line itself
+    try:
+        body = function_code.split("{", 1)[1]
+    except IndexError:
+        body = ""  # No body found
 
-    return function_dep_dict
+    for potential_dep in all_functions:
+        pattern = r"\b" + re.escape(potential_dep) + r"\b"
+        if re.search(pattern, body):
+            dependencies.append(potential_dep)
+    return list(set(dependencies))
 
 
 # Make sure all files in the bin directory have execute permission
-def change_exec_permission(bin_dir: str):
+def change_exec_permission(bin_dir: str) -> None:
     """
     Make sure all files in the bin directory have execute permission
 
@@ -171,27 +173,70 @@ def change_exec_permission(bin_dir: str):
         bin_dir (str): Directory path containing the scripts
     """
     bin_files = os.listdir(bin_dir)
+
     for bin_file in bin_files:
         bin_file = os.path.join(bin_dir, bin_file)
         s_t = os.stat(bin_file)
         os.chmod(bin_file, s_t.st_mode | stat.S_IEXEC)
 
+    return None
+
 
 def build_app(app_name: str) -> None:
     """
-    Builds Bash apps using a library of Bash functions
+    Builds Bash apps using a library of Bash functions, resolving all dependencies recursively.
 
     Args:
         app_name (str): Name of the Bash application to be built.
     """
     function_name = app_name
     dep_full_dict = read_config("apps")
-    dep_list = dep_full_dict[function_name]
+    direct_deps = dep_full_dict.get(function_name, [])
+    if not isinstance(direct_deps, list):
+        direct_deps = []
 
+    all_known_functions = find_all_functions()
+
+    resolved_deps: set[str] = set()
+
+    # Queue for functions to process, starting with the app's main function and its direct dependencies
+    to_process = list(set([function_name] + direct_deps))
+
+    processed_funcs: set[str] = set()
+
+    while to_process:
+        current_func = to_process.pop(0)
+        if current_func in processed_funcs:
+            continue
+
+        processed_funcs.add(current_func)
+
+        try:
+            func_definition = extract_function_definition(current_func)
+            resolved_deps.add(current_func)
+
+            # Find dependencies within the current function's body
+            dependencies = get_dependencies(func_definition, all_known_functions)
+
+            for dep in dependencies:
+                if dep not in resolved_deps:
+                    to_process.append(dep)
+
+        except subprocess.CalledProcessError:
+            print(
+                f"Warning: Could not find definition for function '{current_func}'. Skipping.",
+                file=sys.stderr,
+            )
+
+    # The main function is handled separately.
+    final_deps = sorted(list(resolved_deps - {function_name}))
+
+    # Start with the main function's definition
     main_function_def = extract_function_definition(function_name)
 
-    for i in dep_list:
-        main_function_def = main_function_def + extract_function_definition(i)
+    # Add all resolved dependencies
+    for dep in final_deps:
+        main_function_def += extract_function_definition(dep)
 
     # Add `main` function passing all parameters
 
@@ -228,3 +273,5 @@ main "${{@:-}}";
         for line in script_text:
             output_file.write(line)
         output_file.write("\n")
+
+    return None
