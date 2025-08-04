@@ -7,7 +7,7 @@
 
 \builtin set -o errexit;    # abort on nonzero exitstatus
 \builtin set -o nounset;    # abort on unbound variable
-\builtin set -o pipefail;   # don't hide errors within pipes
+\builtin set -o pipefail;   # do not hide errors within pipes
 
 [[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { \builtin echo >&2 "Error: Bash >=4 required"; \builtin exit 1; }
 
@@ -40,6 +40,27 @@ function dfh ()
     \builtin return 0
 }
 
+function bat_fun ()
+{
+    builtin local bat_bin;
+    builtin local cat_bin;
+    builtin local bat_avail;
+    bat_bin="$(which_bin 'bat')";
+    if [[ -z ${bat_bin} ]]; then
+        bat_bin="$(which_bin 'batcat')";
+    fi;
+    if [[ -n ${bat_bin} ]]; then
+        bat_avail="$("${bat_bin}" -V 2> /dev/null > /dev/null || builtin echo -ne "${?}")";
+    fi;
+    cat_bin="$(which_bin 'cat')";
+    if [[ -n ${bat_bin} && -z ${bat_avail} ]]; then
+        "${bat_bin}" "${@}" --theme 'gruvbox-dark';
+    else
+        "${cat_bin}";
+    fi;
+    builtin return 0
+}
+
 function which_bin ()
 {
     \builtin local cmd_arg;
@@ -60,27 +81,6 @@ function which_bin ()
     done;
     \builtin echo -ne "${cmd_bin}";
     \builtin return 0
-}
-
-function bat_fun ()
-{
-    builtin local bat_bin;
-    builtin local cat_bin;
-    builtin local bat_avail;
-    bat_bin="$(which_bin 'bat')";
-    if [[ -z ${bat_bin} ]]; then
-        bat_bin="$(which_bin 'batcat')";
-    fi;
-    if [[ -n ${bat_bin} ]]; then
-        bat_avail="$("${bat_bin}" -V 2> /dev/null > /dev/null || builtin echo -ne "${?}")";
-    fi;
-    cat_bin="$(which_bin 'cat')";
-    if [[ -n ${bat_bin} && -z ${bat_avail} ]]; then
-        "${bat_bin}" "${@}" --theme 'gruvbox-dark';
-    else
-        "${cat_bin}";
-    fi;
-    builtin return 0
 }
 
 function main () {

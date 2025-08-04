@@ -7,7 +7,7 @@
 
 \builtin set -o errexit;    # abort on nonzero exitstatus
 \builtin set -o nounset;    # abort on unbound variable
-\builtin set -o pipefail;   # don't hide errors within pipes
+\builtin set -o pipefail;   # do not hide errors within pipes
 
 [[ "${BASH_VERSINFO[0]}" -lt 4 ]] && { \builtin echo >&2 "Error: Bash >=4 required"; \builtin exit 1; }
 
@@ -39,6 +39,12 @@ function require ()
     \builtin return 0
 }
 
+function exit_fun ()
+{
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    \builtin exit 1
+}
+
 function which_bin ()
 {
     \builtin local cmd_arg;
@@ -59,12 +65,6 @@ function which_bin ()
     done;
     \builtin echo -ne "${cmd_bin}";
     \builtin return 0
-}
-
-function exit_fun ()
-{
-    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
-    \builtin exit 1
 }
 
 function main () {
