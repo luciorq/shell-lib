@@ -135,6 +135,7 @@ function __clean_home () {
     .yarn
     .slime_paste
     .virtual_documents
+    .DS_Store
   )
   for _dir in "${remove_dirs_arr[@]}"; do
     path_to_rm="${HOME}/${_dir}";
