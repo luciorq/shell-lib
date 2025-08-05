@@ -21,7 +21,7 @@ conda run -n shell-lib-env python
 ```
 
 ```python
-from appbuilder import *
+from appbuilder.utils import *
 
 read_config("apps")
 

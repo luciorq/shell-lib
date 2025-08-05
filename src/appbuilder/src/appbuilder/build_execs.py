@@ -6,7 +6,7 @@ Build Resilient Bash Shell Scripts
 
 # Build Resilient Bash Shell Scripts with Python :upside_down_face:
 
-from appbuilder.utils import (
+from .utils import (
     build_app,
     change_exec_permission,
     clean_dir,
