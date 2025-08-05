@@ -248,6 +248,8 @@ def build_app(app_name: str) -> None:
 # Author: Lucio Rezende Queiroz
 # License: MIT
 
+\\builtin trap '\\builtin echo "Exit status ${?} at line ${LINENO} from: ${BASH_COMMAND}"' ERR
+
 \\builtin set -o errexit;    # abort on nonzero exitstatus
 \\builtin set -o nounset;    # abort on unbound variable
 \\builtin set -o pipefail;   # do not hide errors within pipes
