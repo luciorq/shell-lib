@@ -17,12 +17,16 @@ function get_nthreads () {
   nproc_bin="$(which_bin 'nproc')";
   lscpu_bin="$(which_bin 'lscpu')";
   grep_bin="$(require 'grep')";
+  awk_bin="$(which_bin 'awk')";
+  sysctl_bin="$(which_bin 'sysctl')";
   if [[ -n ${nproc_bin} ]]; then
     num_threads="$("${nproc_bin}")";
   elif [[ -e /proc/cpuinfo ]]; then
     num_threads="$("${grep_bin}" -c 'processor' '/proc/cpuinfo')";
   elif [[ -n ${lscpu_bin} ]]; then
-    num_threads="$("${lscpu_bin}" | "${grep_bin}" '^CPU(' | awk '{print $2}')";
+    num_threads="$("${lscpu_bin}" | "${grep_bin}" '^CPU(' | "${awk_bin}" '{print $2}')";
+  elif [[ -n ${sysctl_bin} && $(get_os_type) == darwin ]]; then
+    num_threads="$("${sysctl_bin}" -n hw.ncpu)";
   else
     builtin echo -ne "4";
     return 0;
