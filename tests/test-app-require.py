@@ -12,7 +12,7 @@ import sys
 
 
 # Run Bash Script from the bin directory inside the the root of the project
-def run_app(script_name: str, args: list) -> subprocess.CompletedProcess:
+def run_app(script_name: str, args: list[str]) -> subprocess.CompletedProcess:
     """Run script to be tested with arguments."""
     script_path = os.path.join(".", "bin", script_name)
     res = subprocess.run(

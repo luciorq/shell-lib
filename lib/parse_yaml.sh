@@ -26,6 +26,10 @@ function parse_yaml () {
   elif [[ -n ${ruby_bin} ]]; then
     method='ruby';
   elif [[ -n ${py3_bin} || -n ${py_bin} ]]; then
+    # TODO: @luciorq Add check for python yaml module installed
+    # + on the top level, currently it is only checked inside the
+    # python based functions.
+    # + e.g. `python -c 'import yaml'`
     method='python';
   fi
   case "${method}" in
@@ -112,7 +116,7 @@ function __parse_yaml_python () {
 
   if [[ -n ${py_bin} ]]; then
     module_res=$("${py_bin}" -c 'import yaml' 2> /dev/null);
-    if [[ $? -eq 0 ]]; then
+    if [[ ${?} -eq 0 ]]; then
       has_yaml_module='true';
     fi
   fi
@@ -121,7 +125,7 @@ function __parse_yaml_python () {
     py_bin="$(which_bin 'python3')";
     if [[ -n ${py_bin} ]]; then
       module_res=$("${py_bin}" -c 'import yaml' 2> /dev/null);
-      if [[ $? -eq 0 ]]; then
+      if [[ ${?} -eq 0 ]]; then
         has_yaml_module='true';
       fi
     fi

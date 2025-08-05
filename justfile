@@ -8,7 +8,7 @@ default:
 @create-env-build-apps:
   #!/usr/bin/env -vS bash -i
   \builtin set -euxo pipefail;
-  conda create -n shell-lib-env -y --override-channels -c conda-forge python strictyaml pytest mypy click;
+  conda create -n shell-lib-env -y --override-channels -c conda-forge python pyyaml strictyaml pytest mypy click ruff;
   conda run -n shell-lib-env python -m pip install -e "{{ justfile_directory() }}/src/appbuilder";
 
 
@@ -16,6 +16,7 @@ default:
   #!/usr/bin/env -vS bash -i
   \builtin set -euxo pipefail;
   # conda run -n shell-lib-env python -m appbuilder.build_execs;
+  conda run -n shell-lib-env ruff check;
   conda run -n shell-lib-env appbuilder;
 
 
