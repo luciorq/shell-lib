@@ -106,23 +106,23 @@ export NOTMUCH_CONFIG="${XDG_CONFIG_HOME}/notmuch/config";
 export PARALLEL_HOME="${XDG_CONFIG_HOME}/parallel";
 
 # PostgreSQL
-export PSQLRC="${XDG_CONFIG_HOME}/postgres/rc"
-export PSQL_HISTORY="${XDG_STATE_HOME}/postgres/history"
-export PGPASSFILE="${XDG_CONFIG_HOME}/postgres/pass"
-export PGSERVICEFILE="${XDG_CONFIG_HOME}/postgres/service.conf"
+export PSQLRC="${XDG_CONFIG_HOME}/postgres/rc";
+export PSQL_HISTORY="${XDG_STATE_HOME}/postgres/history";
+export PGPASSFILE="${XDG_CONFIG_HOME}/postgres/pass";
+export PGSERVICEFILE="${XDG_CONFIG_HOME}/postgres/service.conf";
 # We need to create these directories if not exists
 \mkdir -p "${XDG_CONFIG_HOME}/postgres";
 \mkdir -p "${XDG_STATE_HOME}/postgres";
 
 # SQLite
-export SQLITE_HISTORY="${XDG_DATA_HOME}/sqlite_history"
+export SQLITE_HISTORY="${XDG_DATA_HOME}/sqlite_history";
 
 # Readline
-export INPUTRC="${XDG_CONFIG_HOME}/readline/inputrc"
+export INPUTRC="${XDG_CONFIG_HOME}/readline/inputrc";
 
 # Vagrant
-export VAGRANT_HOME="${XDG_DATA_HOME}/vagrant"
-export VAGRANT_ALIAS_FILE="${XDG_DATA_HOME}/vagrant/aliases"
+export VAGRANT_HOME="${XDG_DATA_HOME}/vagrant";
+export VAGRANT_ALIAS_FILE="${XDG_DATA_HOME}/vagrant/aliases";
 
 # WeeChat
 export WEECHAT_HOME="${XDG_CONFIG_HOME}/weechat"

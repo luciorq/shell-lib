@@ -20,7 +20,6 @@ function dfh ()
     \builtin local grep_bin;
     \builtin local sed_bin;
     \builtin local column_bin;
-    \builtin local glow_bin;
     \builtin local header_str;
     \builtin local align_str;
     \builtin local body_str;
@@ -31,14 +30,9 @@ function dfh ()
     grep_bin="$(which_bin 'grep')";
     sed_bin="$(which_bin 'sed')";
     column_bin="$(which_bin 'column')";
-    glow_bin="$(which_bin 'glow')";
     LC_ALL=C "${ls_bin}" -- /data/* /home 2> /dev/null > /dev/null || \builtin echo -ne '';
     body_str="$("${df_bin}" -h -T -x squashfs -x devtmpfs | "${grep_bin}" -v '/var/lib/docker/zfs' | "${grep_bin}" -v '^tmpfs.*[^scratch]$' | "${grep_bin}" -v '^Filesystem.*on$' | "${sed_bin}" -r 's/\s+/,/g')";
-    if [[ -n ${glow_bin} ]]; then
-        CLICOLOR_FORCE=1 builtin echo -ne "${header_str}${align_str}${body_str}\n" | bat_fun -l csv -pp --color=never | "${sed_bin}" 's/,/ | /g' | "${sed_bin}" 's/^/| /g' | "${sed_bin}" 's/$/ |/g' | "${column_bin}" -t | "${glow_bin}" -w 120;
-    else
-        CLICOLOR_FORCE=1 builtin echo -ne "${header_str}${align_str}${body_str}\n" | bat_fun -l csv -pp --color=always | "${sed_bin}" 's/,/ | /g' | "${sed_bin}" 's/^/| /g' | "${sed_bin}" 's/$/ |/g' | "${column_bin}" -t;
-    fi;
+    CLICOLOR_FORCE=1 builtin echo -ne "${header_str}${align_str}${body_str}\n" | bat_fun -l csv -pp --color=always | "${sed_bin}" 's/,/ | /g' | "${sed_bin}" 's/^/| /g' | "${sed_bin}" 's/$/ |/g' | "${column_bin}" -t;
     \builtin return 0
 }
 
