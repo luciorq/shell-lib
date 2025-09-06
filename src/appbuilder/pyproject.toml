@@ -5,13 +5,13 @@ build-backend = "hatchling.build"
 [project]
 name = "appbuilder"
 dynamic = ["version"]
-description = 'Build resilient Shell Scripts from a library of Shell functions.'
+description = 'Build Resilient Shell Scripts from a Library of Shell Functions.'
 readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
 keywords = []
 authors = [
-  { name = "luciorq", email = "luciorqueiroz@gmail.com" },
+  { name = "Lucio Queiroz", email = "luciorqueiroz@gmail.com" },
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -45,7 +45,7 @@ extra-dependencies = [
   "mypy>=1.0.0",
 ]
 [tool.hatch.envs.types.scripts]
-check = "mypy --install-types --non-interactive {args:src/appbuilder tests}"
+check = "python -m mypy --follow-untyped-imports --install-types --non-interactive {args:src/appbuilder tests}"
 
 [tool.coverage.run]
 source_pkgs = ["appbuilder", "tests"]

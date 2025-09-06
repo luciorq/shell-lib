@@ -17,7 +17,7 @@ default:
   \builtin set -euxo pipefail;
   # conda run -n shell-lib-env python -m appbuilder.build_execs;
   conda run -n shell-lib-env python -m ruff check;
-  conda run -n shell-lib-env python -m mypy --follow-untyped-imports ./src/;
+  conda run -n shell-lib-env python -m mypy --follow-untyped-imports --install-types --non-interactive ./src/;
   conda run -n shell-lib-env appbuilder;
 
 
