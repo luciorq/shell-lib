@@ -16,14 +16,15 @@ default:
   #!/usr/bin/env -vS bash -i
   \builtin set -euxo pipefail;
   # conda run -n shell-lib-env python -m appbuilder.build_execs;
-  conda run -n shell-lib-env ruff check;
+  conda run -n shell-lib-env python -m ruff check;
+  conda run -n shell-lib-env python -m mypy --follow-untyped-imports ./src/;
   conda run -n shell-lib-env appbuilder;
 
 
 @test-apps: build-apps
   #!/usr/bin/env -vS bash -i
   \builtin set -euxo pipefail;
-  conda run -n shell-lib-env python -m pytest "{{ justfile_directory() }}"/tests/test-app-*.py;
+  conda run -n shell-lib-env python -m pytest "{{ justfile_directory() }}"/tests/test_app_*.py -vvvv;
 
 test:
   #!/usr/bin/env -S bash -i

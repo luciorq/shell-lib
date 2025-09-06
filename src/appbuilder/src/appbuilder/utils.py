@@ -124,7 +124,7 @@ def extract_function_definition(function_name: str) -> str:
     Returns:
         str: String containing the Bash function definition.
     """
-    function_declaration = subprocess.check_output(
+    function_declaration: bytes = subprocess.check_output(
         [
             "bash",
             "-c",
@@ -132,11 +132,11 @@ def extract_function_definition(function_name: str) -> str:
             + function_name,
         ]
     )
-    function_declaration = function_declaration.decode()
-    function_declaration = re.sub(r"return 1", "exit 1", function_declaration)
-    function_declaration = re.sub(r" +\n", "\n", function_declaration)
-    function_declaration = f"function {function_declaration}\n"
-    return function_declaration
+    function_str: str = function_declaration.decode()
+    function_str = re.sub(r"return 1", "exit 1", function_str)
+    function_str = re.sub(r" +\n", "\n", function_str)
+    function_str = f"function {function_str}\n"
+    return function_str
 
 
 def get_dependencies(function_code: str, all_functions: list[str]) -> list[str]:

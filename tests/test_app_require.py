@@ -6,14 +6,16 @@ import shutil
 import subprocess
 import sys
 
-# from src.appbuilder import run_app
-
 # import pytest
 
+# TODO: @luciorq Add one test file with a fixture for all apps and at least exit code.
+# + with at least returning 0 and 1 one time.
 
 # Run Bash Script from the bin directory inside the the root of the project
-def run_app(script_name: str, args: list[str]) -> subprocess.CompletedProcess:
-    """Run script to be tested with arguments."""
+def run_app(script_name: str, args: list[str]) -> subprocess.CompletedProcess[bytes]:
+    """
+    Run script to be tested with arguments.
+    """
     script_path = os.path.join(".", "bin", script_name)
     res = subprocess.run(
         [script_path, *args],
@@ -25,10 +27,10 @@ def run_app(script_name: str, args: list[str]) -> subprocess.CompletedProcess:
 
 
 # Tests for require
-
-
 def test_require_fail() -> None:
-    """Test require error message."""
+    """
+    Test require error message.
+    """
 
     res = run_app("require", ["lsx"])
 
