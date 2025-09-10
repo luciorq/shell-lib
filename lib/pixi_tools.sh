@@ -26,7 +26,17 @@ function clean_pixi_and_conda_cache () {
 }
 
 function pixi_install_pixi_bin () {
+  # On Windows: Download <https://github.com/prefix-dev/pixi/releases/latest/download/pixi-x86_64-pc-windows-msvc.zip>
+  # + Install to: The binary will be installed into 'C:\Users\luciorq\.pixi\bin'
+  # + The command will also add `%UserProfile%\.pixi\bin` to your PATH environment variable, allowing you to invoke pixi from anywhere.
+  \builtin local _windows_usage;
+  _windows_usage='powershell -ExecutionPolicy ByPass -c "irm -useb https://pixi.sh/install.ps1 | iex"';
+  \builtin unset _windows_usage;
+
   \builtin local pixi_bin;
+  \builtin local curl_bin;
+  \builtin local bash_bin;
+
   pixi_bin="$(which_bin 'pixi')";
   curl_bin="$(which_bin 'curl')";
   bash_bin="$(which_bin 'bash')";

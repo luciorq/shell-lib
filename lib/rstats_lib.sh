@@ -273,9 +273,9 @@ function rstats_rstudio () {
   \builtin return 0
 }
 
-# ==============================================================================
+# =============================================================================
 # Package Development Functions
-# ==============================================================================
+# =============================================================================
 
 # TODO: Work in progress for checking and building source R packages
 
@@ -310,11 +310,37 @@ function rstats_install_pkg_conda () {
   builtin return 0;
 }
 
-
 ## Install R using pixi
 function rstats_install_r-env_pixi () {
   \builtin local pixi_bin;
   pixi_bin="$(require pixi)";
   "${pixi_bin}" global sync;
+  \builtin return 0;
+}
+
+# =============================================================================
+# Install `rv` from <https://github.com/A2-ai/rv>
+function rstats_install_rv () {
+  \builtin local rv_bin;
+  \builtin local curl_bin;
+  \builtin local bash_bin;
+  rv_bin="$(which_bin 'rv')";
+  curl_bin="$(which_bin 'curl')";
+  bash_bin="$(which_bin 'bash')";
+  if [[ -z ${rv_bin} ]]; then
+    if [[ -z ${curl_bin} ]]; then
+      \builtin echo -ne "curl is not installed, please install it first\n";
+      \builtin return 1;
+    fi;
+    if [[ -z ${bash_bin} ]]; then
+      \builtin echo -ne "bash is not installed, please install it first\n";
+      \builtin return 1;
+    fi;
+    curl -sSL https://raw.githubusercontent.com/A2-ai/rv/refs/heads/main/scripts/install.sh | bash
+
+    # curl -fsSL https://pixi.sh/install.sh | bash;
+  else
+    \builtin echo -ne "rv is already installed at: ${rv_bin}\n";
+  fi;
   \builtin return 0;
 }
