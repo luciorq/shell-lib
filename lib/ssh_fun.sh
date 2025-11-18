@@ -27,6 +27,9 @@ function __sync_user_config () {
   \builtin local key_path;
   \builtin local key_name;
   \builtin local id_flag;
+
+  \builtin local target_rsync_path;
+
   remote_host="${1:-}";
   host_port="${2:-22}";
   key_name="${3:-}";
@@ -57,7 +60,10 @@ function __sync_user_config () {
   \builtin mapfile -t sync_path_arr < <(
     get_config 'config_sync' 'paths'
   );
-  # -o PrintBanner=No
+
+  # Is this a real flag?
+  #+ -o PrintBanner=No
+  \builtin echo -ne "Syncing user config to ${remote_host}...\n";
   "${rsync_bin}" \
       -e "ssh -p ${host_port}${id_flag}${key_path} -o LogLevel=error" \
       --delete \
@@ -75,5 +81,41 @@ function __sync_user_config () {
       --exclude '._.DS_Store' \
       "${sync_path_arr[@]/#/${HOME}\/.\/}" \
       "${remote_host}":;
+
+  if [[ ${?} -ne 0 ]]; then
+    \builtin set -x;
+
+    target_rsync_path="$(\ssh -o LogLevel=error -p ${host_port}${id_flag}${key_path} "${remote_host}" "[[ -f ~/.pixi/bin/rsync ]] && \realpath ~/.pixi/bin/rsync")";
+
+    if [[ -z ${target_rsync_path} ]]; then
+      \builtin echo -ne 'Pixi installed Rsync was not found.\nTry running `pixi global install rsync` in the remote.\n';
+      \builtin set +x;
+      \builtin return 0;
+    fi
+
+    \builtin echo -ne "Second try with Pixi installed rsync on the remote...\n";
+
+    "${rsync_bin}" \
+      -e "ssh -p ${host_port}${id_flag}${key_path} -o LogLevel=error" \
+      --rsync-path="${target_rsync_path}" \
+      --delete \
+      --relative \
+      --recursive \
+      -az \
+      --exclude '.git' \
+      --exclude '.gitignore' \
+      --exclude '.gitmodules' \
+      --exclude '.gitattributes' \
+      --exclude '.gitconfig' \
+      --exclude '.github' \
+      --exclude '.pixi' \
+      --exclude '.DS_Store' \
+      --exclude '._.DS_Store' \
+      "${sync_path_arr[@]/#/${HOME}\/.\/}" \
+      "${remote_host}":;
+
+    \builtin set +x;
+
+  fi
   \builtin return 0;
 }
