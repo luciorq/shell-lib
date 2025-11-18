@@ -14,6 +14,7 @@ This repository includes a library of shell functions that are intended to
 be used as part of other Shell Scripting software development projects
 or used interactively as Shell functions sourced from an interactive Shell.
 
+> [!IMPORTANT]
 > **Some functions require Bash Shell v4.4 or newer to be installed in the system.**
 
 The file `lib/force-xdg-basedirs.sh` actually don't follow the standards
