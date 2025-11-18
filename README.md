@@ -1,7 +1,7 @@
 # Shell-lib
 
 <p align="center">
-  Made with 💝 for <img src=".github/tux.png" align="top" width="18" />
+  Made with 💝 for <img src="docs/figures/tux.png" align="top" width="18" />
 </p>
 
 <!--
