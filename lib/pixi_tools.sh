@@ -95,9 +95,16 @@ function pixi_update_global_tools () {
 }
 
 function pixi_show_activated_vars () {
+  # Print all environment variables that `pixi` would set when activating
+  # + for a given environment.
+  \builtin _usage;
+  _usage="Usage: ${0} [<ENVIRONMENT_NAME>]";
+  \builtin unset _usage;
+
   \builtin local pixi_bin;
   \builtin local jq_bin;
   \builtin local env_name;
+  \builtin local env_arg;
 
   pixi_bin="$(require 'pixi')";
   jq_bin="$(require 'jq')";
@@ -114,6 +121,7 @@ function pixi_show_activated_vars () {
     env_arg="";
   fi
 
-  "${pixi_bin}" shell-hook ${env_arg} --json | "${jq_bin}";
+  "${pixi_bin}" shell-hook ${env_arg} --json \
+    | "${jq_bin}";
   \builtin return 0;
 }
