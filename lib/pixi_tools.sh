@@ -93,3 +93,27 @@ function pixi_update_global_tools () {
   "${pixi_bin}" global update;
   \builtin return 0;
 }
+
+function pixi_show_activated_vars () {
+  \builtin local pixi_bin;
+  \builtin local jq_bin;
+  \builtin local env_name;
+
+  pixi_bin="$(require 'pixi')";
+  jq_bin="$(require 'jq')";
+
+  if [[ -z "${pixi_bin}" ]] || [[ -z "${jq_bin}" ]]; then
+    exit_fun '`Pixi` or `jq` is not installed, please install them first.';
+    \builtin return 1;
+  fi
+  env_name="${1:-}";
+
+  if [[ -n "${env_name}" ]]; then
+    env_arg="--environment ${env_name}";
+  else
+    env_arg="";
+  fi
+
+  "${pixi_bin}" shell-hook ${env_arg} --json | "${jq_bin}";
+  \builtin return 0;
+}

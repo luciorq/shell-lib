@@ -42,8 +42,11 @@ Independent executables can be found in the `bin` directory.
 Copy files to a directory in your `PATH` to find them automatically when
 you type the name of the tool in your Shell.
 
-Recommended directory: `/usr/local/bin` for system-wide installation or
-`${HOME}/.local/bin` for user-only installation.
+Recommended installation directory:
+
+- `${HOME}/.local/bin` for user-only installation.
+- `/usr/local/bin` for system-wide installation.
+- `/opt/shell-lib/bin` or `/opt/apps/bin` are also good candidates for system-wide installation.
 
 ### Using as a library
 

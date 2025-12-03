@@ -32,7 +32,7 @@ function dfh () {
       | "${sed_bin}" -r 's/\s+/,/g'
   )";
 
-  #if [[ -n ${glow_bin} ]]; then
+  # if [[ -n ${glow_bin} ]]; then
     # NOTE: @luciorq glow is used to render markdown
     # + in the terminal, but it is not installed by
     # + default on all systems.
@@ -46,7 +46,7 @@ function dfh () {
     #   | "${sed_bin}" 's/$/ |/g' \
     #   | "${column_bin}" -t \
     #   | "${glow_bin}" -w 120;
-    #else
+    # else
   CLICOLOR_FORCE=1 \
     builtin echo -ne \
     "${header_str}${align_str}${body_str}\n" \
