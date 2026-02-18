@@ -367,7 +367,7 @@ function ssh_fun ()
     \builtin unset -v _usage;
     ssh_bin="$(require 'ssh' '-V')";
     \builtin set -x;
-    "${ssh_bin}" -A -X -Y "${@:1}";
+    "${ssh_bin}" "${@:1}";
     \builtin set +x;
     \builtin return 0
 }
