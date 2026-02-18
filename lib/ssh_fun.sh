@@ -8,7 +8,14 @@ function ssh_fun () {
   \builtin unset -v _usage;
   ssh_bin="$(require 'ssh' '-V')";
   \builtin set -x;
-  "${ssh_bin}" -A -X -Y "${@:1}";
+  # TODO: luciorq check if there is any real advantage of using -A in the
+  # + current setup. Is Git gpg forwarded?
+  # + Do we really need it?
+  # + Probably not, and it can cause security issues if the remote host is
+  # + compromised. Let's remove it for now and add it back if we find a need
+  # + for it.
+  # "${ssh_bin}" -A -X -Y "${@:1}";
+  "${ssh_bin}" "${@:1}";
   \builtin set +x;
   \builtin return 0;
 }
