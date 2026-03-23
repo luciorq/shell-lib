@@ -149,3 +149,6 @@ apps:
     - exit_fun
   highlight_fun:
     - require
+  zellij_fun:
+    - require
+    - exit_fun
