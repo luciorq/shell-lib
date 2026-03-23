@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-# Pure Bash substitute for cat
+# Pure Bash substitute for `cat` program.
 function cat_pure () {
-  local file="${1:-}";
-  builtin echo "$(<"${file}")";
-  return 0;
+  \builtin local file;
+  file="${1:-}";
+  \builtin echo "$(<"${file}")";
+  \builtin return 0;
 }

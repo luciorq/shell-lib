@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# Print file content with `bat` if available, otherwise falls back to `cat`.
 function bat_fun () {
   \builtin local bat_bin;
   \builtin local cat_bin;
