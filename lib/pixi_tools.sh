@@ -97,8 +97,12 @@ function pixi_update_global_tools () {
 function pixi_show_activated_vars () {
   # Print all environment variables that `pixi` would set when activating
   # + for a given environment.
-  \builtin _usage;
+  \builtin local _usage;
   _usage="Usage: ${0} [<ENVIRONMENT_NAME>]";
+  if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+    \builtin echo -ne "${_usage}\n";
+    \builtin return 0;
+  fi
   \builtin unset _usage;
 
   \builtin local pixi_bin;
@@ -121,6 +125,7 @@ function pixi_show_activated_vars () {
     env_arg="";
   fi
 
+  # We do want var expansion here, so no double quotting.
   "${pixi_bin}" shell-hook ${env_arg} --json \
     | "${jq_bin}";
   \builtin return 0;
