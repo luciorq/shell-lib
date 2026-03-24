@@ -114,7 +114,7 @@ function pixi_show_activated_vars () {
   jq_bin="$(require 'jq')";
 
   if [[ -z "${pixi_bin}" ]] || [[ -z "${jq_bin}" ]]; then
-    exit_fun '`Pixi` or `jq` is not installed, please install them first.';
+    exit_fun '`Pixi` or `jq` are not installed, please install them first.';
     \builtin return 1;
   fi
   env_name="${1:-}";
