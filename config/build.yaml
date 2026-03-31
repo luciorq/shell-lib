@@ -141,6 +141,8 @@ apps:
     - slurm_interactive_session
   slurm_interactive_session:
     - require
+  slurm_cancel_all_jobs:
+    - require
   cat_pure: ""
   clear_pure:
     - which_bin

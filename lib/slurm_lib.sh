@@ -2,8 +2,8 @@
 
 # Retrieve Running or complete job details
 function slurm_check_job () {
-  local sacct_bin;
-  local format_string;
+  \builtin local sacct_bin;
+  \builtin local format_string;
   sacct_bin="$(require 'sacct')";
   format_string="JobID%20,JobName%20,User,Partition,NodeList,Elapsed,State,ExitCode,MaxRSS,AllocTRES%32";
   if [[ ${#} -eq 0 ]]; then
@@ -13,22 +13,22 @@ function slurm_check_job () {
     SACCT_FORMAT="${format_string}" \
       "${sacct_bin}" -j "${@}";
   fi
-  return 0;
+  \builtin return 0;
 }
 
 # Check partitions details
 function slurm_check_partitions () {
-  local sinfo_bin;
+  \builtin local sinfo_bin;
   sinfo_bin="$(require 'sinfo')";
   "${sinfo_bin}" -o "%25N %5c %10m %15l %25R";
-  return 0;
+  \builtin return 0;
 }
 
 function slurm_check_nodes () {
-  local sinfo_bin;
+  \builtin local sinfo_bin;
   sinfo_bin="$(require 'sinfo')";
   "${sinfo_bin}" -N -o "%25N %5c %10m %15l %25R";
-  return 0;
+  \builtin return 0;
 }
 
 # Request interactive section on slurm
@@ -118,7 +118,7 @@ function slurm_check_gpus () {
   \builtin local gpus_installed;
   \builtin local gpus_used;
   \builtin local partition_names;
-  \builtin local gpus_model;
+  # \builtin local gpus_model;
   \builtin local sed_bin;
   \builtin local paste_bin;
   \builtin local column_bin;
@@ -133,32 +133,32 @@ function slurm_check_gpus () {
   )";
   gpu_node_names="$(
     \builtin echo -ne "${gpu_output}" \
-      | grep 'NodeName=' \
-      | sed -e 's|\s.*||g' \
-      | sed -e 's|NodeName=||g'
+      | "${grep_bin}" 'NodeName=' \
+      | "${sed_bin}" -e 's|\s.*||g' \
+      | "${sed_bin}" -e 's|NodeName=||g'
   )";
   gpus_installed="$(
     \builtin echo -ne "${gpu_output}" \
-      | grep 'Gres=' \
-      | sed -e 's|Gres\=||g' \
-      | sed -e 's|gpu\:||g'
+      | "${grep_bin}" 'Gres=' \
+      | "${sed_bin}" -e 's|Gres\=||g' \
+      | "${sed_bin}" -e 's|gpu\:||g'
   )";
   gpus_used="$(
     \builtin echo -ne "${gpu_output}" \
-      | grep 'AllocTRES=' \
-      | sed -e 's|.*gres/gpu:||g' \
-      | sed -e 's|AllocTRES\=|0|g'
+      | "${grep_bin}" 'AllocTRES=' \
+      | "${sed_bin}" -e 's|.*gres/gpu:||g' \
+      | "${sed_bin}" -e 's|AllocTRES\=|0|g'
   )";
   partition_names="$(
     \builtin echo -ne "${gpu_output}" \
-      | grep -v 'Gres=' \
-      | grep -v 'AllocTRES=' \
-      | grep -v 'CfgTRES=' \
-      | sed -e 's|NodeName\=.*|NA|g' \
-      | sed -e ':a;N;$!ba;s/\n//g' \
-      | sed -e 's|Partitions\=||g' \
-      | sed -e 's/,/|/g' \
-      | sed -e 's|NA|\n|g'
+      | "${grep_bin}" -v 'Gres=' \
+      | "${grep_bin}" -v 'AllocTRES=' \
+      | "${grep_bin}" -v 'CfgTRES=' \
+      | "${sed_bin}" -e 's|NodeName\=.*|NA|g' \
+      | "${sed_bin}" -e ':a;N;$!ba;s/\n//g' \
+      | "${sed_bin}" -e 's|Partitions\=||g' \
+      | "${sed_bin}" -e 's|,|\\|/g' \
+      | "${sed_bin}" -e 's|NA|\n|g'
   )";
   CLICOLOR_FORCE=1 "${paste_bin}" \
     <(\builtin echo -ne "NODENAME\n${gpu_node_names}") \
@@ -169,4 +169,29 @@ function slurm_check_gpus () {
     | "${column_bin}" -t;
     # | bat_fun -l tsv -pp;
    \builtin return 0;
+}
+
+# Cancel all jobs for a given user
+function slurm_cancel_all_jobs () {
+  \builtin local _usage="Usage: ${0} [USER_NAME]";
+  \builtin unset _usage;
+  # \builtin local squeue_bin;
+  \builtin local scancel_bin;
+  \builtin local user_name;
+  user_name="${1:-${USER:-}}";
+  if [[ -z "${user_name}" ]]; then
+    exit_fun 'Error: User name is required.';
+    \builtin return 1;
+  fi
+  scancel_bin="$(require 'scancel')";
+
+  # Add comfirmation prompt before canceling all jobs
+  \builtin read -rp "Are you sure you want to cancel all jobs for user ${user_name}? [y/N] " confirm_cancel;
+  if [[ "${confirm_cancel}" != "y" ]]; then
+    \builtin echo "Aborting cancelation of jobs for user ${user_name}.";
+    \builtin return 0;
+  fi
+
+  "${scancel_bin}" -u "${user_name}";
+  \builtin return 0;
 }

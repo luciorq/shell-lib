@@ -6,10 +6,10 @@ function conda_list_envs () {
 }
 
 function conda_env_exists () {
-  local env_name
-  local jq_bin
-  local grep_bin
-  local list_envs_res
+  \builtin local env_name
+  \builtin local jq_bin
+  \builtin local grep_bin
+  \builtin local list_envs_res
   jq_bin=$(require 'jq')
   if [[ -z ${jq_bin} ]]; then
     exit_fun 'Install `jq` CLI before continuing';
@@ -26,36 +26,36 @@ function conda_env_exists () {
       "${jq_bin}" -r '.envs[]' |
       "${grep_bin}" "/${env_name}$"
   )"
-  builtin echo -ne "${list_envs_res}"
-  builtin return 0;
+  \builtin echo -ne "${list_envs_res}"
+  \builtin return 0;
 }
 
 function conda_run () {
-  local env_name
-  local conda_env_exists_res
+  \builtin local env_name
+  \builtin local conda_env_exists_res
   env_name="${1:-}"
   if [[ -z ${env_name} ]]; then
     exit_fun 'conda_run: `env_name` not provided'
-    builtin return 1
+    \builtin return 1
   fi
   conda_env_exists_res="$(conda_env_exists "${env_name}")"
   if [[ -z ${conda_env_exists_res} ]]; then
     exit_fun "conda_run: Environment \`${env_name}\` does not exist"
-    builtin return 1
+    \builtin return 1
   fi
   conda_priv_fun run -n "${env_name}" "${@:2}"
-  builtin return 0
+  \builtin return 0
 }
 
 function conda_create_env () {
-  builtin local _usage;
+  \builtin local _usage;
   _usage="${0} <ENV_NAME> <PKGS> [<CHANNELS>] [<PLATFORM>]";
-  builtin unset _usage;
-  builtin local env_name;
-  builtin local pkgs_str;
-  builtin local channels_str;
-  builtin local conda_env_exists_res;
-  builtin local platform_str;
+  \builtin unset _usage;
+  \builtin local env_name;
+  \builtin local pkgs_str;
+  \builtin local channels_str;
+  \builtin local conda_env_exists_res;
+  \builtin local platform_str;
   env_name="${1:-}";
   pkgs_str="${2:-}";
   channels_str="${3:-}";
