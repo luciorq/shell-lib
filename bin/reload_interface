@@ -15,9 +15,9 @@
 
 function reload_interface ()
 {
-    builtin local sys_os;
-    sys_os="${OSTYPE}";
-    if [[ -z ${OSTYPE} ]]; then
+    \builtin local sys_os;
+    sys_os="${OSTYPE:-}";
+    if [[ -z ${sys_os} ]]; then
         sys_os="$(uname -s)";
     fi;
     sys_os="${sys_os,,}";
@@ -26,47 +26,59 @@ function reload_interface ()
         __reload_sketchybar;
         __reload_yabai;
     fi;
-    return 0
+    \builtin return 0
 }
 
 function __reload_sketchybar ()
 {
-    local user_id;
-    user_id=$(id -u);
-    launchctl kickstart -k "gui/${user_id}/homebrew.mxcl.sketchybar";
-    return 0
+    \builtin local id_bin;
+    \builtin local launchctl_bin;
+    \builtin local user_id;
+    launchctl_bin="$(require 'launchctl')";
+    id_bin="$(require 'id')";
+    user_id="$("${id_bin}" -u)";
+    "${launchctl_bin}" kickstart -k "gui/${user_id}/homebrew.mxcl.sketchybar";
+    \builtin return 0
 }
 
 function __reload_skhd ()
 {
-    local user_id;
-    user_id=$(id -u);
-    launchctl kickstart -k "gui/${user_id}/homebrew.mxcl.skhd";
-    return 0
+    \builtin local id_bin;
+    \builtin local launchctl_bin;
+    \builtin local user_id;
+    id_bin="$(require 'id')";
+    launchctl_bin="$(require 'launchctl')";
+    user_id="$("${id_bin}" -u)";
+    "${launchctl_bin}" kickstart -k "gui/${user_id}/homebrew.mxcl.skhd";
+    \builtin return 0
 }
 
 function __reload_yabai ()
 {
-    local user_id;
-    local sudo_bin;
-    local yabai_bin;
-    user_id=$(id -u);
+    \builtin local id_bin;
+    \builtin local launchctl_bin;
+    \builtin local user_id;
+    \builtin local sudo_bin;
+    \builtin local yabai_bin;
+    id_bin="$(require 'id')";
+    launchctl_bin="$(require 'launchctl')";
+    user_id="$("${id_bin}" -u)";
     sudo_bin="$(require 'sudo')";
     yabai_bin="$(require 'yabai')";
     "${sudo_bin}" "${yabai_bin}" --load-sa;
-    launchctl kickstart -k "gui/${user_id}/homebrew.mxcl.yabai";
+    "${launchctl_bin}" kickstart -k "gui/${user_id}/homebrew.mxcl.yabai";
     \builtin return 0
 }
 
 function exit_fun ()
 {
-    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?${1:-'An error occurred. Exiting.'}}";
     \builtin exit 1
 }
 
 function require ()
 {
-    local cmd_str;
+    \builtin local cmd_str;
     \builtin local cmd_bin;
     \builtin local cmd_res;
     \builtin local full_cmd;
@@ -76,14 +88,14 @@ function require ()
         exit_fun "'${cmd_str}' executable not found in '\${PATH}'";
         \builtin exit 1;
     fi;
-    if [[ ${#} -eq 1 ]]; then
+    if [[ ${#:-} -eq 1 ]]; then
         cmd_res="$("${cmd_bin}" --version 2>&1 || \builtin echo -ne '')";
         full_cmd="${cmd_bin} --version";
     else
         cmd_res="$("${cmd_bin}" "${@:2}" 2>&1 || \builtin echo -ne '')";
         full_cmd="${cmd_bin} ${*:2}";
     fi;
-    if [[ -n ${cmd_res} ]]; then
+    if [[ -n "${cmd_res}" ]]; then
         \builtin echo -ne "${cmd_bin}";
     else
         exit_fun "'${full_cmd}' can't be executed";

@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 
 function text_box () {
-  local s=("$@");
-  local b;
-  local w;
-  local _l;
-  local tput_bin;
+  \builtin local s;
+  \builtin local b;
+  \builtin local w;
+  \builtin local _l;
+  \builtin local tput_bin;
+  s=("${@:-}");
   tput_bin="$(require 'tput')";
 
   for _l in "${s[@]}"; do
@@ -13,15 +14,15 @@ function text_box () {
       && { b="$_l"; w="${#_l}"; };
   done
   "${tput_bin}" setaf 3;
-  builtin echo " -${b//?/-}-
+  \builtin echo " -${b//?/-}-
 | ${b//?/ } |";
   for _l in "${s[@]}"; do
-    builtin printf \
+    \builtin printf \
       '| %s%*s%s |\n' \
       "$("${tput_bin}" setaf 4)" "-$w" "$_l" "$("${tput_bin}" setaf 3)";
   done
-  builtin echo "| ${b//?/ } |
+  \builtin echo "| ${b//?/ } |
  -${b//?/-}-";
   "${tput_bin}" sgr 0;
-  return 0;
+  \builtin return 0;
 }

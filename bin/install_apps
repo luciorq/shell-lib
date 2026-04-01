@@ -15,12 +15,13 @@
 
 function install_apps ()
 {
-    local _usage="usage: ${0} [--user|--system]";
-    local _arg;
-    local install_type;
-    local apps_length;
-    local app_num_arr;
-    local app_num;
+    \builtin local _usage;
+    _usage="usage: ${0} [--user|--system]";
+    \builtin local _arg;
+    \builtin local install_type;
+    \builtin local apps_length;
+    \builtin local app_num_arr;
+    \builtin local app_num;
     if [[ ${#} -eq 0 ]]; then
         install_type='--user';
     fi;
@@ -36,7 +37,9 @@ function install_apps ()
     done;
     apps_length="$(get_config apps apps | grep -c '^name:')";
     require seq;
-    \builtin mapfile -t app_num_arr < <(\seq 0 $(( apps_length - 1 )));
+    \builtin mapfile -t app_num_arr < <(
+    \seq 0 $(( apps_length - 1 ))
+  );
     for app_num in "${app_num_arr[@]}";
     do
         \builtin echo -ne "Installing App: '${app_num}':\n";
@@ -48,42 +51,46 @@ function install_apps ()
 
 function __get_app_num_from_app_name ()
 {
-    local input_name;
-    local apps_length;
-    local _app_num;
-    local app_num_arr;
-    local app_num_res;
-    local app_name;
-    local seq_bin;
+    \builtin local input_name;
+    \builtin local apps_length;
+    \builtin local _app_num;
+    \builtin local app_num_arr;
+    \builtin local app_num_res;
+    \builtin local app_name;
+    \builtin local seq_bin;
     seq_bin="$(require 'seq')";
-    input_name="${1}";
-    apps_length="$(get_config apps apps | grep -c '^name:')";
-    builtin mapfile -t app_num_arr < <("${seq_bin}" 0 $(( apps_length - 1 )));
+    input_name="${1:-}";
+    apps_length="$(get_config apps apps | "${grep_bin}" -c '^name:')";
+    \builtin mapfile -t app_num_arr < <(
+      "${seq_bin}" 0 $(( apps_length - 1 ))
+    );
     app_num_res='';
     for _app_num in "${app_num_arr[@]}";
     do
-        app_name="$(get_config apps apps "${_app_num}" name 2> /dev/null || builtin echo -ne '')";
+        app_name="$(get_config apps apps "${_app_num}" name 2> /dev/null         || \builtin echo -ne '')";
         if [[ ${input_name} == "${app_name}" && -n ${input_name} && -n ${app_name} ]]; then
             app_num_res="${_app_num}";
         fi;
     done;
     if [[ -z ${app_num_res} ]]; then
-        builtin echo -ne "${input_name}";
+        \builtin echo -ne "${input_name}";
     else
-        builtin echo -ne "${app_num_res}";
+        \builtin echo -ne "${app_num_res}";
     fi;
-    return 0
+    \builtin return 0
 }
 
 function __get_gh_latest_release ()
 {
-    local repo;
-    local release_url;
-    local latest_version;
-    local curl_bin;
+    \builtin local repo;
+    \builtin local release_url;
+    \builtin local latest_version;
+    \builtin local curl_bin;
     repo="${1:-}";
     curl_bin="$(require 'curl')";
-    release_url="$("${curl_bin}" -fsSL --insecure -I -o /dev/null -w '%{url_effective}' "https://github.com/${repo}/releases/latest")";
+    release_url="$(
+    "${curl_bin}" -fsSL       --insecure -I -o /dev/null -w '%{url_effective}'       "https://github.com/${repo}/releases/latest"
+  )";
     latest_version="${release_url//http*\/tag\//}";
     latest_version="${latest_version//http*\/releases/}";
     \builtin echo -ne "${latest_version}";
@@ -92,24 +99,25 @@ function __get_gh_latest_release ()
 
 function __get_gh_latest_tag ()
 {
-    local repo;
-    local latest_tag;
-    local tag_arr;
-    local tag_sort_arr;
-    local final_tag;
-    local cat_bin;
-    local sed_bin;
-    local grep_bin;
-    local curl_bin;
-    local sort_bin;
+    \builtin local repo;
+    \builtin local latest_tag;
+    \builtin local tag_arr;
+    \builtin local tag_sort_arr;
+    \builtin local final_tag;
+    \builtin local cat_bin;
+    \builtin local sed_bin;
+    \builtin local grep_bin;
+    \builtin local curl_bin;
+    \builtin local sort_bin;
     repo="${1:-}";
-    local required_commands=("grep" "sed" "cat" "curl" "sort");
-    local cmd;
+    \builtin local required_commands;
+    \builtin local cmd;
+    required_commands=('grep' 'sed' 'cat' 'curl' 'sort');
     for cmd in "${required_commands[@]}";
     do
-        builtin command -v "${cmd}" > /dev/null 2>&1 || {
-            builtin echo -ne "Error: '${cmd}' command not found\n";
-            exit 1
+        \builtin command -v "${cmd}" > /dev/null 2>&1 || {
+            \builtin echo -ne "Error: '${cmd}' command not found\n";
+            \builtin exit 1
         };
     done;
     grep_bin="$(require 'grep')";
@@ -117,55 +125,62 @@ function __get_gh_latest_tag ()
     sort_bin="$(require 'sort')";
     cat_bin="$(which_bin 'cat')";
     curl_bin="$(which_bin 'curl')";
-    latest_tag="$("${curl_bin}" -fsSL --insecure "https://api.github.com/repos/${repo}/tags" 2> /dev/null)";
+    latest_tag="$(
+    "${curl_bin}" -fsSL       --insecure       "https://api.github.com/repos/${repo}/tags" 2>/dev/null
+  )";
     if [[ -z "${latest_tag}" ]]; then
-        builtin echo -ne "Error: Failed to fetch tags from GitHub API\n";
-        exit 1;
+        \builtin echo -ne "Error: Failed to fetch tags from GitHub API\n";
+        \builtin exit 1;
     fi;
-    builtin mapfile -t latest_tag_arr < <(builtin echo -ne "${latest_tag}" | "${grep_bin}" '"name": ' | "${grep_bin}" -v "\-rc\|\-beta\|\-alpha\|devel");
-    builtin mapfile -t tag_arr < <(builtin echo "${latest_tag_arr[@]}" | "${sed_bin}" 's|\"name\":||g' | sed 's|\"||g' | sed 's|\\s+||g' | sed 's|\,||g');
+    \builtin mapfile -t latest_tag_arr < <(
+    \builtin echo -ne "${latest_tag}"       | "${grep_bin}" '"name": '       | "${grep_bin}" -v "\-rc\|\-beta\|\-alpha\|devel"
+  );
+    \builtin mapfile -t tag_arr < <(
+    \builtin echo "${latest_tag_arr[@]}"       | "${sed_bin}" 's|\"name\":||g'       | "${sed_bin}" 's|\"||g'       | "${sed_bin}" 's|\\s+||g'       | "${sed_bin}" 's|\,||g'
+  );
     if [[ ${#tag_arr[@]} -eq 0 ]]; then
-        builtin echo -ne "Error: No valid tags found\n";
-        exit 1;
+        \builtin echo -ne "Error: No valid tags found\n";
+        \builtin exit 1;
     fi;
-    builtin mapfile -t tag_sort_arr < <("${cat_bin}" <(for _i in ${tag_arr[@]};
-do
-    builtin echo -ne "${_i}\n";
-done) | grep '^v*[0-9]' | sort -rV);
+    \builtin mapfile -t tag_sort_arr < <(
+    "${cat_bin}" <(
+      for _i in ${tag_arr[@]}; do \builtin echo -ne "${_i}\n"; done;
+    )       | "${grep_bin}" '^v*[0-9]'       | "${sort_bin}" -rV
+  );
     final_tag="${tag_sort_arr[0]}";
-    builtin echo -ne "${final_tag}\n";
-    return 0
+    \builtin echo -ne "${final_tag}\n";
+    \builtin return 0
 }
 
 function __install_app ()
 {
-    local _usage="usage: ${0} [--user|--system] <APP_NUM/APP_NAME>";
-    local sed_bin rm_bin;
-    local mkdir_bin ln_bin chmod_bin;
-    local _arg;
-    local install_type;
-    local app_num;
-    local num_regex;
-    local link_inst_path;
-    local app_name;
-    local app_version;
-    local app_repo;
-    local app_url;
-    local base_url get_url;
-    local app_type;
-    local tarball_version;
-    local tarball_name;
-    local exec_path_arr;
-    local exec_path;
-    local extra_cmd_arr;
-    local _extra_cmd;
-    local extra_cmd;
-    local app_link;
-    local dl_path lib_path;
-    local install_path;
-    local missing_install;
-    local _link_exec;
-    sed_bin=$(which_bin 'gsed');
+    \builtin local _usage="usage: ${0} [--user|--system] <APP_NUM/APP_NAME>";
+    \builtin local sed_bin rm_bin;
+    \builtin local mkdir_bin ln_bin chmod_bin;
+    \builtin local _arg;
+    \builtin local install_type;
+    \builtin local app_num;
+    \builtin local num_regex;
+    \builtin local link_inst_path;
+    \builtin local app_name;
+    \builtin local app_version;
+    \builtin local app_repo;
+    \builtin local app_url;
+    \builtin local base_url get_url;
+    \builtin local app_type;
+    \builtin local tarball_version;
+    \builtin local tarball_name;
+    \builtin local exec_path_arr;
+    \builtin local exec_path;
+    \builtin local extra_cmd_arr;
+    \builtin local _extra_cmd;
+    \builtin local extra_cmd;
+    \builtin local app_link;
+    \builtin local dl_path lib_path;
+    \builtin local install_path;
+    \builtin local missing_install;
+    \builtin local _link_exec;
+    sed_bin="$(which_bin 'gsed')";
     if [[ -z ${sed_bin} ]]; then
         sed_bin="$(require 'sed')";
     fi;
@@ -182,7 +197,7 @@ function __install_app ()
     fi;
     if [[ -z ${app_num} ]]; then
         exit_fun "App {${app_num}} is not available.";
-        exit 1;
+        \builtin exit 1;
     fi;
     link_inst_path='';
     if [[ ${#} -eq 0 || ${#} -eq 1 ]]; then
@@ -201,18 +216,24 @@ function __install_app ()
             fi;
         fi;
     done;
-    app_name="$(get_config apps apps "${app_num}" name 2> /dev/null || builtin echo -ne '')";
-    builtin echo -ne "  --> ${app_name}\n";
+    app_name="$(
+      get_config apps apps "${app_num}" name 2> /dev/null || \builtin echo -ne ''
+    )";
+    \builtin echo -ne "  --> ${app_name}\n";
     if [[ -z ${app_name} || ${app_name} == null ]]; then
         exit_fun "'name' not found for '${app_num}'.
         Each element of the app list need a 'name' value.";
-        exit 1;
+        \builtin exit 1;
     fi;
-    app_version="$(get_config apps apps "${app_num}" version 2> /dev/null || builtin echo -ne '')";
+    app_version="$(
+      get_config apps apps "${app_num}" version 2> /dev/null || \builtin echo -ne ''
+    )";
     if [[ -z ${app_version} || ${app_version} == null ]]; then
         app_version='latest';
     fi;
-    app_repo="$(get_config apps apps "${app_num}" repo 2> /dev/null || builtin echo -ne '')";
+    app_repo="$(
+      get_config apps apps "${app_num}" repo 2> /dev/null || \builtin echo -ne ''
+    )";
     if [[ ${app_repo} == null ]]; then
         app_repo='';
     fi;
@@ -223,15 +244,21 @@ function __install_app ()
         fi;
     fi;
     tarball_version="${app_version#v*}";
-    app_url="$(get_config apps apps "${app_num}" url 2> /dev/null || builtin echo -ne '')";
+    app_url="$(
+      get_config apps apps "${app_num}" url 2> /dev/null || \builtin echo -ne ''
+    )";
     if [[ ${app_url} == null ]]; then
         app_url='';
     fi;
-    app_url="$(builtin echo -ne "$(get_config apps apps "${app_num}" url 2> /dev/null || builtin echo -ne '')" | sed "s|{[ ]*name[ ]*}|${app_name}|g" | sed "s|{[ ]*version[ ]*}|${tarball_version}|g")";
+    app_url="$(
+      \builtin echo -ne         "$(get_config apps apps "${app_num}" url 2> /dev/null         || \builtin echo -ne '')"         | "${sed_bin}" "s|{[ ]*name[ ]*}|${app_name}|g"         | "${sed_bin}" "s|{[ ]*version[ ]*}|${tarball_version}|g"
+    )";
     if [[ ${app_url} == null ]]; then
         app_url='';
     fi;
-    app_type="$(get_config apps apps "${app_num}" type 2> /dev/null || builtin echo -ne '')";
+    app_type="$(
+      get_config apps apps "${app_num}" type 2> /dev/null         || \builtin echo -ne ''
+    )";
     if [[ ${app_type} == null || -z ${app_type} ]]; then
         app_type='binary';
     fi;
@@ -241,29 +268,36 @@ function __install_app ()
     if [[ -n ${app_repo} && -z ${app_url} ]]; then
         app_type="${app_type}_github";
     fi;
-    tarball_name="$(builtin echo -ne "$(get_config apps apps "${app_num}" tarball 2> /dev/null || builtin echo -ne '')" | sed "s|{[ ]*name[ ]*}|${app_name}|g" | sed "s|{[ ]*version[ ]*}|${tarball_version}|g")";
+    tarball_name="$(
+      \builtin echo -ne         "$(get_config apps apps "${app_num}" tarball 2> /dev/null         || \builtin echo -ne '')"         | "${sed_bin}" "s|{[ ]*name[ ]*}|${app_name}|g"         | "${sed_bin}" "s|{[ ]*version[ ]*}|${tarball_version}|g"
+    )";
     if [[ -n ${app_url} ]]; then
         if [[ ${tarball_name} == null || -z ${tarball_name} ]]; then
             tarball_name="$(basename "${app_url}")";
         fi;
     fi;
-    builtin mapfile -t exec_path_arr < <(builtin echo -ne "$(get_config apps apps "${app_num}" exec_path 2> /dev/null || builtin echo -ne '')" | sed "s|{[ ]*name[ ]*}|${app_name}|g" | sed "s|{[ ]*version[ ]*}|${tarball_version}|g" | sed "s|{[ ]*repo[ ]*}|${app_repo}|g" | sed "s|{[ ]*tarball[ ]*}|${tarball_name}|g" | sed "s|{[ ]*install_path[ ]*}|${install_path}|g" | sed "s|{[ ]*lib_path[ ]*}|${lib_path}|g");
+    \builtin mapfile -t exec_path_arr < <(
+      \builtin echo -ne         "$(get_config apps apps "${app_num}" exec_path 2> /dev/null           || \builtin echo -ne '')"           | "${sed_bin}" "s|{[ ]*name[ ]*}|${app_name}|g"           | "${sed_bin}" "s|{[ ]*version[ ]*}|${tarball_version}|g"           | "${sed_bin}" "s|{[ ]*repo[ ]*}|${app_repo}|g"           | "${sed_bin}" "s|{[ ]*tarball[ ]*}|${tarball_name}|g"           | "${sed_bin}" "s|{[ ]*install_path[ ]*}|${install_path}|g"           | "${sed_bin}" "s|{[ ]*lib_path[ ]*}|${lib_path}|g"
+    );
     if [[ ${exec_path_arr[0]} == null ]]; then
-        declare -a exec_path_arr=();
-        unset -v exec_path_arr;
+        \builtin declare -a exec_path_arr;
+        exec_path_arr=();
+        \builtin unset -v exec_path_arr;
         exec_path_arr='';
     fi;
     if [[ -z ${exec_path_arr[0]} ]]; then
         exec_path_arr="${app_name}";
     fi;
-    app_link="$(get_config apps apps "${app_num}" link 2> /dev/null || builtin echo -ne '')";
+    app_link="$(
+      get_config apps apps "${app_num}" link 2> /dev/null || \builtin echo -ne ''
+    )";
     if [[ -z ${app_link} || ${app_link} == null ]]; then
         app_link='true';
     else
-        if [[ ${app_link} == no || ${app_link} == false || ${app_link} == FALSE || ${app_link} == False ]]; then
+        if [[ ${app_link} == no ]] || [[ ${app_link} == false ]] || [[ ${app_link} == FALSE ]] || [[ ${app_link} == False ]]; then
             app_link='false';
         else
-            if [[ ${app_link} == yes || ${app_link} == true || ${app_link} == TRUE || ${app_link} == True ]]; then
+            if [[ ${app_link} == yes ]] || [[ ${app_link} == true ]] || [[ ${app_link} == TRUE ]] || [[ ${app_link} == True ]]; then
                 app_link='true';
             fi;
         fi;
@@ -298,17 +332,17 @@ function __install_app ()
             missing_install='true';
         fi;
     done;
-    local skip_download_step;
+    \builtin local skip_download_step;
     skip_download_step='false';
-    local skip_link_step;
+    \builtin local skip_link_step;
     skip_link_step='false';
     if [[ ${app_type} != cargo && ${app_type} != conda && ${missing_install} == false ]]; then
         skip_download_step='true;';
     fi;
-    if [[ ! -d ${install_path} ]]; then
+    if [[ ! -d "${install_path}" ]]; then
         "${mkdir_bin}" -p "${install_path}";
     fi;
-    if [[ ${skip_download_step} == false ]]; then
+    if [[ "${skip_download_step}" == false ]]; then
         case "${app_type}" in
             source)
                 __install_app_source "${install_path}" "${tarball_name}" "${get_url}"
@@ -324,22 +358,22 @@ function __install_app ()
             ;;
             *)
                 exit_fun "Unknown installation type: '${app_type}'.";
-                exit 1
+                \builtin exit 1
             ;;
         esac;
     fi;
-    if [[ ! -d ${link_inst_path} ]]; then
+    if [[ ! -d "${link_inst_path}" ]]; then
         "${mkdir_bin}" -p "${link_inst_path}";
     fi;
-    if [[ ${skip_link_step} == false ]]; then
-        if [[ ! ${app_type} == conda ]]; then
+    if [[ "${skip_link_step}" == false ]]; then
+        if [[ ! "${app_type}" == conda ]]; then
             chmod_bin="$(which_bin 'chmod')";
             "${chmod_bin}" +x "${install_path}/${exec_path_arr[0]}";
-            if [[ ${app_link} == true ]]; then
+            if [[ "${app_link}" == true ]]; then
                 for exec_path in "${exec_path_arr[@]}";
                 do
                     _link_exec="${link_inst_path}/$(basename "${exec_path}")";
-                    if [[ -f ${_link_exec} ]]; then
+                    if [[ -f "${_link_exec}" ]]; then
                         "${rm_bin}" "${_link_exec}";
                     fi;
                     "${chmod_bin}" +x "${install_path}/${exec_path}";
@@ -348,14 +382,17 @@ function __install_app ()
             fi;
         fi;
     fi;
-    builtin mapfile -t extra_cmd_arr < <(get_config apps apps "${app_num}" extra_cmd 2> /dev/null || builtin echo -ne '');
+    \builtin mapfile -t extra_cmd_arr < <(
+    get_config apps apps "${app_num}" extra_cmd       2> /dev/null       || \builtin echo -ne ''
+  );
     if [[ -z ${extra_cmd_arr[0]} ]]; then
         extra_cmd_arr[0]='';
     fi;
     if [[ -n ${extra_cmd_arr[0]} ]]; then
         for _extra_cmd in "${extra_cmd_arr[@]}";
         do
-            extra_cmd=$(builtin echo "${_extra_cmd}" | sed "s|{[ ]*name[ ]*}|${app_name}|g" | sed "s|{[ ]*version[ ]*}|${tarball_version}|g" | sed "s|{[ ]*repo[ ]*}|${app_repo}|g" | sed "s|{[ ]*tarball[ ]*}|${tarball_name}|g" | sed "s|{[ ]*install_path[ ]*}|${link_inst_path}|g" | sed "s|{[ ]*lib_path[ ]*}|${install_path}|g" | sed "s|{[ ]*exec_path[ ]*}|${exec_path_arr[0]}|g");
+            extra_cmd=$(\builtin echo "${_extra_cmd}"         | sed "s|{[ ]*name[ ]*}|${app_name}|g"         | sed "s|{[ ]*version[ ]*}|${tarball_version}|g"         | sed "s|{[ ]*repo[ ]*}|${app_repo}|g"         | sed "s|{[ ]*tarball[ ]*}|${tarball_name}|g"         | sed "s|{[ ]*install_path[ ]*}|${link_inst_path}|g"         | sed "s|{[ ]*lib_path[ ]*}|${install_path}|g"         | sed "s|{[ ]*exec_path[ ]*}|${exec_path_arr[0]}|g"
+      );
             \builtin echo -ne "${extra_cmd[*]}\n";
             \builtin eval $(\builtin echo ${extra_cmd[*]});
         done;
@@ -366,11 +403,11 @@ function __install_app ()
 
 function __install_app_binary ()
 {
-    local install_path;
-    local tarball_name;
-    local get_url;
-    local dl_path;
-    local rm_bin;
+    \builtin local install_path;
+    \builtin local tarball_name;
+    \builtin local get_url;
+    \builtin local dl_path;
+    \builtin local rm_bin;
     rm_bin="$(which_bin 'rm')";
     install_path="${1}";
     tarball_name="${2}";
@@ -380,58 +417,60 @@ function __install_app_binary ()
     unpack "${dl_path}/${tarball_name}" "${install_path}";
     "${rm_bin}" -rf "${dl_path}/${tarball_name}";
     "${rm_bin}" -rf "${dl_path}";
-    return 0
+    \builtin return 0
 }
 
 function __install_app_cargo ()
 {
-    local cargo_bin;
-    local install_path;
-    local app_name;
-    local app_url;
-    local git_var;
+    \builtin local cargo_bin;
+    \builtin local install_path;
+    \builtin local app_name;
+    \builtin local app_url;
+    \builtin local git_var;
     cargo_bin="$(which_bin 'cargo')";
     if [[ -z ${cargo_bin} ]]; then
         exit_fun "'{cargo}' is not available for installing rust apps.";
-        exit 1;
+        \builtin exit 1;
     fi;
-    install_path="${1}";
-    app_name="${2}";
-    get_url="${3}";
+    install_path="${1:-}";
+    app_name="${2:-}";
+    get_url="${3:-}";
     git_var='';
     if [[ -n ${get_url} ]]; then
         git_var='--git ';
         app_name="${get_url}";
     fi;
     "${cargo_bin}" install --quiet --all-features --root "${install_path}" ${git_var}${app_name};
-    local exit_code="$?";
+    \builtin local exit_code="$?";
     if [[ ${exit_code} -ne 0 ]]; then
-        builtin echo "Error: Failed to install rust app";
-        exit 1;
+        \builtin echo "Error: Failed to install rust app";
+        \builtin exit 1;
     fi;
-    return 0
+    \builtin return 0
 }
 
 function __install_app_mamba ()
 {
-    local _usage="Usage: ${0} <--user|--system> <APP_NAME> <BIN_NAME_1> [<BIN_NAME_2> ... <BIN_NAME_N>]";
-    unset -v _usage;
-    local install_path;
-    local app_name;
-    local install_type;
-    local prefix_path;
-    local envs_path;
-    local link_path;
-    local install_path;
-    local mamba_bin;
-    local mkdir_bin;
-    local ln_bin;
-    local chmod_bin;
-    local touch_bin;
-    local _exec_bin;
-    local exec_file;
-    install_type="${1}";
-    app_name="${2}";
+    \builtin local _usage;
+    _usage="Usage: ${0} <--user|--system> <APP_NAME> <BIN_NAME_1> [<BIN_NAME_2> ... <BIN_NAME_N>]";
+    \builtin unset -v _usage;
+    \builtin local install_type;
+    \builtin local install_path;
+    \builtin local app_name;
+    \builtin local install_type;
+    \builtin local prefix_path;
+    \builtin local envs_path;
+    \builtin local link_path;
+    \builtin local install_path;
+    \builtin local mamba_bin;
+    \builtin local mkdir_bin;
+    \builtin local ln_bin;
+    \builtin local chmod_bin;
+    \builtin local touch_bin;
+    \builtin local _exec_bin;
+    \builtin local exec_file;
+    install_type="${1:-}";
+    app_name="${2:-}";
     mamba_bin="$(which_bin 'micromamba')";
     if [[ -z ${mamba_bin} ]]; then
         mamba_bin="$(which_bin 'mamba')";
@@ -441,7 +480,7 @@ function __install_app_mamba ()
     fi;
     if [[ -z ${mamba_bin} ]]; then
         exit_fun '{mamba} is not available in {PATH}';
-        exit 1;
+        \builtin exit 1;
     fi;
     mkdir_bin="$(which_bin 'mkdir')";
     ln_bin="$(which_bin 'ln')";
@@ -467,26 +506,26 @@ function __install_app_mamba ()
     do
         exec_file="${install_path}/${_exec_bin}";
         "${touch_bin}" "${exec_file}";
-        builtin echo -ne '#!/usr/bin/env bash\n\n' > "${exec_file}";
-        builtin echo "${mamba_bin} run --prefix ${envs_path}/${app_name} ${_exec_bin} \"\${@}\"" >> "${exec_file}";
+        \builtin echo -ne '#!/usr/bin/env bash\n\n' > "${exec_file}";
+        \builtin echo "${mamba_bin} run --prefix ${envs_path}/${app_name} ${_exec_bin} \"\${@}\"" >> "${exec_file}";
         "${chmod_bin}" +x "${exec_file}";
         "${ln_bin}" -sf "${exec_file}" "${link_path}/${_exec_bin}";
     done;
-    return 0
+    \builtin return 0
 }
 
 function __install_app_source ()
 {
-    local install_path;
-    local tarball_name;
-    local get_url;
-    local dl_path;
-    local build_arr;
-    local build_path;
-    local rm_bin;
-    local ls_bin;
-    local make_bin;
-    local num_threads;
+    \builtin local install_path;
+    \builtin local tarball_name;
+    \builtin local get_url;
+    \builtin local dl_path;
+    \builtin local build_arr;
+    \builtin local build_path;
+    \builtin local rm_bin;
+    \builtin local ls_bin;
+    \builtin local make_bin;
+    \builtin local num_threads;
     install_path="${1:-}";
     tarball_name="${2:-}";
     get_url="${3:-}";
@@ -501,19 +540,21 @@ function __install_app_source ()
     download "${get_url}" "${dl_path}";
     unpack "${dl_path}/${tarball_name}" "${dl_path}";
     "${rm_bin}" -rf "${dl_path}/${tarball_name}";
-    builtin mapfile -t build_arr < <(LC_ALL=C "${ls_bin}" -A1 -- "${dl_path}");
+    \builtin mapfile -t build_arr < <(
+    LC_ALL=C "${ls_bin}" -A1 -- "${dl_path}"
+  );
     build_path="${dl_path}/${build_arr[0]}";
     function __build_app ()
     {
-        local build_path="${1}";
-        local install_path="${2}";
-        ( builtin cd "${build_path}" || {
-            builtin echo -ne "Error: Failed to change directory to '${build_path}'\n";
-            builtin exit 1
+        \builtin local build_path="${1}";
+        \builtin local install_path="${2}";
+        ( \builtin cd "${build_path}" || {
+            \builtin echo -ne "Error: Failed to change directory to '${build_path}'\n";
+            \builtin exit 1
         };
         ./configure --prefix="${install_path}" || {
-            builtin echo -ne "Error: Failed to execute 'configure' script\n";
-            builtin exit 1
+            \builtin echo -ne "Error: Failed to execute 'configure' script\n";
+            \builtin exit 1
         } )
     };
     __build_app "${build_path}" "${install_path}";
@@ -521,13 +562,13 @@ function __install_app_source ()
     "${make_bin}" -C "${build_path}" install -j "${num_threads}";
     "${rm_bin}" -rf "${build_path}";
     "${rm_bin}" -rf "${dl_path}";
-    return 0
+    \builtin return 0
 }
 
 function __install_path ()
 {
-    local base_path;
-    local install_type;
+    \builtin local base_path;
+    \builtin local install_type;
     install_type="${1:-}";
     if [[ -z ${install_type} ]]; then
         install_type='--user';
@@ -539,7 +580,7 @@ function __install_path ()
             base_path="${HOME}/.local/opt/apps";
         fi;
     fi;
-    builtin echo -ne "${base_path}";
+    \builtin echo -ne "${base_path}";
     \builtin return 0
 }
 
@@ -592,7 +633,7 @@ function __parse_yaml_python ()
     py_script="import yaml;x = yaml.safe_load(open('${yaml_path}', 'r'))";
     py_script="${py_script}${levels_str}";
     py_script="${py_script}; print(x) if isinstance(x, str) else [print(yaml.dump(i)) for i in x] if isinstance(x, list) else print(yaml.dump(x)) if isinstance(x, dict) else False;";
-    module_res=$("${py_bin}" -c "${py_script}" 2>&1);
+    module_res=$( "${py_bin}" -c "${py_script}" 2>&1 );
     if [[ ${module_res} =~ KeyError: ]]; then
         \builtin echo -ne '\n';
         \builtin return 0;
@@ -622,7 +663,9 @@ function __parse_yaml_ruby ()
         fi;
     done;
     ruby_script="${ruby_script}; if var_res.class == Hash; puts YAML::dump(var_res) elsif var_res.class == Array; for item in var_res; puts YAML::dump(item) end; else puts var_res end;";
-    yaml_res=$("${ruby_bin}" -ryaml -e "${ruby_script}" "${yaml_path}" | grep -v '^---');
+    yaml_res=$(
+    "${ruby_bin}" -ryaml -e "${ruby_script}" "${yaml_path}"       | grep -v '^---'
+  );
     \builtin echo -ne "${yaml_res}";
     \builtin return 0
 }
@@ -646,7 +689,9 @@ function __parse_yaml_yq ()
         levels_str='.';
     fi;
     yq_str="... comments=\"\" | ${levels_str} | ( select( has(0) ) | .[]) // .";
-    yaml_res=$("${yq_bin}" eval --no-doc "${yq_str}" "${yaml_path}");
+    yaml_res=$(
+    "${yq_bin}" eval --no-doc "${yq_str}" "${yaml_path}"
+  );
     if [[ ${yaml_res} == null ]]; then
         yaml_res='\n';
     fi;
@@ -656,10 +701,16 @@ function __parse_yaml_yq ()
 
 function __unpack_deb ()
 {
-    local deb_path dir_output deb_data_path _i;
-    local rm_bin cp_bin mkdir_bin ar_bin;
-    local realpath_bin;
-    local ls_bin;
+    \builtin local deb_path;
+    \builtin local dir_output;
+    \builtin local deb_data_path;
+    \builtin local _i;
+    \builtin local rm_bin;
+    \builtin local cp_bin;
+    \builtin local mkdir_bin;
+    \builtin local ar_bin;
+    \builtin local realpath_bin;
+    \builtin local ls_bin;
     deb_path="${1:-}";
     dir_output="${2:-}";
     rm_bin="$(which_bin 'rm')";
@@ -673,7 +724,7 @@ function __unpack_deb ()
     deb_data_path=$("${realpath_bin}" "${dir_output}"/deb/dat*);
     unpack "${deb_data_path}" "${dir_output}";
     "${rm_bin}" -rf "${dir_output}/deb";
-    builtin mapfile -t content_dirs < <(LC_ALL=C "${ls_bin}" -- "${dir_output}");
+    \builtin mapfile -t content_dirs < <(LC_ALL=C "${ls_bin}" -- "${dir_output}");
     for _i in "${content_dirs[@]}";
     do
         if [[ -d "${dir_output}/${_i}" ]]; then
@@ -681,53 +732,56 @@ function __unpack_deb ()
             "${rm_bin}" -rf "${dir_output:?}/${_i}";
         fi;
     done;
-    builtin return 0
+    \builtin return 0
 }
 
 function create_temp ()
 {
-    local suff_str exec_cmd mktemp_bin;
-    local usage="create_temp <SUFFIX>";
-    if [[ $1 == -h ]]; then
-        builtin echo -ne "${usage}\n";
+    \builtin local suff_str;
+    \builtin local exec_cmd;
+    \builtin local mktemp_bin;
+    \builtin local usage="create_temp <SUFFIX>";
+    if [[ "${1:-}" == "-h" ]]; then
+        \builtin echo -ne "${usage}\n";
     fi;
     suff_str='';
     mktemp_bin="$(which_bin 'mktemp')";
     exec_cmd="${mktemp_bin} -d -t 'tmp.XXXXXXXXX'";
-    if [[ ! "$1" == "" ]]; then
-        suff_str=" --suffix \"-$1\"";
+    if [[ ! "${1:-}" == "" ]]; then
+        suff_str=" --suffix \"-${1:-suffix}\"";
         exec_cmd="${exec_cmd} ${suff_str}";
     fi;
-    builtin eval "${exec_cmd}"
+    \builtin eval "${exec_cmd}";
+    \builtin return 0
 }
 
 function download ()
 {
     function download_usage ()
     {
-        builtin echo -ne "usage: download <URL> [<OUTPUT_DIR>] [<THREADS>]\n" 1>&2
+        \builtin echo -ne "usage: download <URL> [<OUTPUT_DIR>] [<THREADS>]\n" 1>&2
     };
     if [[ ${#} -eq 0 ]]; then
         download_usage;
-        unset download_usage;
-        exit 1;
+        \builtin unset download_usage;
+        \builtin exit 1;
     fi;
     if [[ ${1:-} == '-h' ]]; then
         download_usage;
-        unset download_usage;
-        return 0;
+        \builtin unset download_usage;
+        \builtin return 0;
     fi;
-    unset download_usage;
-    local get_url;
-    local dir_output;
-    local thread_num;
-    local output_filename;
-    local output_basename;
-    local realpath_bin;
-    local wget_bin;
-    local curl_bin;
-    local aria_bin;
-    local cache_path;
+    \builtin unset download_usage;
+    \builtin local get_url;
+    \builtin local dir_output;
+    \builtin local thread_num;
+    \builtin local output_filename;
+    \builtin local output_basename;
+    \builtin local realpath_bin;
+    \builtin local wget_bin;
+    \builtin local curl_bin;
+    \builtin local aria_bin;
+    \builtin local cache_path;
     get_url="${1:-}";
     dir_output="${2:-}";
     realpath_bin="$(require 'realpath')";
@@ -755,34 +809,37 @@ function download ()
                 "${aria_bin}" --continue=true -s "${thread_num}" -x "${thread_num}" -j 1 -k 1M -d "${dir_output}" --out="${output_basename}" --quiet=true --check-integrity=true --check-certificate=false "${get_url}";
             else
                 exit_fun 'No download method available';
-                exit 1;
+                \builtin exit 1;
             fi;
         fi;
     fi;
-    return 0
+    \builtin return 0
 }
 
 function exit_fun ()
 {
-    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?${1:-'An error occurred. Exiting.'}}";
     \builtin exit 1
 }
 
 function get_config ()
 {
-    local _usage="Usage: ${0} <{--priv|-p]>";
-    unset _usage;
-    local cfg_dir;
-    local file_base_name;
-    local file_ext;
-    local var_file;
-    local argv;
-    if [[ ${1:-} == --priv ]] || [[ ${1:-} == -p ]]; then
-        declare -a argv=("${@:3}");
+    \builtin local _usage;
+    _usage="Usage: ${0} <{--priv|-p]>";
+    \builtin unset _usage;
+    \builtin local cfg_dir;
+    \builtin local file_base_name;
+    \builtin local file_ext;
+    \builtin local var_file;
+    \builtin local argv;
+    if [[ "${1:-}" == "--priv" ]] || [[ "${1:-}" == "-p" ]]; then
+        \builtin declare -a argv;
+        argv=("${@:3}");
         file_base_name="${2:-}";
         cfg_dir="$(get_config_path --priv)";
     else
-        declare -a argv=("${@:2}");
+        \builtin declare -a argv;
+        argv=("${@:2}");
         file_base_name="${1:-}";
         cfg_dir="$(get_config_path)";
     fi;
@@ -802,28 +859,33 @@ function get_config ()
 
 function get_config_path ()
 {
-    local cfg_path;
-    local private_dir;
-    if [[ ${1} == --priv ]] || [[ ${1} == -p ]]; then
+    \builtin local _usage;
+    _usage="${0} [--priv | -p] [<private_dir>]";
+    \builtin unset _usage;
+    \builtin local cfg_path;
+    \builtin local private_dir;
+    \builtin local first_arg;
+    first_arg="${1:-}";
+    if [[ ${first_arg} == --priv ]] || [[ ${first_arg} == -p ]]; then
         private_dir="$(get_config env priv)";
         cfg_path="${XDG_CONFIG_HOME:-${HOME}/.config}/${private_dir}";
     else
-        private_dir="${1}";
+        private_dir="${first_arg}";
         cfg_path="${_LOCAL_CONFIG:-${XDG_CONFIG_HOME:-${HOME}/.config}/${private_dir}}";
     fi;
-    builtin echo -ne "${cfg_path}";
-    return 0
+    \builtin echo -ne "${cfg_path}";
+    \builtin return 0
 }
 
 function get_nthreads ()
 {
-    local nproc_bin;
-    local lscpu_bin;
-    local grep_bin;
-    local num_threads;
-    local half_threads;
-    local max_threads_to_use;
-    local threads_to_use;
+    \builtin local nproc_bin;
+    \builtin local lscpu_bin;
+    \builtin local grep_bin;
+    \builtin local num_threads;
+    \builtin local half_threads;
+    \builtin local max_threads_to_use;
+    \builtin local threads_to_use;
     max_threads_to_use="${1:-8}";
     nproc_bin="$(which_bin 'nproc')";
     lscpu_bin="$(which_bin 'lscpu')";
@@ -842,8 +904,8 @@ function get_nthreads ()
                 if [[ -n ${sysctl_bin} && $(get_os_type) == darwin ]]; then
                     num_threads="$("${sysctl_bin}" -n hw.ncpu)";
                 else
-                    builtin echo -ne "4";
-                    return 0;
+                    \builtin echo -ne "4";
+                    \builtin return 0;
                 fi;
             fi;
         fi;
@@ -853,14 +915,14 @@ function get_nthreads ()
     if [[ ${threads_to_use} -gt ${max_threads_to_use} ]]; then
         threads_to_use="${max_threads_to_use}";
     fi;
-    builtin echo -ne "${threads_to_use}";
-    return 0
+    \builtin echo -ne "${threads_to_use}";
+    \builtin return 0
 }
 
 function get_os_type ()
 {
-    local os_type_str;
-    local uname_bin;
+    \builtin local os_type_str;
+    \builtin local uname_bin;
     os_type_str="${OSTYPE}";
     uname_bin="$(which_bin 'uname')";
     if [[ -z ${os_type_str} ]]; then
@@ -868,20 +930,21 @@ function get_os_type ()
             os_type_str="$("${uname_bin}" -s)";
         else
             exit_fun "'uname' command not available";
+            \builtin exit 1;
         fi;
     fi;
     os_type_str="${os_type_str/[\-1-9]*/}";
     os_type_str="${os_type_str,,}";
-    builtin echo -ne "${os_type_str}";
-    return 0
+    \builtin echo -ne "${os_type_str}";
+    \builtin return 0
 }
 
 function is_compressed ()
 {
-    local input_file;
-    local is_zip_var;
-    local file_bin;
-    input_file="${1}";
+    \builtin local input_file;
+    \builtin local is_zip_var;
+    \builtin local file_bin;
+    input_file="${1:-}";
     file_bin="$(which_bin 'file')";
     res_txt="$("${file_bin}" -b "${input_file}")";
     if [[ ${res_txt} =~ "compressed" ]]; then
@@ -889,8 +952,8 @@ function is_compressed ()
     else
         is_zip_var='false';
     fi;
-    builtin echo -ne "${is_zip_var}";
-    return 0
+    \builtin echo -ne "${is_zip_var}";
+    \builtin return 0
 }
 
 function parse_yaml ()
@@ -944,7 +1007,7 @@ function parse_yaml ()
 
 function require ()
 {
-    local cmd_str;
+    \builtin local cmd_str;
     \builtin local cmd_bin;
     \builtin local cmd_res;
     \builtin local full_cmd;
@@ -954,14 +1017,14 @@ function require ()
         exit_fun "'${cmd_str}' executable not found in '\${PATH}'";
         \builtin exit 1;
     fi;
-    if [[ ${#} -eq 1 ]]; then
+    if [[ ${#:-} -eq 1 ]]; then
         cmd_res="$("${cmd_bin}" --version 2>&1 || \builtin echo -ne '')";
         full_cmd="${cmd_bin} --version";
     else
         cmd_res="$("${cmd_bin}" "${@:2}" 2>&1 || \builtin echo -ne '')";
         full_cmd="${cmd_bin} ${*:2}";
     fi;
-    if [[ -n ${cmd_res} ]]; then
+    if [[ -n "${cmd_res}" ]]; then
         \builtin echo -ne "${cmd_bin}";
     else
         exit_fun "'${full_cmd}' can't be executed";
@@ -972,29 +1035,29 @@ function require ()
 
 function unpack ()
 {
-    local _usage;
+    \builtin local _usage;
     function _usage ()
     {
         \builtin echo -ne "Usage: ${0} <ZIP_FILE> [<OUTPUT_DIR>]\n" 1>&2
     };
-    if [[ ${#} -eq 0 ]]; then
+    if [[ ${#:-} -eq 0 ]]; then
         _usage;
-        unset _usage;
+        \builtin unset _usage;
         \builtin exit 1;
     fi;
-    unset _usage;
-    local zip_path;
-    local dir_output;
-    local output_file_path;
-    local rm_bin;
-    local cp_bin;
-    local mkdir_bin;
-    local tar_bin;
-    local realpath_bin;
-    local basename_bin;
-    local unzip_bin;
-    local gzip_bin;
-    local unrar_bin;
+    \builtin unset _usage;
+    \builtin local zip_path;
+    \builtin local dir_output;
+    \builtin local output_file_path;
+    \builtin local rm_bin;
+    \builtin local cp_bin;
+    \builtin local mkdir_bin;
+    \builtin local tar_bin;
+    \builtin local realpath_bin;
+    \builtin local basename_bin;
+    \builtin local unzip_bin;
+    \builtin local gzip_bin;
+    \builtin local unrar_bin;
     zip_path="${1:-}";
     dir_output="${2:-}";
     rm_bin="$(which_bin 'rm')";

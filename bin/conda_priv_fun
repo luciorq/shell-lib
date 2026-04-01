@@ -15,9 +15,9 @@
 
 function conda_priv_fun ()
 {
-    local conda_bin;
-    local env_name;
-    local conda_env_exports;
+    \builtin local conda_bin;
+    \builtin local env_name;
+    \builtin local conda_env_exports;
     conda_bin="$(get_conda_bin)";
     if [[ -z ${1:-} ]]; then
         "${conda_bin}" --help;
@@ -30,9 +30,9 @@ function conda_priv_fun ()
         else
             conda_env_exports="$("${conda_bin}" shell.posix activate "${env_name}")";
         fi;
-        builtin eval "${conda_env_exports}";
-        builtin hash -r;
-        builtin return 0;
+        \builtin eval "${conda_env_exports}";
+        \builtin hash -r;
+        \builtin return 0;
     fi;
     "${conda_bin}" "${@:-}";
     \builtin return 0
@@ -40,48 +40,50 @@ function conda_priv_fun ()
 
 function dirname_pure ()
 {
-    local tmp=${1:-.};
-    [[ $tmp != *[!/]* ]] && {
-        builtin printf '/\n';
-        builtin return
+    \builtin local tmp_var;
+    tmp_var="${1:-.}";
+    [[ $tmp_var != *[!/]* ]] && {
+        \builtin printf '/\n';
+        \builtin return
     };
-    tmp=${tmp%%"${tmp##*[!/]}"};
-    [[ $tmp != */* ]] && {
-        builtin printf '.\n';
-        builtin return
+    tmp_var=${tmp_var%%"${tmp_var##*[!/]}"};
+    [[ $tmp_var != */* ]] && {
+        \builtin printf '.\n';
+        \builtin return
     };
-    tmp=${tmp%/*};
-    tmp=${tmp%%"${tmp##*[!/]}"};
-    printf '%s\n' "${tmp:-/}"
+    tmp_var=${tmp_var%/*};
+    tmp_var=${tmp_var%%"${tmp_var##*[!/]}"};
+    \builtin printf '%s\n' "${tmp_var:-/}";
+    \builtin return 0
 }
 
 function download ()
 {
     function download_usage ()
     {
-        builtin echo -ne "usage: download <URL> [<OUTPUT_DIR>] [<THREADS>]\n" 1>&2
+        \builtin echo -ne "usage: download <URL> [<OUTPUT_DIR>] [<THREADS>]\n" 1>&2
     };
     if [[ ${#} -eq 0 ]]; then
         download_usage;
-        unset download_usage;
-        exit 1;
+        \builtin unset download_usage;
+        \builtin exit 1;
     fi;
     if [[ ${1:-} == '-h' ]]; then
         download_usage;
-        unset download_usage;
-        return 0;
+        \builtin unset download_usage;
+        \builtin return 0;
     fi;
-    unset download_usage;
-    local get_url;
-    local dir_output;
-    local thread_num;
-    local output_filename;
-    local output_basename;
-    local realpath_bin;
-    local wget_bin;
-    local curl_bin;
-    local aria_bin;
-    local cache_path;
+    \builtin unset download_usage;
+    \builtin local get_url;
+    \builtin local dir_output;
+    \builtin local thread_num;
+    \builtin local output_filename;
+    \builtin local output_basename;
+    \builtin local realpath_bin;
+    \builtin local wget_bin;
+    \builtin local curl_bin;
+    \builtin local aria_bin;
+    \builtin local cache_path;
     get_url="${1:-}";
     dir_output="${2:-}";
     realpath_bin="$(require 'realpath')";
@@ -109,22 +111,22 @@ function download ()
                 "${aria_bin}" --continue=true -s "${thread_num}" -x "${thread_num}" -j 1 -k 1M -d "${dir_output}" --out="${output_basename}" --quiet=true --check-integrity=true --check-certificate=false "${get_url}";
             else
                 exit_fun 'No download method available';
-                exit 1;
+                \builtin exit 1;
             fi;
         fi;
     fi;
-    return 0
+    \builtin return 0
 }
 
 function exit_fun ()
 {
-    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?${1:-'An error occurred. Exiting.'}}";
     \builtin exit 1
 }
 
 function get_conda_bin ()
 {
-    builtin local conda_bin;
+    \builtin local conda_bin;
     conda_bin="$(which_bin 'micromamba')";
     if [[ -z ${conda_bin} ]]; then
         conda_bin="$(which_bin 'mamba')";
@@ -138,10 +140,10 @@ function get_conda_bin ()
     fi;
     if [[ -z ${conda_bin} ]]; then
         exit_fun '`conda`, `mamba`, and `micromamba` are not available for this system';
-        builtin exit 1;
+        \builtin exit 1;
     fi;
-    builtin echo -ne "${conda_bin}";
-    builtin return 0
+    \builtin echo -ne "${conda_bin}";
+    \builtin return 0
 }
 
 function get_conda_platform ()
@@ -194,13 +196,13 @@ function get_conda_platform ()
 
 function get_nthreads ()
 {
-    local nproc_bin;
-    local lscpu_bin;
-    local grep_bin;
-    local num_threads;
-    local half_threads;
-    local max_threads_to_use;
-    local threads_to_use;
+    \builtin local nproc_bin;
+    \builtin local lscpu_bin;
+    \builtin local grep_bin;
+    \builtin local num_threads;
+    \builtin local half_threads;
+    \builtin local max_threads_to_use;
+    \builtin local threads_to_use;
     max_threads_to_use="${1:-8}";
     nproc_bin="$(which_bin 'nproc')";
     lscpu_bin="$(which_bin 'lscpu')";
@@ -219,8 +221,8 @@ function get_nthreads ()
                 if [[ -n ${sysctl_bin} && $(get_os_type) == darwin ]]; then
                     num_threads="$("${sysctl_bin}" -n hw.ncpu)";
                 else
-                    builtin echo -ne "4";
-                    return 0;
+                    \builtin echo -ne "4";
+                    \builtin return 0;
                 fi;
             fi;
         fi;
@@ -230,14 +232,14 @@ function get_nthreads ()
     if [[ ${threads_to_use} -gt ${max_threads_to_use} ]]; then
         threads_to_use="${max_threads_to_use}";
     fi;
-    builtin echo -ne "${threads_to_use}";
-    return 0
+    \builtin echo -ne "${threads_to_use}";
+    \builtin return 0
 }
 
 function get_os_arch ()
 {
-    local os_arch_str;
-    local uname_bin;
+    \builtin local os_arch_str;
+    \builtin local uname_bin;
     os_arch_str="${HOSTTYPE}";
     uname_bin="$(which_bin 'uname')";
     if [[ -z ${os_arch_str} ]]; then
@@ -245,16 +247,17 @@ function get_os_arch ()
             os_arch_str="$("${uname_bin}" -m)";
         else
             exit_fun "'uname' command not available";
+            \builtin exit 1;
         fi;
     fi;
-    builtin echo -ne "${os_arch_str}";
-    return 0
+    \builtin echo -ne "${os_arch_str}";
+    \builtin return 0
 }
 
 function get_os_type ()
 {
-    local os_type_str;
-    local uname_bin;
+    \builtin local os_type_str;
+    \builtin local uname_bin;
     os_type_str="${OSTYPE}";
     uname_bin="$(which_bin 'uname')";
     if [[ -z ${os_type_str} ]]; then
@@ -262,34 +265,36 @@ function get_os_type ()
             os_type_str="$("${uname_bin}" -s)";
         else
             exit_fun "'uname' command not available";
+            \builtin exit 1;
         fi;
     fi;
     os_type_str="${os_type_str/[\-1-9]*/}";
     os_type_str="${os_type_str,,}";
-    builtin echo -ne "${os_type_str}";
-    return 0
+    \builtin echo -ne "${os_type_str}";
+    \builtin return 0
 }
 
 function install_micromamba ()
 {
-    builtin local _usage="Usage: ${0} [--force] [--system]";
-    builtin unset _usage;
-    builtin local micromamba_bin;
-    builtin local conda_platform;
-    builtin local download_url;
-    builtin local _arg;
-    builtin local install_type;
-    builtin local force_flag;
-    builtin local inst_path;
-    builtin local link_path;
-    builtin local link_dir;
-    builtin local dl_path;
-    builtin local chmod_bin;
-    builtin local ln_bin;
-    builtin local rm_bin;
-    builtin local mkdir_bin;
+    \builtin local _usage;
+    _usage="${0} [--force] [--system]";
+    \builtin unset _usage;
+    \builtin local micromamba_bin;
+    \builtin local conda_platform;
+    \builtin local download_url;
+    \builtin local _arg;
+    \builtin local install_type;
+    \builtin local force_flag;
+    \builtin local inst_path;
+    \builtin local link_path;
+    \builtin local link_dir;
+    \builtin local dl_path;
+    \builtin local chmod_bin;
+    \builtin local ln_bin;
+    \builtin local rm_bin;
+    \builtin local mkdir_bin;
     force_flag='0';
-    for _arg in "${@}";
+    for _arg in "${@:-}";
     do
         if [[ ${_arg} == --force ]]; then
             force_flag='1';
@@ -343,7 +348,7 @@ function install_micromamba ()
 
 function require ()
 {
-    local cmd_str;
+    \builtin local cmd_str;
     \builtin local cmd_bin;
     \builtin local cmd_res;
     \builtin local full_cmd;
@@ -353,14 +358,14 @@ function require ()
         exit_fun "'${cmd_str}' executable not found in '\${PATH}'";
         \builtin exit 1;
     fi;
-    if [[ ${#} -eq 1 ]]; then
+    if [[ ${#:-} -eq 1 ]]; then
         cmd_res="$("${cmd_bin}" --version 2>&1 || \builtin echo -ne '')";
         full_cmd="${cmd_bin} --version";
     else
         cmd_res="$("${cmd_bin}" "${@:2}" 2>&1 || \builtin echo -ne '')";
         full_cmd="${cmd_bin} ${*:2}";
     fi;
-    if [[ -n ${cmd_res} ]]; then
+    if [[ -n "${cmd_res}" ]]; then
         \builtin echo -ne "${cmd_bin}";
     else
         exit_fun "'${full_cmd}' can't be executed";

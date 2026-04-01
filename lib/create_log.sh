@@ -2,16 +2,16 @@
 
 # Create a Log file
 function create_log () {
-  local _usage;
+  \builtin local _usage;
   _usage="Usage: ${0} <APP_NAME> [<DIR>]/logs";
-  unset _usage;
-  local base_path;
-  local app_name;
-  local log_path;
-  local time_str;
-  local mkdir_bin;
-  local touch_bin;
-  local rand_str;
+  \builtin unset _usage;
+  \builtin local base_path;
+  \builtin local app_name;
+  \builtin local log_path;
+  \builtin local time_str;
+  \builtin local mkdir_bin;
+  \builtin local touch_bin;
+  \builtin local rand_str;
   app_name="${1:-}";
   base_path="${2:-}";
   if [[ -z ${base_path} ]]; then
@@ -24,10 +24,12 @@ function create_log () {
   time_str="$(__get_tz_timestamp)";
   rand_str="$(__get_hash 8)";
   log_path="${base_path}/logs/${app_name}-${time_str}-${rand_str}.log";
+
   while [[ -f ${log_path} ]]; do
     rand_str="$(__get_hash 8)";
     log_path="${base_path}/logs/${app_name}-${time_str}-${rand_str}.log";
   done
+
   touch_bin="$(require 'touch')";
   if [[ -n ${touch_bin} ]]; then
     "${touch_bin}" "${log_path}";
@@ -38,23 +40,23 @@ function create_log () {
 
 # Get timezone fixed date and time for log timestamp
 function __get_tz_timestamp () {
-  local timestamp;
-  local date_bin;
+  \builtin local timestamp;
+  \builtin local date_bin;
   date_bin="$(require 'date')";
   timestamp="$(TZ='US/Eastern' "${date_bin}" '+%Y%m%d-%H%M%S')";
-  builtin echo -ne "${timestamp}";
-  return 0;
+  \builtin echo -ne "${timestamp}";
+  \builtin return 0;
 }
 
 # Get a random str of hex chars
 function __get_hash () {
-  local hash_len;
-  local hash_str;
-  local ssl_bin;
+  \builtin local hash_len;
+  \builtin local hash_str;
+  \builtin local ssl_bin;
   hash_len="${1:-6}";
   if [[ ${hash_len} -eq 0 ]]; then
     exit_fun "Hash length can not be set to '0'";
-    return 1;
+    \builtin return 1;
   fi
     ssl_bin="$(require 'openssl')";
   if [ -n "${ssl_bin}" ]; then
@@ -68,10 +70,10 @@ function __get_hash () {
 
 # Get a random str without with hex chars without openssl
 function __get_hash_fallback () {
-  local hash_len;
-  local i;
-  local rand_num;
-  local hash_str;
+  \builtin local hash_len;
+  \builtin local i;
+  \builtin local rand_num;
+  \builtin local hash_str;
   hash_len="${1:-6}";
   hash_str='';
   for ((i = 0 ; i < hash_len ; i++)); do

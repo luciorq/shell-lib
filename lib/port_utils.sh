@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 function scan_ssh_ports () {
-  local output_str;
-  local lsof_bin;
+  \builtin local output_str;
+  \builtin local lsof_bin;
   lsof_bin="$(require 'lsof')";
   output_str="$(
     sudo "${lsof_bin}" -i \
@@ -12,13 +12,13 @@ function scan_ssh_ports () {
       | sed 's/\s(/ (/g' \
       | cut -f 1,3,5,8-
   )";
-  builtin echo -ne '* SSH Server ports:\n\n';
-  builtin echo -ne 'Not implemented yet\n\n';
-  builtin echo -ne '* SSH Client ports (outgoing):\n\n';
-  builtin echo -ne \
+  \builtin echo -ne '* SSH Server ports:\n\n';
+  \builtin echo -ne 'Not implemented yet\n\n';
+  \builtin echo -ne '* SSH Client ports (outgoing):\n\n';
+  \builtin echo -ne \
     'command\tuser\tip_version\tport_type\tname\n';
-  builtin echo -ne "${output_str}";
-  return 0;
+  \builtin echo -ne "${output_str}";
+  \builtin return 0;
 }
 
 
@@ -26,15 +26,16 @@ function scan_ssh_ports () {
 # + can accept a range of ports separated by a dash, e.g. '20-80';
 # + NOTE: For scanning UDP ports add '-u' do nc command
 function scan_port () {
-  local _usage="Usage: ${0} <HOST> <PORTS>";
-  unset _usage;
-  local host_port;
-  local host_port_end;
-  local host_name;
-  local nc_bin;
-  local timeout_bin;
-  local bash_bin;
-  local _port;
+  \builtin local _usage;
+  _usage="Usage: ${0} <HOST> <PORTS>";
+  \builtin unset _usage;
+  \builtin local host_port;
+  \builtin local host_port_end;
+  \builtin local host_name;
+  \builtin local nc_bin;
+  \builtin local timeout_bin;
+  \builtin local bash_bin;
+  \builtin local _port;
   nc_bin="$(require 'nc')";
   timeout_bin="$(require 'timeout')";
   bash_bin="$(require 'bash')";
@@ -52,8 +53,8 @@ function scan_port () {
   for _port in $(seq "${host_port}" "${host_port_end}"); do
     "${timeout_bin}" 1 "${bash_bin}" -c \
         "</dev/tcp/${host_name}/${_port}" &>/dev/null \
-      && builtin echo -ne "Port: ${_port} - open\n" \
-      || builtin echo -ne "Port: ${_port} - closed\n";
+      && \builtin echo -ne "Port: ${_port} - open\n" \
+      || \builtin echo -ne "Port: ${_port} - closed\n";
   done
-  return 0;
+  \builtin return 0;
 }

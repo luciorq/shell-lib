@@ -15,8 +15,8 @@
 
 function get_os_type ()
 {
-    local os_type_str;
-    local uname_bin;
+    \builtin local os_type_str;
+    \builtin local uname_bin;
     os_type_str="${OSTYPE}";
     uname_bin="$(which_bin 'uname')";
     if [[ -z ${os_type_str} ]]; then
@@ -24,17 +24,18 @@ function get_os_type ()
             os_type_str="$("${uname_bin}" -s)";
         else
             exit_fun "'uname' command not available";
+            \builtin exit 1;
         fi;
     fi;
     os_type_str="${os_type_str/[\-1-9]*/}";
     os_type_str="${os_type_str,,}";
-    builtin echo -ne "${os_type_str}";
-    return 0
+    \builtin echo -ne "${os_type_str}";
+    \builtin return 0
 }
 
 function exit_fun ()
 {
-    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?${1:-'An error occurred. Exiting.'}}";
     \builtin exit 1
 }
 

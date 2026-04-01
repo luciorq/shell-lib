@@ -15,35 +15,42 @@
 
 function ssha_fun ()
 {
-    local _usage="usage: ${0} <KEY_FILE_PATH>";
-    unset _usage;
-    local ssh_agent_bin;
-    local ssh_add_bin;
-    local ssha_args;
-    local key_path;
-    local os_type;
-    key_path="${1}";
+    \builtin local _usage;
+    _usage="usage: ${0} <KEY_FILE_PATH>";
+    \builtin unset _usage;
+    \builtin local ssh_agent_bin;
+    \builtin local ssh_add_bin;
+    \builtin local ssha_args;
+    \builtin local key_path;
+    \builtin local os_type;
+    key_path="${1:-}";
+    if [[ -z ${key_path} ]]; then
+        exit_fun 'Missing required argument. See usage.';
+        \builtin exit 1;
+    fi;
     ssh_agent_bin="$(require 'ssh-agent')";
     ssh_add_bin="$(require 'ssh-add')";
-    declare -a ssha_args=();
+    \builtin declare -a ssha_args;
+    ssha_args=();
     os_type="$(get_os_type)";
     if [[ ${os_type} == darwin ]]; then
-        declare -a ssha_args=(--apple-use-keychain);
+        \builtin declare -a ssha_args;
+        ssha_args=('--apple-use-keychain');
     fi;
-    builtin eval "$("${ssh_agent_bin}")" && "${ssh_add_bin}" "${ssha_args[@]}" "${key_path}";
-    return 0
+    \builtin eval "$("${ssh_agent_bin}")" && "${ssh_add_bin}" "${ssha_args[@]}" "${key_path}";
+    \builtin return 0
 }
 
 function exit_fun ()
 {
-    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?${1:-'An error occurred. Exiting.'}}";
     \builtin exit 1
 }
 
 function get_os_type ()
 {
-    local os_type_str;
-    local uname_bin;
+    \builtin local os_type_str;
+    \builtin local uname_bin;
     os_type_str="${OSTYPE}";
     uname_bin="$(which_bin 'uname')";
     if [[ -z ${os_type_str} ]]; then
@@ -51,17 +58,18 @@ function get_os_type ()
             os_type_str="$("${uname_bin}" -s)";
         else
             exit_fun "'uname' command not available";
+            \builtin exit 1;
         fi;
     fi;
     os_type_str="${os_type_str/[\-1-9]*/}";
     os_type_str="${os_type_str,,}";
-    builtin echo -ne "${os_type_str}";
-    return 0
+    \builtin echo -ne "${os_type_str}";
+    \builtin return 0
 }
 
 function require ()
 {
-    local cmd_str;
+    \builtin local cmd_str;
     \builtin local cmd_bin;
     \builtin local cmd_res;
     \builtin local full_cmd;
@@ -71,14 +79,14 @@ function require ()
         exit_fun "'${cmd_str}' executable not found in '\${PATH}'";
         \builtin exit 1;
     fi;
-    if [[ ${#} -eq 1 ]]; then
+    if [[ ${#:-} -eq 1 ]]; then
         cmd_res="$("${cmd_bin}" --version 2>&1 || \builtin echo -ne '')";
         full_cmd="${cmd_bin} --version";
     else
         cmd_res="$("${cmd_bin}" "${@:2}" 2>&1 || \builtin echo -ne '')";
         full_cmd="${cmd_bin} ${*:2}";
     fi;
-    if [[ -n ${cmd_res} ]]; then
+    if [[ -n "${cmd_res}" ]]; then
         \builtin echo -ne "${cmd_bin}";
     else
         exit_fun "'${full_cmd}' can't be executed";

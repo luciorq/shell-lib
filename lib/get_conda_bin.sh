@@ -2,7 +2,7 @@
 
 # Return conda executable based on preference
 function get_conda_bin () {
-  builtin local conda_bin;
+  \builtin local conda_bin;
   conda_bin="$(which_bin 'micromamba')";
   if [[ -z ${conda_bin} ]]; then
     conda_bin="$(which_bin 'mamba')";
@@ -11,7 +11,7 @@ function get_conda_bin () {
     conda_bin="$(which_bin 'conda')";
   fi
   # if [[ -z ${conda_bin} ]] && \
-  #   [[ "$(LC_ALL=C builtin type -t '__install_app')" =~ function ]]; then
+  #   [[ "$(LC_ALL=C \builtin type -t '__install_app')" =~ function ]]; then
   #   __install_app 'micromamba';
   #   conda_bin="$(which_bin 'micromamba')";
   # fi
@@ -21,16 +21,16 @@ function get_conda_bin () {
   fi
   if [[ -z ${conda_bin} ]]; then
     exit_fun '`conda`, `mamba`, and `micromamba` are not available for this system';
-    builtin return 1;
+    \builtin return 1;
   fi
-  builtin echo -ne "${conda_bin}";
-  builtin return 0;
+  \builtin echo -ne "${conda_bin}";
+  \builtin return 0;
 }
 
 function conda_priv_fun () {
-  local conda_bin;
-  local env_name;
-  local conda_env_exports;
+  \builtin local conda_bin;
+  \builtin local env_name;
+  \builtin local conda_env_exports;
   conda_bin="$(get_conda_bin)";
   if [[ -z ${1:-} ]]; then
     "${conda_bin}" --help;
@@ -43,9 +43,9 @@ function conda_priv_fun () {
     else
       conda_env_exports="$("${conda_bin}" shell.posix activate "${env_name}")";
     fi
-    builtin eval "${conda_env_exports}";
-    builtin hash -r;
-    builtin return 0;
+    \builtin eval "${conda_env_exports}";
+    \builtin hash -r;
+    \builtin return 0;
   fi
   "${conda_bin}" "${@:-}";
   \builtin return 0;
@@ -54,27 +54,28 @@ function conda_priv_fun () {
 # Platform independent installation of micromamba
 # + respecting xdg basedir spec
 function install_micromamba () {
-  builtin local _usage="Usage: ${0} [--force] [--system]";
-  builtin unset _usage;
-  builtin local micromamba_bin;
-  builtin local conda_platform;
-  builtin local download_url;
-  builtin local _arg;
-  builtin local install_type;
-  builtin local force_flag;
-  builtin local inst_path;
-  builtin local link_path;
-  builtin local link_dir;
-  builtin local dl_path;
-  builtin local chmod_bin;
-  builtin local ln_bin;
-  builtin local rm_bin;
-  builtin local mkdir_bin;
+  \builtin local _usage;
+  _usage="${0} [--force] [--system]";
+  \builtin unset _usage;
+  \builtin local micromamba_bin;
+  \builtin local conda_platform;
+  \builtin local download_url;
+  \builtin local _arg;
+  \builtin local install_type;
+  \builtin local force_flag;
+  \builtin local inst_path;
+  \builtin local link_path;
+  \builtin local link_dir;
+  \builtin local dl_path;
+  \builtin local chmod_bin;
+  \builtin local ln_bin;
+  \builtin local rm_bin;
+  \builtin local mkdir_bin;
 
   # TODO(luciorq): check if micromamba is already installed for the root user
   # + when `--system`` flag is provided.
   force_flag='0';
-  for _arg in "${@}"; do
+  for _arg in "${@:-}"; do
     if [[ ${_arg} == --force ]]; then
       force_flag='1';
     fi
@@ -96,7 +97,7 @@ function install_micromamba () {
   inst_path="${HOME}/.local/opt/apps/micromamba";
   link_path="${HOME}/.local/bin/micromamba";
   dl_path="${inst_path}/micromamba-${conda_platform}";
-  # builtin local install_type;
+  # \builtin local install_type;
   for _arg in "${@}"; do
     if [[ ${_arg} == --system ]]; then
       install_type="system";

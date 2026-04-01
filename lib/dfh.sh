@@ -38,7 +38,7 @@ function dfh () {
     # + default on all systems.
     # + `pixi global install glow-md`
     # CLICOLOR_FORCE=1 \
-    #   builtin echo -ne \
+    #   \builtin echo -ne \
     #     "${header_str}${align_str}${body_str}\n" \
     #   | bat_fun -l csv -pp --color=never \
     #   | "${sed_bin}" 's/,/ | /g' \
@@ -48,7 +48,7 @@ function dfh () {
     #   | "${glow_bin}" -w 120;
     # else
   CLICOLOR_FORCE=1 \
-    builtin echo -ne \
+    \builtin echo -ne \
     "${header_str}${align_str}${body_str}\n" \
     | bat_fun -l csv -pp --color=always \
     | "${sed_bin}" 's/,/ | /g' \

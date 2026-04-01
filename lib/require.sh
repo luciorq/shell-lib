@@ -2,11 +2,11 @@
 
 # wrapper around check_installed
 #function require () {
-#  local cmd_str;
+#  \builtin local cmd_str;
 #  cmd_str="${1}";
 #  check_installed "${cmd_str}" "${@:2}";
 #
-#  return;
+#  \builtin return;
 #}
 
 # Kill execution with error message if the program is not available
@@ -18,7 +18,7 @@
 # + Default: '--version'
 # + E.g.: `ssh` command don't accept --version, you need `require ssh -V`
 function require () {
-  local cmd_str;
+  \builtin local cmd_str;
   \builtin local cmd_bin;
   \builtin local cmd_res;
   \builtin local full_cmd;
@@ -29,17 +29,17 @@ function require () {
     \builtin return 1;
   fi
 
-  if [[ ${#} -eq 1 ]]; then
-    cmd_res="$( "${cmd_bin}" --version 2>&1 || \builtin echo -ne '' )";
+  if [[ ${#:-} -eq 1 ]]; then
+    cmd_res="$("${cmd_bin}" --version 2>&1 || \builtin echo -ne '')";
     full_cmd="${cmd_bin} --version";
   else
-    cmd_res="$( "${cmd_bin}" "${@:2}" 2>&1 || \builtin echo -ne '' )";
+    cmd_res="$("${cmd_bin}" "${@:2}" 2>&1 || \builtin echo -ne '')";
     full_cmd="${cmd_bin} ${*:2}";
   fi
 
   # TODO: @luciorq Currently the program is never arriving in this step.
   # + cmd_res is never empty unless both stdout and stderr are empty.
-  if [[ -n ${cmd_res} ]]; then
+  if [[ -n "${cmd_res}" ]]; then
     \builtin echo -ne "${cmd_bin}";
   else
     exit_fun "'${full_cmd}' can't be executed";

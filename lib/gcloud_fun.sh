@@ -2,7 +2,7 @@
 
 # Run Google Cloud SDK commands inside a conda environment
 function gcloud_fun () {
-  builtin local env_name;
+  \builtin local env_name;
   env_name="gcloud-env"
   # pkgs_str="google-cloud-sdk";
   # channels_str="";
@@ -16,14 +16,14 @@ function gcloud_fun () {
   #   conda_run "${env_name}" gcloud "${@}";
   # fi;
   CLOUDSDK_PYTHON_SITEPACKAGES=1 conda_run "${env_name}" gcloud "${@}";
-  builtin return 0;
+  \builtin return 0;
 }
 
 # Run `gsutil` commands inside a conda environment
 function gsutil_fun () {
-  builtin local env_name;
+  \builtin local env_name;
   env_name="gsutil-env";
   conda_create_env "${env_name}" "gsutil" "-c conda-forge";
   conda_run "${env_name}" gsutil "${@}";
-  builtin return 0;
+  \builtin return 0;
 }

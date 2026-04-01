@@ -1,49 +1,51 @@
 #!/usr/bin/env bash
 
 # Create user with specific user ID and password
-function __user_create() {
-  local _usage="Usage: ${0} <USER_NAME> <USER_UID> [<PW|PW_HASH>]"
-  unset _usage
-  local user_name
-  local user_uid
-  local user_pw
-  local user_hash_pw
-  local home_path
-  local user_shell
-  local uid_avail
-  local _hostname
-  local mkpw_bin
-  local dirname_bin
-  local useradd_bin
-  local grep_bin
-  local sudo_bin
-  local is_hashed_pw
-  user_name="${1:-}"
+function __user_create () {
+  \builtin local _usage;
+  _usage="Usage: ${0} <USER_NAME> <USER_UID> [<PW|PW_HASH>]"
+  \builtin unset _usage;
+  \builtin local user_name;
+  \builtin local user_uid;
+  \builtin local user_pw;
+  \builtin local user_hash_pw;
+  \builtin local home_path;
+  \builtin local user_shell;
+  \builtin local uid_avail;
+  \builtin local _hostname;
+  \builtin local mkpw_bin;
+  \builtin local dirname_bin;
+  \builtin local useradd_bin;
+  \builtin local grep_bin;
+  \builtin local sudo_bin;
+  \builtin local is_hashed_pw;
+  user_name="${1:-}";
   if [[ -z ${user_name} ]]; then
     exit_fun 'User name can not be empty'
     \builtin return 1
   fi
-  user_uid=${2:-}
+  user_uid="${2:-}"
   if [[ -z ${user_uid} ]]; then
-    exit_fun 'User UID need to be provided'
-    \builtin return 1
+    exit_fun 'User UID need to be provided';
+    \builtin return 1;
   fi
-  grep_bin="$(which_bin 'grep')"
+  grep_bin="$(which_bin 'grep')";
   uid_avail="$(
     "${grep_bin}" -v '^#' '/etc/passwd' |
       cut -d':' -f 3 |
       sort -nr |
       "${grep_bin}" "${user_uid}" ||
-      builtin echo -ne ''
+      \builtin echo -ne ''
   )"
   _hostname="$(get_hostname)"
   if [[ -n ${uid_avail} ]]; then
-    exit_fun "'${user_uid}' is not available at host '${_hostname}'"
+    exit_fun "'${user_uid}' is not available at host '${_hostname}'";
+    \builtin return 1;
   fi
   if [[ -f /usr/bin/bash ]]; then
-    user_shell='/usr/bin/bash'
+    user_shell='/usr/bin/bash';
   elif [[ -f /bin/bash ]]; then
-    user_shell='/bin/bash'
+    user_shell='/bin/bash';
   fi
   mkpw_bin="$(which_bin 'mkpasswd')"
   dirname_bin="$(which_bin 'dirname')"
@@ -78,7 +80,7 @@ function __user_create() {
 }
 
 # Add user to groups
-function __user_add_group() {
+function __user_add_group () {
   local _usage="Usage: ${0} <USER_NAME> <GROUP_1> [<GROUP_2> ... <GROUP_N>]"
   unset _usage
   local user_name
@@ -120,30 +122,31 @@ function __user_remove() {
 # Replicate hashed user password
 # + from one remote host to another
 function __user_replicate_pw_server() {
-  local _usage="Usage: ${0} <USER_NAME> <HOST_FROM> <HOST_TO>"
-  unset _usage
-  local user_name
-  local host_control_plane
-  local host_targets
-  local grep_bin
-  local sed_bin
-  local res_str
-  local pw_str
-  local _host
-  local _host_str
-  local _host_pw
-  user_name="${1:-}"
-  host_control_plane="${2:-}"
+  \builtin local _usage;
+  _usage="Usage: ${0} <USER_NAME> <HOST_FROM> <HOST_TO>";
+  \builtin unset _usage;
+  \builtin local user_name;
+  \builtin local host_control_plane;
+  # \builtin local host_targets;
+  \builtin local grep_bin;
+  \builtin local sed_bin;
+  \builtin local res_str;
+  \builtin local pw_str;
+  \builtin local _host;
+  \builtin local _host_str;
+  \builtin local _host_pw;
+  user_name="${1:-}";
+  host_control_plane="${2:-}";
   # host_targets=( "${@:3}" );
-  grep_bin="$(require 'grep')"
-  sed_bin="$(require 'sed')"
+  grep_bin="$(require 'grep')";
+  sed_bin="$(require 'sed')";
   res_str="$(
     exec_remote bioinfo@"${host_control_plane}" \
       'sudo cat /etc/shadow' 2>/dev/null |
       "${grep_bin}" "${user_name}" 2>/dev/null
   )"
   pw_str="$(
-    builtin echo "${res_str}" |
+    \builtin echo "${res_str}" |
       "${grep_bin}" "${user_name}" |
       "${sed_bin}" -e 's/^\w*://g' |
       "${sed_bin}" -e 's/:[[:digit:]]*:[[:digit:]]:[[:digit:]]*:[[:digit:]]::://g'
@@ -151,7 +154,7 @@ function __user_replicate_pw_server() {
   for _host in "${@:3}"; do
     _host_str="$(
       exec_remote bioinfo@"${_host}" \
-        sudo cat /etc/shadow 2>/dev/null |
+        \sudo cat /etc/shadow 2>/dev/null |
         grep "${user_name}" 2>/dev/null
     )"
     _host_pw="$(
@@ -163,35 +166,36 @@ function __user_replicate_pw_server() {
     )"
     \builtin echo -ne "Host: ${_host}\n"
     if [[ -z ${_host_pw} ]]; then
-      builtin echo -ne \
+      \builtin echo -ne \
         "User {${user_name}} is not available at host {${_host}}\n"
     fi
-    echo "PW: ${_host_pw}"
+    \builtin echo "PW: ${_host_pw}";
   done
   \builtin return 0
 }
 
 # Create directory structure on `/data` storages
-function __create_data_storage_user() {
-  local _usage="Usage: ${0} <USER_NAME>"
-  unset _usage
-  local user_name
-  local host_name
-  local user_dir
-  local mkdir_bin
-  local chown_bin
-  local sudo_bin
-  user_name="${1}"
-  mkdir_bin="$(require 'mkdir')"
-  chown_bin="$(require 'chown')"
-  sudo_bin="$(require 'sudo')"
+function __create_data_storage_user () {
+  \builtin local _usage;
+  _usage="Usage: ${0} <USER_NAME>";
+  \builtin unset _usage;
+  \builtin local user_name;
+  \builtin local host_name;
+  \builtin local user_dir;
+  \builtin local mkdir_bin;
+  \builtin local chown_bin;
+  \builtin local sudo_bin;
+  user_name="${1:-}";
+  mkdir_bin="$(require 'mkdir')";
+  chown_bin="$(require 'chown')";
+  sudo_bin="$(require 'sudo')";
   if [[ $(sudo_check) == false ]]; then
-    exit_fun 'Need to be run as super user.'
-    return 1
+    exit_fun 'Need to be run as super user.';
+    \builtin return 1
   fi
   if [[ -z ${user_name} ]]; then
-    exit_fun "'user_name' can not be empty"
-    return 1
+    exit_fun "'user_name' can not be empty";
+    \builtin return 1;
   fi
   host_name="${HOSTNAME%%.*}"
   if [[ -d /data ]]; then
@@ -200,14 +204,14 @@ function __create_data_storage_user() {
     "${sudo_bin}" "${chown_bin}" \
       -R "${user_name}":"${user_name}" "${user_dir}"
   fi
-  return 0
+  \builtin return 0;
 }
 
 # Create `/data` storage for all users on host
 # + This function is intended in being run on multi user machines
-function __create_data_storage_all() {
-  \builtin local _user_name
-  \builtin local _user_home
+function __create_data_storage_all () {
+  \builtin local _user_name;
+  \builtin local _user_home;
   if [[ -d /home ]]; then
     for _user_home in /home/*; do
       _user_name="${_user_home##*/}"

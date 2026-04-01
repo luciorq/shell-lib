@@ -17,7 +17,7 @@ function cat_pure ()
 {
     \builtin local file;
     file="${1:-}";
-    \builtin echo "$(< "${file}")";
+    \builtin echo "$(<"${file}")";
     \builtin return 0
 }
 

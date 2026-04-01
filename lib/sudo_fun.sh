@@ -3,13 +3,13 @@
 # Allow for sudo with aliases or custom functions,
 # + also shows alias expanded command and command type.
 function sudo_fun () {
-  builtin local sudo_bin;
-  builtin local bash_bin;
-  builtin local cmd_str;
-  builtin local cmd_type;
-  builtin local args_q;
-  builtin local args_str;
-  builtin local cmd_prep;
+  \builtin local sudo_bin;
+  \builtin local bash_bin;
+  \builtin local cmd_str;
+  \builtin local cmd_type;
+  \builtin local args_q;
+  \builtin local args_str;
+  \builtin local cmd_prep;
   sudo_bin="$(which_bin 'sudo')";
   if [[ -z "${sudo_bin}" ]]; then
     exit_fun "'sudo' is not available ...";
@@ -40,7 +40,9 @@ function sudo_fun () {
   cmd_prep="shopt -s expand_aliases; _SUDO_FUN=true; TERM=xterm-256color; ";
 
 
-  declare -a args_q=("${@@Q}");
+  \builtin declare -a args_q;
+  args_q=("${@@Q}");
+
   args_str="${args_q[*]:1}";
 
   cmd_type="$(
@@ -59,7 +61,7 @@ function sudo_fun () {
   \builtin echo >&2 -ne "* Command type:\n";
   \builtin echo >&2 -ne "\t--> ${type_str}\n";
 
-  # builtin echo -ne "eval \"${*@Q}\";\n";
+  # \builtin echo -ne "eval \"${*@Q}\";\n";
   "${sudo_bin}" _SUDO_FUN=true "${bash_bin}" \
     -O expand_aliases \
     -i -c \

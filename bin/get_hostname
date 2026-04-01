@@ -15,9 +15,9 @@
 
 function get_hostname ()
 {
-    local hostname_str;
-    local hostname_bin;
-    local uname_bin;
+    \builtin local hostname_str;
+    \builtin local hostname_bin;
+    \builtin local uname_bin;
     hostname_str="${HOSTNAME}";
     hostname_bin="$(which_bin 'hostname')";
     uname_bin="$(which_bin 'uname')";
@@ -29,16 +29,17 @@ function get_hostname ()
                 hostname_str="$("${uname_bin}" -n)";
             else
                 exit_fun "'hostname' command not available";
+                \builtin exit 1;
             fi;
         fi;
     fi;
-    builtin echo -ne "${hostname_str}";
-    return 0
+    \builtin echo -ne "${hostname_str}";
+    \builtin return 0
 }
 
 function exit_fun ()
 {
-    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?${1:-'An error occurred. Exiting.'}}";
     \builtin exit 1
 }
 

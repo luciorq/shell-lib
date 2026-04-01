@@ -54,11 +54,12 @@ function clean_homebrew_cache () {
 
 # Check for required system tools
 function __check_req_cli_tools () {
-  builtin local cli_arr;
-  builtin local _cli;
-  builtin local cli_bin;
-  cli_arr='';
-  declare -a cli_arr=(
+  \builtin local cli_arr;
+  \builtin local _cli;
+  \builtin local cli_bin;
+  # cli_arr='';
+  \builtin declare -a cli_arr;
+  cli_arr=(
     curl
     gcc
     npm
@@ -68,10 +69,10 @@ function __check_req_cli_tools () {
   for _cli in "${cli_arr[@]}"; do
     cli_bin=$(require "${_cli}");
     if [[ -z ${cli_bin} ]]; then
-      builtin echo -ne "Install '${_cli}' to continue.\n";
+      \builtin echo -ne "Install '${_cli}' to continue.\n";
     fi
   done
-  builtin return 0;
+  \builtin return 0;
 }
 
 # Clean configuration and dotfiles not in XDG base dir spec
@@ -81,9 +82,14 @@ function __clean_home () {
   \builtin local _dir;
   \builtin local rm_bin;
   \builtin local path_to_rm;
-  rm_bin="$(which_bin 'rm')";
-  remove_dirs_arr='';
-  declare -a remove_dirs_arr=(
+  rm_bin="$(require 'rm')";
+  if [[ -z ${rm_bin} ]]; then
+    exit_fun "'rm' command not available on \${PATH}";
+    \builtin return 1;
+  fi
+  # remove_dirs_arr='';
+  \builtin declare -a remove_dirs_arr;
+  remove_dirs_arr=(
     .vim
     .vimrc
     .viminfo
@@ -159,16 +165,16 @@ function __clean_home () {
 
 # Build Cargo and Rustup
 function __build_rust_cargo () {
-  local cargo_bin;
-  local curl_bin;
-  local bash_bin;
-  local ln_bin;
-  local ls_bin;
-  local install_path;
-  local link_path;
-  local cargo_path;
-  local _link_bin;
-  local link_bin_arr;
+  \builtin local cargo_bin;
+  \builtin local curl_bin;
+  \builtin local bash_bin;
+  \builtin local ln_bin;
+  \builtin local ls_bin;
+  \builtin local install_path;
+  \builtin local link_path;
+  \builtin local cargo_path;
+  \builtin local _link_bin;
+  \builtin local link_bin_arr;
   cargo_bin="$(which_bin 'cargo')";
   install_path="${HOME}/.local/share/cargo/bin";
   link_path="${HOME}/.local/bin";
@@ -183,7 +189,7 @@ function __build_rust_cargo () {
     fi
     ln_bin="$(require 'ln')";
     ls_bin="$(require 'ls')";
-    builtin mapfile -t link_bin_arr < <(
+    \builtin mapfile -t link_bin_arr < <(
       LC_ALL=C "${ls_bin}" -A1 -- "${install_path}"
     );
     for _link_bin in "${link_bin_arr[@]}"; do
@@ -196,7 +202,7 @@ function __build_rust_cargo () {
   if [[ -n ${rustup_bin} ]]; then
     "${rustup_bin}" default stable;
   fi
-  return 0;
+  \builtin return 0;
 }
 
 # Rebuild specific Rust app using local cargo
@@ -204,17 +210,17 @@ function __rebuild_rust_source_app () {
   \builtin local _usage;
   _usage="usage: ${0} <CARGO_PKG_NAME> <APP_BINARIY>";
   \builtin unset _usage;
-  local pkg_name;
-  local app_bin;
-  local cargo_bin;
-  local ln_bin;
-  local install_path;
-  local link_path;
-  pkg_name="${1}";
-  app_bin="${2}";
-  if [[ ${#} -lt 2 ]]; then
+  \builtin local pkg_name;
+  \builtin local app_bin;
+  \builtin local cargo_bin;
+  \builtin local ln_bin;
+  \builtin local install_path;
+  \builtin local link_path;
+  pkg_name="${1:-}";
+  app_bin="${2:-}";
+  if [[ ${#:-0} -lt 2 ]]; then
     exit_fun 'This function needs two arguments';
-    return 1;
+    \builtin return 1;
   fi
   cargo_bin="$(require 'cargo')";
   ln_bin="$(require 'ln')";
@@ -224,7 +230,7 @@ function __rebuild_rust_source_app () {
     --root "${install_path}" "${pkg_name}";
   "${ln_bin}" -sf "${install_path}/bin/${app_bin}" \
     "${link_path}/${app_bin}";
-  return 0;
+  \builtin return 0;
 }
 
 # Rebuild all Rust app that fails to pass test
@@ -232,21 +238,22 @@ function __rebuild_rust_source_app () {
 # + pre-compiled binaries available omn GitHub repositories
 # + fail to work on CentOS/RHEL 7 because of older GLIBC
 function __rebuild_rust_source_tools () {
-  local install_path;
-  local link_path;
-  local cargo_arr;
-  local app_bin_arr;
-  local _app_bin;
-  local _app_bin_path;
-  local cargo_bin;
-  local ls_bin;
-  local ln_bin;
-  local check_bin_arr;
-  local _check_name;
-  local _check_bin;
-  local rebuild_arr;
-  local _check_avail;
-  declare -a cargo_arr=(
+  \builtin local install_path;
+  \builtin local link_path;
+  \builtin local cargo_arr;
+  \builtin local app_bin_arr;
+  \builtin local _app_bin;
+  \builtin local _app_bin_path;
+  \builtin local cargo_bin;
+  \builtin local ls_bin;
+  \builtin local ln_bin;
+  \builtin local check_bin_arr;
+  \builtin local _check_name;
+  \builtin local _check_bin;
+  \builtin local rebuild_arr;
+  \builtin local _check_avail;
+  \builtin declare -a cargo_arr;
+  cargo_arr=(
     starship
     eza
     bat
@@ -260,7 +267,8 @@ function __rebuild_rust_source_tools () {
   ln_bin="$(require 'ln')";
   install_path="${HOME}/.local/opt/apps/temp";
   link_path="${HOME}/.local/bin";
-  declare -a check_bin_arr=(
+  \builtin declare -a check_bin_arr;
+  check_bin_arr=(
     starship
     eza
     bat
@@ -269,7 +277,8 @@ function __rebuild_rust_source_tools () {
     sd
     hck
   );
-  declare -a rebuild_arr=();
+  \builtin declare -a rebuild_arr;
+  rebuild_arr=();
   for _check_name in "${check_bin_arr[@]}"; do
     _check_bin="$(which_bin "${_check_name}")";
     if [[ -n ${_check_bin} ]]; then
@@ -306,57 +315,57 @@ function __rebuild_rust_source_tools () {
 
 # Check version of the GLIBC library which the OS is built
 function __check_glibc () {
-  local glibc_version;
-  local ldd_bin;
-  local latest_version;
-  local min_version;
+  \builtin local glibc_version;
+  \builtin local ldd_bin;
+  \builtin local latest_version;
+  \builtin local min_version;
   ldd_bin="$(which_bin 'ldd')";
   if [[ -z ${ldd_bin} ]]; then
     exit_fun '__check_glibc: `ldd` not found';
-    return 0;
+    \builtin return 0;
   fi
   min_version="${1:-2.18}";
   glibc_version="$(
-    builtin echo -ne "$("${ldd_bin}" --version ldd)" \
+    \builtin echo -ne "$("${ldd_bin}" --version ldd)" \
       | head -n1 \
       | sed -e 's/.*[[:space:]]//g'
   )";
   latest_version="$(\
-    builtin echo -ne "${glibc_version}\n${min_version}\n" \
+    \builtin echo -ne "${glibc_version}\n${min_version}\n" \
       | sort -r -V \
       | head -n1\
   )";
   if [[ ${latest_version} =~ ${glibc_version} ]]; then
-    builtin echo -ne 'true';
+    \builtin echo -ne 'true';
   else
-    builtin echo -ne 'false';
+    \builtin echo -ne 'false';
   fi
-  return 0;
+  \builtin return 0;
 }
 
 # Build the latest version of GLIBC in a user owned directory
 function __build_glibc () {
-  local glibc_right;
-  local inst_path;
-  local app_name;
-  local mirror_repo;
-  local make_bin;
-  local latest_tag;
-  local latest_version;
-  local build_version;
-  local num_threads;
-  local get_url;
-  local rm_bin;
-  local mkdir_bin;
-  local make_bin;
-  local grep_bin;
-  local sed_bin;
-  local sort_bin;
-  local curl_bin;
-  local build_path;
-  local install_type;
-  local force_version;
-  local __build_app_glibc;
+  \builtin local glibc_right;
+  \builtin local inst_path;
+  \builtin local app_name;
+  \builtin local mirror_repo;
+  \builtin local make_bin;
+  \builtin local latest_tag;
+  \builtin local latest_version;
+  \builtin local build_version;
+  \builtin local num_threads;
+  \builtin local get_url;
+  \builtin local rm_bin;
+  \builtin local mkdir_bin;
+  \builtin local make_bin;
+  \builtin local grep_bin;
+  \builtin local sed_bin;
+  \builtin local sort_bin;
+  \builtin local curl_bin;
+  \builtin local build_path;
+  \builtin local install_type;
+  \builtin local force_version;
+  \builtin local __build_app_glibc;
   install_type="${1:---user}";
   force_version="${2:-latest}";
   inst_path="${HOME}/.local/opt/apps/${app_name}";
@@ -364,16 +373,16 @@ function __build_glibc () {
     inst_path="/opt/apps/${app_name}";
   fi
   app_name='glibc';
-  if [[ ! ${OSTYPE} =~ "linux" ]]; then
-    return 0;
+  if [[ ! ${OSTYPE:-} =~ "linux" ]]; then
+    \builtin return 0;
   fi
-  if [[ -z ${2} ]]; then
+  if [[ -z ${force_version} ]]; then
     glibc_right="$(__check_glibc '2.18')";
   else
     glibc_right='false';
   fi
   if [[ ${glibc_right} =~ "true" ]]; then
-    return 0;
+    \builtin return 0;
   fi
   rm_bin="$(which_bin 'rm')";
   mkdir_bin="$(which_bin 'mkdir')";
@@ -393,7 +402,7 @@ function __build_glibc () {
         "https://api.github.com/repos/${mirror_repo}/tags"\
     )";
     latest_version="$(
-    builtin echo "${latest_tag[@]}" \
+    \builtin echo "${latest_tag[@]}" \
       | "${sed_bin}" 's/\(\"name\"\):/\n\1/g' \
       | "${grep_bin}" '"name"' \
       | "${sed_bin}" -e 's/\"name\"[[:space:]]\"\(.*\)/\1/g' \
@@ -417,13 +426,13 @@ function __build_glibc () {
   "${mkdir_bin}" -p "${build_path}/${base_name}/build";
   function __build_app_glibc () {
     (
-      builtin cd "${build_path}/${base_name}/build" \
-        || return 1;
+      \builtin cd "${build_path}/${base_name}/build" \
+        || \builtin return 1;
       ../configure --prefix="${inst_path}"
     )
   };
   __build_app_glibc;
-  unset __build_app_glibc;
+  \builtin unset __build_app_glibc;
   MAKE="$(which make)" "${make_bin}" \
     -C "${build_path}/${base_name}" -j "${num_threads}";
   MAKE="$(which make)" "${make_bin}" \
@@ -432,18 +441,18 @@ function __build_glibc () {
     "${build_path}/${base_name}" \
     "${build_path}/${base_name}.tar.gz";
   "${rm_bin}" -rf "${build_path}";
-  return 0;
+  \builtin return 0;
 }
 
 # Build latest GIT core from source
 function __build_git () {
-  local build_path;
-  local inst_path;
-  local num_threads;
-  local get_url;
-  local rm_bin;
-  local make_bin;
-  local __build_app_git;
+  \builtin local build_path;
+  \builtin local inst_path;
+  \builtin local num_threads;
+  \builtin local get_url;
+  \builtin local rm_bin;
+  \builtin local make_bin;
+  \builtin local __build_app_git;
   rm_bin="$(which_bin 'rm')";
   make_bin="$(which_bin 'gmake')";
   if [[ -z ${make_bin} ]]; then
@@ -452,7 +461,7 @@ function __build_git () {
   # inst_path="$(__install_path --user)";
   inst_path="${HOME}/.local";
   if [[ -f ${inst_path}/bin/git ]]; then
-    return 0;
+    \builtin return 0;
   fi
   num_threads="$(get_nthreads 8)";
   get_url='https://github.com/git/git/archive/refs/heads/main.zip';
@@ -462,37 +471,37 @@ function __build_git () {
   "${make_bin}" -C "${build_path}/git-main" configure -j "${num_threads}"
   function __build_app_git () {
     (
-      builtin cd "${build_path}/git-main" \
-        || return 1;
+      \builtin cd "${build_path}/git-main" \
+        || \builtin return 1;
       ./configure --prefix="${inst_path}";
     )
   };
   __build_app_git;
-  unset __build_app_git;
+  \builtin unset __build_app_git;
   "${make_bin}" -C "${build_path}/git-main" -j "${num_threads}";
   "${make_bin}" -C "${build_path}/git-main" install -j "${num_threads}";
   "${rm_bin}" -rf "${build_path}/git-main" "${build_path}/main.zip";
   "${rm_bin}" -rf "${build_path}";
   "${inst_path}/bin/git" --version;
-  return 0;
+  \builtin return 0;
 }
 
 # Build latest version of BASH from source
 function __build_bash () {
-  local latest_tag;
-  local latest_release_version;
-  local mirror_repo;
-  local build_version;
-  local build_path;
-  local inst_path;
-  local num_threads;
-  local get_url;
-  local rm_bin;
-  local make_bin;
-  local curl_bin;
-  local grep_bin;
-  local sed_bin;
-  local sort_bin;
+  \builtin local latest_tag;
+  \builtin local latest_release_version;
+  \builtin local mirror_repo;
+  \builtin local build_version;
+  \builtin local build_path;
+  \builtin local inst_path;
+  \builtin local num_threads;
+  \builtin local get_url;
+  \builtin local rm_bin;
+  \builtin local make_bin;
+  \builtin local curl_bin;
+  \builtin local grep_bin;
+  \builtin local sed_bin;
+  \builtin local sort_bin;
 
   rm_bin="$(which_bin 'rm')";
   sort_bin="$(which_bin 'sort')";
@@ -506,7 +515,7 @@ function __build_bash () {
   # inst_path="$(__install_path --user)";
   inst_path="${HOME}/.local";
   if [[ -f ${inst_path}/bin/bash ]]; then
-    return 0;
+    \builtin return 0;
   fi
   mirror_repo='bminor/bash';
   latest_tag="$(
@@ -514,7 +523,7 @@ function __build_bash () {
       "https://api.github.com/repos/${mirror_repo}/tags"
   )";
   latest_release_version="$(
-    builtin echo "${latest_tag[@]}" \
+    \builtin echo "${latest_tag[@]}" \
       | "${sed_bin}" 's/\(\"name\"\):/\n\1/g' \
       | "${grep_bin}" '"name"' \
       | "${sed_bin}" -e 's/\"name\"[[:space:]]\"\(.*\)/\1/g' \
@@ -533,13 +542,13 @@ function __build_bash () {
   local __build_app_bash;
   function __build_app_bash () {
     (
-      builtin cd "${build_path}/bash-${build_version}" \
-        || return 1;
+      \builtin cd "${build_path}/bash-${build_version}" \
+        || \builtin return 1;
       ./configure --prefix="${inst_path}";
     )
   };
   __build_app_bash;
-  unset __build_app_bash;
+  \builtin unset __build_app_bash;
   "${make_bin}" \
     -C "${build_path}/bash-${build_version}" -j "${num_threads}";
   "${make_bin}" \
@@ -549,7 +558,7 @@ function __build_bash () {
     "${build_path}/bash-${build_version}.tar.gz";
   "${rm_bin}" -rf "${build_path}";
   "${inst_path}/bin/bash" --version;
-  return 0;
+  \builtin return 0;
 }
 
 # ====================================================================
@@ -558,16 +567,16 @@ function __build_bash () {
 
 # Install a temporary yq binary to make parse_yaml work
 function __install_yq () {
-  builtin local latest_version;
-  builtin local gh_repo;
-  builtin local get_url;
-  builtin local sys_arch;
-  builtin local bin_arch;
-  builtin local ln_bin;
-  builtin local chmod_bin;
-  builtin local mkdir_bin;
-  builtin local uname_bin;
-  builtin local link_inst_path;
+  \builtin local latest_version;
+  \builtin local gh_repo;
+  \builtin local get_url;
+  \builtin local sys_arch;
+  \builtin local bin_arch;
+  \builtin local ln_bin;
+  \builtin local chmod_bin;
+  \builtin local mkdir_bin;
+  \builtin local uname_bin;
+  \builtin local link_inst_path;
   inst_path="$(__install_path --user)";
   link_inst_path="${HOME}/.local/bin";
   uname_bin="$(require 'uname')";
@@ -595,7 +604,7 @@ function __install_yq () {
   "${ln_bin}" -sf \
     "${inst_path}/yq/temp/yq_${bin_arch}" \
     "${link_inst_path}/yq";
-  return 0;
+  \builtin return 0;
 }
 
 # ===================================================================
@@ -604,31 +613,31 @@ function __install_yq () {
 
 # Use NPM to install NODEJS-based system tools
 function __install_node_cli_tools () {
-  local npm_bin;
-  local npm_pkg_arr;
-  local _npm_pkg;
-  local npm_exec_arr;
-  local _npm_exec;
-  local ls_bin;
-  local ln_bin;
+  \builtin local npm_bin;
+  \builtin local npm_pkg_arr;
+  \builtin local _npm_pkg;
+  \builtin local npm_exec_arr;
+  \builtin local _npm_exec;
+  \builtin local ls_bin;
+  \builtin local ln_bin;
 
   ls_bin="$(which_bin 'ls')";
   ln_bin="$(which_bin 'ln')";
   npm_bin="$(which_bin 'npm')";
   if [[ -z ${npm_bin} ]]; then
-    builtin echo -ne "'npm' is not installed\n";
-    return 0;
+    \builtin echo -ne "'npm' is not installed\n";
+    \builtin return 0;
   fi
   "${npm_bin}" install -g npm;
   npm_pkg_arr='';
-  builtin mapfile -t npm_pkg_arr < <(
+  \builtin mapfile -t npm_pkg_arr < <(
     get_config 'node_packages' 'npm'
   );
   for _npm_pkg in "${npm_pkg_arr[@]}"; do
     "${npm_bin}" install -g "${_npm_pkg}";
   done
   npm_exec_arr='';
-  builtin mapfile -t npm_exec_arr < <(
+  \builtin mapfile -t npm_exec_arr < <(
     LC_ALL=C "${ls_bin}" -A1 -- "${HOME}/.local/share/npm/bin"
   );
   for _npm_exec in "${npm_exec_arr[@]}"; do
@@ -645,10 +654,10 @@ function __install_node_cli_tools () {
 
 # Install Python Packages in the Mamba based latest Python installation
 function __install_python_cli_tools () {
-  local py_bin;
-  local pip_pkg_arr;
-  local _pip_pkg;
-  local ln_bin;
+  \builtin local py_bin;
+  \builtin local pip_pkg_arr;
+  \builtin local _pip_pkg;
+  \builtin local ln_bin;
   __install_app --user 'micromamba';
   __install_app --user 'python';
   ln_bin="$(which_bin 'ln')";
@@ -657,13 +666,13 @@ function __install_python_cli_tools () {
     py_bin="$(which_bin 'python')";
   fi
   pip_pkg_arr='';
-  builtin mapfile -t pip_pkg_arr < <(
+  \builtin mapfile -t pip_pkg_arr < <(
     get_config 'python_packages' 'pip'
   );
   for _pip_pkg in "${pip_pkg_arr[@]}"; do
     "${py_bin}" -m pip install "${_pip_pkg}";
   done
-  builtin return 0;
+  \builtin return 0;
 }
 
 # ===================================================================
@@ -673,5 +682,5 @@ function __install_python_cli_tools () {
 # TODO: @luciorq Check rstats_install_all_pkgs
 # Install R packages to local installation of R
 #function __install_rstats_packages () {
-# return 0;
+# \builtin return 0;
 #}

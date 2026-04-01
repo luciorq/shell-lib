@@ -15,29 +15,36 @@
 
 function exec_remote ()
 {
-    local _usage="${0} <HOST> '<COMMAND>'";
-    unset _usage;
-    local _debug_var="${DEBUG:-false}";
-    [[ "${_debug_var}" == true ]] && set -o xtrace;
-    local host_target;
-    local ssh_bin;
-    local var_res;
-    host_target="${1}";
+    \builtin local _usage="${0} <HOST> '<COMMAND>'";
+    \builtin unset _usage;
+    \builtin local _debug_var;
+    _debug_var="${DEBUG:-false}";
+    if [[ "${_debug_var}" == true ]]; then
+        \builtin set -o xtrace;
+    fi;
+    \builtin local host_target;
+    \builtin local ssh_bin;
+    \builtin local var_res;
+    host_target="${1:-}";
+    if [[ -z "${host_target}" ]]; then
+        exit_fun "Invalid execution.\nUsage: ${_usage}\n";
+        \builtin exit 1;
+    fi;
     ssh_bin="$(require 'ssh')";
     var_res="$("${ssh_bin}" -t "${host_target}" "${@:2}")";
-    builtin echo "${var_res}";
-    return 0
+    \builtin echo "${var_res}";
+    \builtin return 0
 }
 
 function exit_fun ()
 {
-    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?${1:-'An error occurred. Exiting.'}}";
     \builtin exit 1
 }
 
 function require ()
 {
-    local cmd_str;
+    \builtin local cmd_str;
     \builtin local cmd_bin;
     \builtin local cmd_res;
     \builtin local full_cmd;
@@ -47,14 +54,14 @@ function require ()
         exit_fun "'${cmd_str}' executable not found in '\${PATH}'";
         \builtin exit 1;
     fi;
-    if [[ ${#} -eq 1 ]]; then
+    if [[ ${#:-} -eq 1 ]]; then
         cmd_res="$("${cmd_bin}" --version 2>&1 || \builtin echo -ne '')";
         full_cmd="${cmd_bin} --version";
     else
         cmd_res="$("${cmd_bin}" "${@:2}" 2>&1 || \builtin echo -ne '')";
         full_cmd="${cmd_bin} ${*:2}";
     fi;
-    if [[ -n ${cmd_res} ]]; then
+    if [[ -n "${cmd_res}" ]]; then
         \builtin echo -ne "${cmd_bin}";
     else
         exit_fun "'${full_cmd}' can't be executed";

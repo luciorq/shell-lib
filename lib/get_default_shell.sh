@@ -16,7 +16,7 @@ function get_default_shell () {
   getent_bin="$(which_bin getent)";
   # MacOS
   if [[ $(get_os_type) =~ 'darwin' ]] && [[ -n "${dscl_bin}" ]]; then
-    dscl . -read "/Users/${user_name}" UserShell \
+    \dscl . -read "/Users/${user_name}" UserShell \
       | awk -F': ' '/UserShell/ {print $2}' \
       | sed 's/^[ \t]*//;s/[ \t]*$//';
   # getent respects values in LDAP

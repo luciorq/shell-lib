@@ -15,15 +15,16 @@
 
 function scan_port ()
 {
-    local _usage="Usage: ${0} <HOST> <PORTS>";
-    unset _usage;
-    local host_port;
-    local host_port_end;
-    local host_name;
-    local nc_bin;
-    local timeout_bin;
-    local bash_bin;
-    local _port;
+    \builtin local _usage;
+    _usage="Usage: ${0} <HOST> <PORTS>";
+    \builtin unset _usage;
+    \builtin local host_port;
+    \builtin local host_port_end;
+    \builtin local host_name;
+    \builtin local nc_bin;
+    \builtin local timeout_bin;
+    \builtin local bash_bin;
+    \builtin local _port;
     nc_bin="$(require 'nc')";
     timeout_bin="$(require 'timeout')";
     bash_bin="$(require 'bash')";
@@ -33,20 +34,20 @@ function scan_port ()
     "${nc_bin}" -z -v "${host_name}" "${host_port}-${host_port_end}";
     for _port in $(seq "${host_port}" "${host_port_end}");
     do
-        "${timeout_bin}" 1 "${bash_bin}" -c "</dev/tcp/${host_name}/${_port}" &> /dev/null && builtin echo -ne "Port: ${_port} - open\n" || builtin echo -ne "Port: ${_port} - closed\n";
+        "${timeout_bin}" 1 "${bash_bin}" -c "</dev/tcp/${host_name}/${_port}" >&/dev/null && \builtin echo -ne "Port: ${_port} - open\n" || \builtin echo -ne "Port: ${_port} - closed\n";
     done;
-    return 0
+    \builtin return 0
 }
 
 function exit_fun ()
 {
-    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?${1:-'An error occurred. Exiting.'}}";
     \builtin exit 1
 }
 
 function require ()
 {
-    local cmd_str;
+    \builtin local cmd_str;
     \builtin local cmd_bin;
     \builtin local cmd_res;
     \builtin local full_cmd;
@@ -56,14 +57,14 @@ function require ()
         exit_fun "'${cmd_str}' executable not found in '\${PATH}'";
         \builtin exit 1;
     fi;
-    if [[ ${#} -eq 1 ]]; then
+    if [[ ${#:-} -eq 1 ]]; then
         cmd_res="$("${cmd_bin}" --version 2>&1 || \builtin echo -ne '')";
         full_cmd="${cmd_bin} --version";
     else
         cmd_res="$("${cmd_bin}" "${@:2}" 2>&1 || \builtin echo -ne '')";
         full_cmd="${cmd_bin} ${*:2}";
     fi;
-    if [[ -n ${cmd_res} ]]; then
+    if [[ -n "${cmd_res}" ]]; then
         \builtin echo -ne "${cmd_bin}";
     else
         exit_fun "'${full_cmd}' can't be executed";

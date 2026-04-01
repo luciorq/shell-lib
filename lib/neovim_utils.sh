@@ -99,7 +99,7 @@ function neovim_install () {
   neovim_run --headless -c 'TSUpdate' -qa;
 
   neovim_run; # "${@}";
-  builtin return 0;
+  \builtin return 0;
 }
 
 # Remove all plugin and cached files

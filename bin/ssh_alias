@@ -106,7 +106,7 @@ function __parse_yaml_python ()
     py_script="import yaml;x = yaml.safe_load(open('${yaml_path}', 'r'))";
     py_script="${py_script}${levels_str}";
     py_script="${py_script}; print(x) if isinstance(x, str) else [print(yaml.dump(i)) for i in x] if isinstance(x, list) else print(yaml.dump(x)) if isinstance(x, dict) else False;";
-    module_res=$("${py_bin}" -c "${py_script}" 2>&1);
+    module_res=$( "${py_bin}" -c "${py_script}" 2>&1 );
     if [[ ${module_res} =~ KeyError: ]]; then
         \builtin echo -ne '\n';
         \builtin return 0;
@@ -136,7 +136,9 @@ function __parse_yaml_ruby ()
         fi;
     done;
     ruby_script="${ruby_script}; if var_res.class == Hash; puts YAML::dump(var_res) elsif var_res.class == Array; for item in var_res; puts YAML::dump(item) end; else puts var_res end;";
-    yaml_res=$("${ruby_bin}" -ryaml -e "${ruby_script}" "${yaml_path}" | grep -v '^---');
+    yaml_res=$(
+    "${ruby_bin}" -ryaml -e "${ruby_script}" "${yaml_path}"       | grep -v '^---'
+  );
     \builtin echo -ne "${yaml_res}";
     \builtin return 0
 }
@@ -160,7 +162,9 @@ function __parse_yaml_yq ()
         levels_str='.';
     fi;
     yq_str="... comments=\"\" | ${levels_str} | ( select( has(0) ) | .[]) // .";
-    yaml_res=$("${yq_bin}" eval --no-doc "${yq_str}" "${yaml_path}");
+    yaml_res=$(
+    "${yq_bin}" eval --no-doc "${yq_str}" "${yaml_path}"
+  );
     if [[ ${yaml_res} == null ]]; then
         yaml_res='\n';
     fi;
@@ -211,7 +215,9 @@ function __sync_user_config ()
         exit_fun "'rsync' is not installed";
         \builtin exit 1;
     fi;
-    \builtin mapfile -t sync_path_arr < <(get_config 'config_sync' 'paths');
+    \builtin mapfile -t sync_path_arr < <(
+    get_config 'config_sync' 'paths'
+  );
     \builtin echo -ne "Syncing user config to ${remote_host}...\n";
     "${rsync_bin}" -e "ssh -p ${host_port}${id_flag}${key_path} -o LogLevel=error" --delete --relative --recursive -az --exclude '.git' --exclude '.gitignore' --exclude '.gitmodules' --exclude '.gitattributes' --exclude '.gitconfig' --exclude '.github' --exclude '.pixi' --exclude '.DS_Store' --exclude '._.DS_Store' "${sync_path_arr[@]/#/${HOME}\/.\/}" "${remote_host}":;
     if [[ ${?} -ne 0 ]]; then
@@ -231,25 +237,28 @@ function __sync_user_config ()
 
 function exit_fun ()
 {
-    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?${1:-'An error occurred. Exiting.'}}";
     \builtin exit 1
 }
 
 function get_config ()
 {
-    local _usage="Usage: ${0} <{--priv|-p]>";
-    unset _usage;
-    local cfg_dir;
-    local file_base_name;
-    local file_ext;
-    local var_file;
-    local argv;
-    if [[ ${1:-} == --priv ]] || [[ ${1:-} == -p ]]; then
-        declare -a argv=("${@:3}");
+    \builtin local _usage;
+    _usage="Usage: ${0} <{--priv|-p]>";
+    \builtin unset _usage;
+    \builtin local cfg_dir;
+    \builtin local file_base_name;
+    \builtin local file_ext;
+    \builtin local var_file;
+    \builtin local argv;
+    if [[ "${1:-}" == "--priv" ]] || [[ "${1:-}" == "-p" ]]; then
+        \builtin declare -a argv;
+        argv=("${@:3}");
         file_base_name="${2:-}";
         cfg_dir="$(get_config_path --priv)";
     else
-        declare -a argv=("${@:2}");
+        \builtin declare -a argv;
+        argv=("${@:2}");
         file_base_name="${1:-}";
         cfg_dir="$(get_config_path)";
     fi;
@@ -269,17 +278,22 @@ function get_config ()
 
 function get_config_path ()
 {
-    local cfg_path;
-    local private_dir;
-    if [[ ${1} == --priv ]] || [[ ${1} == -p ]]; then
+    \builtin local _usage;
+    _usage="${0} [--priv | -p] [<private_dir>]";
+    \builtin unset _usage;
+    \builtin local cfg_path;
+    \builtin local private_dir;
+    \builtin local first_arg;
+    first_arg="${1:-}";
+    if [[ ${first_arg} == --priv ]] || [[ ${first_arg} == -p ]]; then
         private_dir="$(get_config env priv)";
         cfg_path="${XDG_CONFIG_HOME:-${HOME}/.config}/${private_dir}";
     else
-        private_dir="${1}";
+        private_dir="${first_arg}";
         cfg_path="${_LOCAL_CONFIG:-${XDG_CONFIG_HOME:-${HOME}/.config}/${private_dir}}";
     fi;
-    builtin echo -ne "${cfg_path}";
-    return 0
+    \builtin echo -ne "${cfg_path}";
+    \builtin return 0
 }
 
 function parse_yaml ()
@@ -333,7 +347,7 @@ function parse_yaml ()
 
 function require ()
 {
-    local cmd_str;
+    \builtin local cmd_str;
     \builtin local cmd_bin;
     \builtin local cmd_res;
     \builtin local full_cmd;
@@ -343,14 +357,14 @@ function require ()
         exit_fun "'${cmd_str}' executable not found in '\${PATH}'";
         \builtin exit 1;
     fi;
-    if [[ ${#} -eq 1 ]]; then
+    if [[ ${#:-} -eq 1 ]]; then
         cmd_res="$("${cmd_bin}" --version 2>&1 || \builtin echo -ne '')";
         full_cmd="${cmd_bin} --version";
     else
         cmd_res="$("${cmd_bin}" "${@:2}" 2>&1 || \builtin echo -ne '')";
         full_cmd="${cmd_bin} ${*:2}";
     fi;
-    if [[ -n ${cmd_res} ]]; then
+    if [[ -n "${cmd_res}" ]]; then
         \builtin echo -ne "${cmd_bin}";
     else
         exit_fun "'${full_cmd}' can't be executed";

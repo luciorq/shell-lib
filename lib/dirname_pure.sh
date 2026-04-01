@@ -1,22 +1,25 @@
 #!/usr/bin/env bash
 
 function dirname_pure () {
-    local tmp=${1:-.}
+    \builtin local tmp_var;
+    tmp_var="${1:-.}";
 
-    [[ $tmp != *[!/]* ]] && {
-        builtin printf '/\n'
-        builtin return
+    [[ $tmp_var != *[!/]* ]] && {
+        \builtin printf '/\n';
+        \builtin return;
     }
 
-    tmp=${tmp%%"${tmp##*[!/]}"}
+    tmp_var=${tmp_var%%"${tmp_var##*[!/]}"}
 
-    [[ $tmp != */* ]] && {
-        builtin printf '.\n'
-        builtin return;
+    [[ $tmp_var != */* ]] && {
+        \builtin printf '.\n';
+        \builtin return;
     }
 
-    tmp=${tmp%/*}
-    tmp=${tmp%%"${tmp##*[!/]}"}
+    tmp_var=${tmp_var%/*}
+    tmp_var=${tmp_var%%"${tmp_var##*[!/]}"}
 
-    printf '%s\n' "${tmp:-/}"
+    \builtin printf '%s\n' "${tmp_var:-/}";
+
+    \builtin return 0;
 }

@@ -4,15 +4,12 @@
 # TODO(luciorq) Parse -n as input so it can be equovalent to GNU head
 function head_pure () {
     # Usage: head <NUM> <FILE_PATH>
-    local line_arr;
-    local file_path;
-    n_arg="${1}";
-    # is_number="${n_arg}" || n_arg='5';
-    if [[ $# -eq 1 ]]; then
-      n_arg='5';
-    fi
-    file_path="${2:-${1}}";
-    builtin mapfile -tn "${n_arg}" line_arr < "${file_path}";
-    builtin printf '%s\n' "${line_arr[@]:-${n_arg}}";
-    return 0;
+    \builtin local line_arr;
+    \builtin local file_path;
+    \builtin local n_arg;
+    n_arg="${1:-5}";
+    file_path="${2:-${1:-}}";
+    \builtin mapfile -tn "${n_arg}" line_arr < "${file_path}";
+    \builtin printf '%s\n' "${line_arr[@]:-${n_arg}}";
+    \builtin return 0;
 }

@@ -1,23 +1,25 @@
 #!/usr/bin/env bash
 
+# TODO: @luciorq There are several deprecated functions in this file that needs
+# + to be removed or refactored..
 # Start rmote port redirection
 # + from: https://github.com/cloudyr/rmote
 function rstats_start_rmote () {
-  local ssh_bin
-  local remote_host
-  remote_host="${1:-omega}"
-  ssh_bin="$(which_bin 'ssh')"
-  "${ssh_bin}" -L 4321:localhost:4321 "${remote_host}"
-  return 0
+  \builtin local ssh_bin;
+  \builtin local remote_host;
+  remote_host="${1:-omega}";
+  ssh_bin="$(which_bin 'ssh')";
+  "${ssh_bin}" -L 4321:localhost:4321 "${remote_host}";
+  \builtin return 0;
 }
 
 # Bootstrap Quarto Markdown Documents
 function rstats_boostrap_quarto_install () {
-  \builtin local quarto_bin
-  quarto_bin="$(which_bin 'quarto')"
+  \builtin local quarto_bin;
+  quarto_bin="$(require 'quarto')";
   if [[ -z ${quarto_bin} ]]; then
-    exit_fun '{quarto} CLI is not installed.'
-    \builtin return 1
+    exit_fun '{quarto} CLI is not installed.';
+    \builtin return 1;
   fi
   # For MacOS
   # + brew upgrade quarto
@@ -25,27 +27,28 @@ function rstats_boostrap_quarto_install () {
   # + __install_app quarto
 
   # Install global dependencies
-  "${quarto_bin}" install tool --no-prompt tinytex
-  "${quarto_bin}" install tool --no-prompt chromium
+  "${quarto_bin}" install tool --no-prompt tinytex;
+  "${quarto_bin}" install tool --no-prompt chromium;
   # Install extensions
-  "${quarto_bin}" add --no-prompt coatless/quarto-webr
-  \builtin return 0
+  "${quarto_bin}" add --no-prompt coatless/quarto-webr;
+  \builtin return 0;
 }
 
 # Install / update all packages from config file
 # TODO: @luciorq Actually implement the universe parsing
 function rstats_install_all_pkgs () {
-  local pkg_type_arr
-  local pkg_name_arr
-  local _pkg_type
-  local _pkg_name
-  local _pkg_name_arr
-  local pkg_name_str
-  local r_bin
-  local sed_bin
-  r_bin="$(require 'R')"
-  sed_bin="$(require 'sed')"
-  declare -a pkg_type_arr=(
+  \builtin local pkg_type_arr;
+  \builtin local pkg_name_arr;
+  \builtin local _pkg_type;
+  \builtin local _pkg_name;
+  \builtin local _pkg_name_arr;
+  \builtin local pkg_name_str;
+  \builtin local r_bin;
+  \builtin local sed_bin;
+  r_bin="$(require 'R')";
+  sed_bin="$(require 'sed')";
+  \builtin declare -a pkg_type_arr;
+  pkg_type_arr=(
     'cran'
     'bioc'
     'universe'
@@ -54,9 +57,9 @@ function rstats_install_all_pkgs () {
     'local'
   )
   pkg_name_str=''
-  \builtin declare -a pkg_name_arr
+  \builtin declare -a pkg_name_arr;
   for _pkg_type in "${pkg_type_arr[@]}"; do
-    builtin mapfile -t _pkg_name_arr < <(
+    \builtin mapfile -t _pkg_name_arr < <(
       get_config rstats_packages "${_pkg_type}_packages"
     )
     if [[ -n ${_pkg_name_arr[*]} ]]; then
@@ -90,61 +93,66 @@ function rstats_install_all_pkgs () {
     done
   done
 
-  # builtin echo -ne "${pkg_name_arr[*]}";
+  # \builtin echo -ne "${pkg_name_arr[*]}";
 
   pkg_name_str="$("${sed_bin}" 's/,$//' <<<"${pkg_name_str}")"
   pkg_name_str="c(${pkg_name_str})"
 
-  # TODO: @luciorq WIP
-  if [[ -n ${CONDA_DEFAULT_ENV} ]]; then
-    local conda_bin
-    local conda_env_name
-    local pkg_conda_deps
-    conda_bin="$(get_conda_bin)"
-    conda_env_name="${CONDA_DEFAULT_ENV}"
+  # TODO: @luciorq WIP - Big WIP!
+  # if [[ -n ${CONDA_DEFAULT_ENV:-} ]]; then
+    # \builtin local conda_bin;
+    # \builtin local conda_env_name;
+    # \builtin local pkg_conda_deps;
+    # conda_bin="$(get_conda_bin)";
+    # conda_env_name="${CONDA_DEFAULT_ENV:-}";
 
-    # TODO: Check if r-env or base have R installed
+    # TODO: @luciorq Check if r-env or base have R installed
 
     #  pkg_conda_deps="$(rstats_get_pkg_deps "${}")";
     # "${conda_bin}" install \
     #  -n "${conda_env_name}" \
     #   "${pkg_conda_deps}";
-  fi
-  unset _pkg_name_arr
+ #  fi
+  # \builtin unset _pkg_name_arr;
 
-  builtin echo -ne \
-    "pak::pkg_install(pkg=${pkg_name_str},upgrade=TRUE,ask=FALSE)"
+  \builtin echo -ne \
+    "pak::pkg_install(pkg=${pkg_name_str},upgrade=TRUE,ask=FALSE)";
   "${r_bin}" -q -s -e \
-    "pak::pkg_install(pkg=${pkg_name_str},upgrade=TRUE,ask=FALSE)"
-  return 0
+    "pak::pkg_install(pkg=${pkg_name_str},upgrade=TRUE,ask=FALSE)";
+  \builtin return 0;
 }
 
 # Install R Packages
 # TODO: '--force' flag not implemented yet
 # TODO: 'universe' source not implemented yet
 function rstats_install_pkg () {
-  local _usage="Usage: ${0} <PKG_NAME> [cran|gh|github|local|bioc*|[r]universe] [--force]"
-  unset _usage
-  local pkg_name
-  local pkg_type
-  local r_bin
-  local num_threads
-  local install_str
-  local pak_str
-  local script_str
-  local is_pak_available
-  # local force_flag;
-  pkg_name="${1:-}"
+  \builtin local _usage;
+  _usage="Usage: ${0} <PKG_NAME> [cran|gh|github|local|bioc*|[r]universe] [--force]"
+  \builtin unset _usage;
+  \builtin local pkg_name;
+  \builtin local pkg_type;
+  \builtin local r_bin;
+  \builtin local num_threads;
+  \builtin local install_str;
+  \builtin local pak_str;
+  \builtin local script_str;
+  \builtin local is_pak_available;
+  # \builtin local force_flag;
+  pkg_name="${1:-}";
   if [[ -z ${pkg_name} ]]; then
-    exit_fun 'Package name is not provided.'
+    exit_fun 'Package name is not provided.';
     \builtin return 1;
   fi
-  pkg_type="${2:-cran}"
-  r_bin="$(require 'R')"
+  pkg_type="${2:-cran}";
+  r_bin="$(require 'R')";
+  if [[ -z ${r_bin} ]]; then
+    exit_fun '`R` is not installed.';
+    \builtin return 1;
+  fi
 
   if [[ -z ${pkg_name} ]]; then
-    exit_fun "Package name is not provided."
-    return 1
+    exit_fun "Package name is not provided.";
+    \builtin return 1;
   fi
   case ${pkg_type} in
   cran)
@@ -169,7 +177,7 @@ function rstats_install_pkg () {
     ;;
   *)
     exit_fun "'${pkg_type}' not available as a Source."
-    return 1
+    \builtin return 1;
     ;;
   esac
 
@@ -186,35 +194,35 @@ function rstats_install_pkg () {
   fi
   "${r_bin}" -q -s -e \
     "${script_str}";
-  \builtin return 0
+  \builtin return 0;
 }
 
 # Update R language installation to the latest release version
 # + only works correctly with devel, release, next
 function rstats_install_rstats_version () {
-  builtin local rig_bin
-  local os_type
-  local rstats_version
+  \builtin local rig_bin;
+  \builtin local os_type;
+  \builtin local rstats_version;
 
-  rig_bin="$(require 'rig')"
+  rig_bin="$(require 'rig')";
   if [[ -z ${rig_bin} ]]; then
-    exit_fun '{rig} CLI is not installed.'
-    \builtin return 1
+    exit_fun '{rig} CLI is not installed.';
+    \builtin return 1;
   fi
-  rstats_version="${1-release}"
-  os_type="$(get_os_type)"
-  "${rig_bin}" add "${rstats_version}"
-  "${rig_bin}" default "${rstats_version}"
+  rstats_version="${1-release}";
+  os_type="$(get_os_type)";
+  "${rig_bin}" add "${rstats_version}";
+  "${rig_bin}" default "${rstats_version}";
   if [[ ${os_type} == darwin ]]; then
-    "${rig_bin}" system fix-permissions
-    "${rig_bin}" sysreqs add gfortran
-    "${rig_bin}" sysreqs add pkgconfig
-    "${rig_bin}" sysreqs add tidy-html5
+    "${rig_bin}" system fix-permissions;
+    "${rig_bin}" sysreqs add gfortran;
+    "${rig_bin}" sysreqs add pkgconfig;
+    "${rig_bin}" sysreqs add tidy-html5;
   fi
-  "${rig_bin}" system setup-user-lib
-  "${rig_bin}" system add-pak
-  "${rig_bin}" system make-links
-  \builtin return 0
+  "${rig_bin}" system setup-user-lib;
+  "${rig_bin}" system add-pak;
+  "${rig_bin}" system make-links;
+  \builtin return 0;
 }
 
 # Update current installed R versions
@@ -239,9 +247,9 @@ function rstats_install_rig () {
 
 # Remove installed R package
 function rstats_remove_pkg () {
-  local r_bin
-  local pkg_name
-  local script_str
+  \builtin local r_bin
+  \builtin local pkg_name
+  \builtin local script_str
   r_bin="$(require 'R')"
   pkg_name="${1:-}"
   script_str="utils::remove.packages('${pkg_name}')"
@@ -252,25 +260,27 @@ function rstats_remove_pkg () {
 }
 
 function rstats_rstudio () {
-  builtin local rig_bin
-  builtin local r_version
-  rig_bin="$(require 'rig')"
+  \builtin local rig_bin;
+  \builtin local r_version;
+  \builtin local project_file_path;
+
+  rig_bin="$(require 'rig')";
+
   if [[ -z ${rig_bin} ]]; then
     exit_fun '{rig} CLI is not installed.'
-    \builtin return 1
+    \builtin return 1;
   fi
-  r_version="${1:-release}"
 
-  \builtin local project_file_path
-  project_file_path="${2:-}"
+  r_version="${1:-release}";
+  project_file_path="${2:-}";
 
   if [[ -z ${project_file_path} ]]; then
    #  project_file_path="$(get_config rstats_projects default_project)"
    project_file_path="$(\builtin pwd -P)";
   fi
 
-  "${rig_bin}" rstudio "${r_version}" "${@:2}"
-  \builtin return 0
+  "${rig_bin}" rstudio "${r_version}" "${@:2}";
+  \builtin return 0;
 }
 
 # =============================================================================
@@ -284,7 +294,7 @@ function rstats_check_pkg () {
   \builtin local r_bin;
   r_bin="$(require 'R')";
   "${r_bin}" CMD check "${1:-}" --as-cran;
-  builtin return 0;
+  \builtin return 0;
 }
 
 # Build R package
@@ -298,16 +308,16 @@ function rstats_build_pkg () {
 # Create an isolated R installation on a Conda environment
 function rstats_create_conda_env () {
   conda_create_env r-env \
-    'r-base r-devtools r-tidyverse r-biocmanager r-pak r-renv'
-  builtin return 0
+    'r-base r-devtools r-tidyverse r-biocmanager r-pak r-renv';
+  \builtin return 0;
 }
 
 # Install R Package inside Conda environment
 function rstats_install_pkg_conda () {
-  builtin local pkg_name
-  pkg_name="${1:-}"
+  \builtin local pkg_name;
+  pkg_name="${1:-}";
   conda_run r-env R -q -e "pak::pkg_install('${pkg_name}')";
-  builtin return 0;
+  \builtin return 0;
 }
 
 ## Install R using pixi

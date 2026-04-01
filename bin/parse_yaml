@@ -111,7 +111,7 @@ function __parse_yaml_python ()
     py_script="import yaml;x = yaml.safe_load(open('${yaml_path}', 'r'))";
     py_script="${py_script}${levels_str}";
     py_script="${py_script}; print(x) if isinstance(x, str) else [print(yaml.dump(i)) for i in x] if isinstance(x, list) else print(yaml.dump(x)) if isinstance(x, dict) else False;";
-    module_res=$("${py_bin}" -c "${py_script}" 2>&1);
+    module_res=$( "${py_bin}" -c "${py_script}" 2>&1 );
     if [[ ${module_res} =~ KeyError: ]]; then
         \builtin echo -ne '\n';
         \builtin return 0;
@@ -141,7 +141,9 @@ function __parse_yaml_ruby ()
         fi;
     done;
     ruby_script="${ruby_script}; if var_res.class == Hash; puts YAML::dump(var_res) elsif var_res.class == Array; for item in var_res; puts YAML::dump(item) end; else puts var_res end;";
-    yaml_res=$("${ruby_bin}" -ryaml -e "${ruby_script}" "${yaml_path}" | grep -v '^---');
+    yaml_res=$(
+    "${ruby_bin}" -ryaml -e "${ruby_script}" "${yaml_path}"       | grep -v '^---'
+  );
     \builtin echo -ne "${yaml_res}";
     \builtin return 0
 }
@@ -165,7 +167,9 @@ function __parse_yaml_yq ()
         levels_str='.';
     fi;
     yq_str="... comments=\"\" | ${levels_str} | ( select( has(0) ) | .[]) // .";
-    yaml_res=$("${yq_bin}" eval --no-doc "${yq_str}" "${yaml_path}");
+    yaml_res=$(
+    "${yq_bin}" eval --no-doc "${yq_str}" "${yaml_path}"
+  );
     if [[ ${yaml_res} == null ]]; then
         yaml_res='\n';
     fi;
@@ -175,7 +179,7 @@ function __parse_yaml_yq ()
 
 function exit_fun ()
 {
-    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?${1:-'An error occurred. Exiting.'}}";
     \builtin exit 1
 }
 

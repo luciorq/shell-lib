@@ -15,43 +15,50 @@
 
 function ssh_generate_key ()
 {
-    local _usage="usage: ${0} <USER> <HOST> <ID_FILE>";
-    unset _usage;
-    local ssh_user;
-    local ssh_host;
-    local key_name;
-    local key_type;
-    local key_args;
-    local ssh_keygen_bin;
-    ssh_user="${1}";
-    ssh_host="${2}";
-    key_name="${3}";
+    \builtin local _usage;
+    _usage="usage: ${0} <USER> <HOST> <ID_FILE>";
+    \builtin unset _usage;
+    \builtin local ssh_user;
+    \builtin local ssh_host;
+    \builtin local key_name;
+    \builtin local key_type;
+    \builtin local key_args;
+    \builtin local ssh_keygen_bin;
+    ssh_user="${1:-}";
+    ssh_host="${2:-}";
+    key_name="${3:-}";
+    if [[ -z ${ssh_user} || -z ${ssh_host} || -z ${key_name} ]]; then
+        exit_fun 'Missing required arguments. See usage.';
+        \builtin exit 1;
+    fi;
     key_type="${4:-ed25519}";
     case "${key_type}" in
         ed25519)
-            declare -a key_args=(-t ed25519 -a 200)
+            \builtin declare -a key_args;
+            key_args=('-t' 'ed25519' '-a' '200')
         ;;
         rsa)
-            declare -a key_args=(-t)
+            \builtin declare -a key_args;
+            key_args=(-t)
         ;;
         *)
-            exit 1
+            \builtin exit 1
         ;;
     esac;
     ssh_keygen_bin="$(require 'ssh-keygen')";
     "${ssh_keygen_bin}" "${key_args[@]}" -C "${ssh_user}@${ssh_host}" -f "${HOME}/.ssh/keys/${key_name}";
-    return 0
+    \builtin return 0
 }
 
 function exit_fun ()
 {
-    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?${1:-'An error occurred. Exiting.'}}";
     \builtin exit 1
 }
 
 function require ()
 {
-    local cmd_str;
+    \builtin local cmd_str;
     \builtin local cmd_bin;
     \builtin local cmd_res;
     \builtin local full_cmd;
@@ -61,14 +68,14 @@ function require ()
         exit_fun "'${cmd_str}' executable not found in '\${PATH}'";
         \builtin exit 1;
     fi;
-    if [[ ${#} -eq 1 ]]; then
+    if [[ ${#:-} -eq 1 ]]; then
         cmd_res="$("${cmd_bin}" --version 2>&1 || \builtin echo -ne '')";
         full_cmd="${cmd_bin} --version";
     else
         cmd_res="$("${cmd_bin}" "${@:2}" 2>&1 || \builtin echo -ne '')";
         full_cmd="${cmd_bin} ${*:2}";
     fi;
-    if [[ -n ${cmd_res} ]]; then
+    if [[ -n "${cmd_res}" ]]; then
         \builtin echo -ne "${cmd_bin}";
     else
         exit_fun "'${full_cmd}' can't be executed";

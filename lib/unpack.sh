@@ -2,10 +2,16 @@
 
 # deb file module for unpack
 function __unpack_deb () {
-  local deb_path dir_output deb_data_path _i;
-  local rm_bin cp_bin mkdir_bin ar_bin;
-  local realpath_bin;
-  local ls_bin;
+  \builtin local deb_path;
+  \builtin local dir_output;
+  \builtin local deb_data_path;
+  \builtin local _i;
+  \builtin local rm_bin;
+  \builtin local cp_bin;
+  \builtin local mkdir_bin;
+  \builtin local ar_bin;
+  \builtin local realpath_bin;
+  \builtin local ls_bin;
   deb_path="${1:-}";
   dir_output="${2:-}";
   rm_bin="$(which_bin 'rm')";
@@ -20,36 +26,36 @@ function __unpack_deb () {
   deb_data_path=$("${realpath_bin}" "${dir_output}"/deb/dat*);
   unpack "${deb_data_path}" "${dir_output}";
   "${rm_bin}" -rf "${dir_output}/deb"
-  builtin mapfile -t content_dirs < <(LC_ALL=C "${ls_bin}" -- "${dir_output}")
+  \builtin mapfile -t content_dirs < <(LC_ALL=C "${ls_bin}" -- "${dir_output}")
   for _i in "${content_dirs[@]}"; do
     if [[ -d "${dir_output}/${_i}" ]]; then
       "${cp_bin}" -r "${dir_output}/${_i}"/* "${dir_output}";
       "${rm_bin}" -rf "${dir_output:?}/${_i}";
     fi
   done
-  builtin return 0;
+  \builtin return 0;
 }
 
 # Unpack compressed files to directory
 function unpack () {
-  local _usage;
+  \builtin local _usage;
   function _usage () {
     \builtin echo >&2 -ne "Usage: ${0} <ZIP_FILE> [<OUTPUT_DIR>]\n";
   }
-  if [[ ${#} -eq 0 ]]; then _usage; unset _usage; \builtin return 1; fi
-  unset _usage;
-  local zip_path;
-  local dir_output;
-  local output_file_path;
-  local rm_bin;
-  local cp_bin;
-  local mkdir_bin;
-  local tar_bin;
-  local realpath_bin;
-  local basename_bin;
-  local unzip_bin;
-  local gzip_bin;
-  local unrar_bin;
+  if [[ ${#:-} -eq 0 ]]; then _usage; \builtin unset _usage; \builtin return 1; fi
+  \builtin unset _usage;
+  \builtin local zip_path;
+  \builtin local dir_output;
+  \builtin local output_file_path;
+  \builtin local rm_bin;
+  \builtin local cp_bin;
+  \builtin local mkdir_bin;
+  \builtin local tar_bin;
+  \builtin local realpath_bin;
+  \builtin local basename_bin;
+  \builtin local unzip_bin;
+  \builtin local gzip_bin;
+  \builtin local unrar_bin;
   zip_path="${1:-}";
   dir_output="${2:-}";
   rm_bin="$(which_bin 'rm')";

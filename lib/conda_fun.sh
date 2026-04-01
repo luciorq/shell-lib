@@ -18,33 +18,33 @@ function conda_env_exists () {
   grep_bin=$(require 'grep')
   env_name="${1:-}"
   if [[ -z ${env_name} ]]; then
-    exit_fun 'conda_env_exists: `env_name` not provided'
-    builtin return 1
+    exit_fun 'conda_env_exists: `env_name` not provided';
+    \builtin return 1;
   fi
   list_envs_res="$(
     conda_list_envs |
       "${jq_bin}" -r '.envs[]' |
       "${grep_bin}" "/${env_name}$"
   )"
-  \builtin echo -ne "${list_envs_res}"
+  \builtin echo -ne "${list_envs_res}";
   \builtin return 0;
 }
 
 function conda_run () {
-  \builtin local env_name
-  \builtin local conda_env_exists_res
-  env_name="${1:-}"
+  \builtin local env_name;
+  \builtin local conda_env_exists_res;
+  env_name="${1:-}";
   if [[ -z ${env_name} ]]; then
-    exit_fun 'conda_run: `env_name` not provided'
-    \builtin return 1
+    exit_fun 'conda_run: `env_name` not provided';
+    \builtin return 1;
   fi
-  conda_env_exists_res="$(conda_env_exists "${env_name}")"
+  conda_env_exists_res="$(conda_env_exists "${env_name}")";
   if [[ -z ${conda_env_exists_res} ]]; then
-    exit_fun "conda_run: Environment \`${env_name}\` does not exist"
-    \builtin return 1
+    exit_fun "conda_run: Environment \`${env_name}\` does not exist";
+    \builtin return 1;
   fi
-  conda_priv_fun run -n "${env_name}" "${@:2}"
-  \builtin return 0
+  conda_priv_fun run -n "${env_name}" "${@:2}";
+  \builtin return 0;
 }
 
 function conda_create_env () {

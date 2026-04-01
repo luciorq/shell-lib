@@ -3,9 +3,13 @@
 # Load Spack environment for BASH
 # + from: https://spack.readthedocs.io/en/latest/getting_started.html
 function spack_load_env () {
-  local spack_dir;
-  # Load Spack environment
-  spack_dir="${1:-${SPACK_ROOT}}";
+  \builtin local _usage;
+  _usage='Usage: spack_load_env [SPACK_DIR]';
+  \builtin unset _usage;
+  \builtin local spack_dir;
+
+  # check for environment variable first, then argument, then default paths
+  spack_dir="${1:-${SPACK_ROOT:-}}";
 
   if [[ -z ${spack_dir} ]]; then
     # for WCM SCU path
@@ -14,10 +18,12 @@ function spack_load_env () {
       spack_dir="/software/spack";
     fi
   fi
+
+  # Load Spack environment
   if [[ -n ${spack_dir} ]]; then
     if [[ -f "${spack_dir}/share/spack/setup-env.sh" ]]; then
-      builtin source "${spack_dir}/share/spack/setup-env.sh";
+      \builtin source "${spack_dir}/share/spack/setup-env.sh";
     fi
   fi
-  return 0;
+  \builtin return 0;
 }

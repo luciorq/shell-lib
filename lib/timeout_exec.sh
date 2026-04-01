@@ -2,11 +2,11 @@
 
 # Execute the command with timeout
 function timeout_exec () {
-  local timeout_bin;
-  local cmd_bin;
+  \builtin local timeout_bin;
+  \builtin local cmd_bin;
 
-  local term_time;
-  local kill_time;
+  \builtin local term_time;
+  \builtin local kill_time;
   term_time='10.0s';
   kill_time='20.0s';
 
@@ -18,5 +18,5 @@ function timeout_exec () {
    "${timeout_bin}" \
     --kill-after "${kill_time}" "${term_time}" \
     "${cmd_bin}" "${@}";
-   return 0;
+   \builtin return 0;
 }

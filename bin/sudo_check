@@ -15,26 +15,27 @@
 
 function sudo_check ()
 {
-    local sudo_uid;
-    local sudo_bin;
-    local sudo_bool;
+    \builtin local sudo_uid;
+    \builtin local sudo_bin;
+    \builtin local sudo_bool;
     sudo_bin="$(which_bin 'sudo')";
     if [[ ${sudo_bin} == "" ]]; then
         exit_fun '`sudo` program not available';
+        \builtin exit 1;
     fi;
-    sudo_uid=$("${sudo_bin}" -n id -u 2> /dev/null || id -u);
+    sudo_uid=$("${sudo_bin}" -n id -u 2>/dev/null || id -u);
     if [[ "${sudo_uid}" == 0 ]]; then
         sudo_bool=true;
     else
         sudo_bool=false;
     fi;
-    builtin echo "${sudo_bool}";
-    return 0
+    \builtin echo "${sudo_bool}";
+    \builtin return 0
 }
 
 function exit_fun ()
 {
-    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?${1:-'An error occurred. Exiting.'}}";
     \builtin exit 1
 }
 

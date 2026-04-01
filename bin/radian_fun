@@ -15,12 +15,24 @@
 
 function radian_fun ()
 {
-    local r_bin;
-    local py_bin;
+    \builtin local r_bin;
+    \builtin local py_bin;
     py_bin="$(which_bin 'python3')";
-    _IS_RADIAN=true "${py_bin}" -m radian;
-    --r-binary="${r_bin}" --profile="${HOME}/.config/radian/profile" --global-history --quiet "${@}";
-    return 0
+    if [[ -z "${py_bin}" ]]; then
+        py_bin="$(which_bin 'python')";
+    fi;
+    if [[ -z "${py_bin}" ]]; then
+        exit_fun "'python3' or 'python' is not available on '${PATH}'";
+        \builtin exit 1;
+    fi;
+    _IS_RADIAN=true "${py_bin}" -m radian --r-binary="${r_bin}" --profile="${HOME}/.config/radian/profile" --global-history --quiet "${@}";
+    \builtin return 0
+}
+
+function exit_fun ()
+{
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?${1:-'An error occurred. Exiting.'}}";
+    \builtin exit 1
 }
 
 function which_bin ()

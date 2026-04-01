@@ -2,10 +2,10 @@
 
 # Retrieve ports where programs are listening to
 function check_used_ports () {
-  builtin local ss_bin;
-  builtin local tr_bin;
-  builtin local cut_bin;
-  builtin local rev_bin;
+  \builtin local ss_bin;
+  \builtin local tr_bin;
+  \builtin local cut_bin;
+  \builtin local rev_bin;
   ss_bin="$(require 'ss')";
   grep_bin="$(require 'grep')";
   tr_bin="$(require 'tr')";
@@ -13,7 +13,8 @@ function check_used_ports () {
   rev_bin="$(require 'rev')";
   if [[ -z ${ss_bin} ]] || [[ -z ${grep_bin} ]] || [[ -z ${tr_bin} ]] \
     || [[ -z ${cut_bin} ]] || [[ -z ${rev_bin} ]]; then
-    return 1;
+    exit_fun "One or more required commands (ss, grep, tr, cut, rev) are not available in PATH.";
+    \builtin return 1;
   fi
   "${ss_bin}" -tulpn \
     | "${grep_bin}" LISTEN \
@@ -22,5 +23,5 @@ function check_used_ports () {
     | "${rev_bin}" \
     | "${cut_bin}" -d ":" -f1 \
     | "${rev_bin}";
-  return 0;
+  \builtin return 0;
 }

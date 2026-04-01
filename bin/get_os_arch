@@ -15,8 +15,8 @@
 
 function get_os_arch ()
 {
-    local os_arch_str;
-    local uname_bin;
+    \builtin local os_arch_str;
+    \builtin local uname_bin;
     os_arch_str="${HOSTTYPE}";
     uname_bin="$(which_bin 'uname')";
     if [[ -z ${os_arch_str} ]]; then
@@ -24,15 +24,16 @@ function get_os_arch ()
             os_arch_str="$("${uname_bin}" -m)";
         else
             exit_fun "'uname' command not available";
+            \builtin exit 1;
         fi;
     fi;
-    builtin echo -ne "${os_arch_str}";
-    return 0
+    \builtin echo -ne "${os_arch_str}";
+    \builtin return 0
 }
 
 function exit_fun ()
 {
-    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?${1:-'An error occurred. Exiting.'}}";
     \builtin exit 1
 }
 

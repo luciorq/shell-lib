@@ -6,29 +6,29 @@
 function download() {
   # usage: download <URL> <OUTPUT_DIR> <THREAD_NUM>
   function download_usage() {
-    builtin echo -ne "usage: download <URL> [<OUTPUT_DIR>] [<THREADS>]\n" >&2
+    \builtin echo -ne "usage: download <URL> [<OUTPUT_DIR>] [<THREADS>]\n" >&2
   }
   if [[ ${#} -eq 0 ]]; then
     download_usage
-    unset download_usage
-    return 1
+    \builtin unset download_usage
+    \builtin return 1
   fi
   if [[ ${1:-} == '-h' ]]; then
     download_usage
-    unset download_usage
-    return 0
+    \builtin unset download_usage
+    \builtin return 0
   fi
-  unset download_usage
-  local get_url
-  local dir_output
-  local thread_num
-  local output_filename
-  local output_basename
-  local realpath_bin
-  local wget_bin
-  local curl_bin
-  local aria_bin
-  local cache_path
+  \builtin unset download_usage
+  \builtin local get_url
+  \builtin local dir_output
+  \builtin local thread_num
+  \builtin local output_filename
+  \builtin local output_basename
+  \builtin local realpath_bin
+  \builtin local wget_bin
+  \builtin local curl_bin
+  \builtin local aria_bin
+  \builtin local cache_path
   get_url="${1:-}"
   dir_output="${2:-}"
 
@@ -85,7 +85,7 @@ function download() {
       "${get_url}"
   else
     exit_fun 'No download method available'
-    return 1
+    \builtin return 1
   fi
-  return 0
+  \builtin return 0
 }

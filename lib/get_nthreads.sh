@@ -6,13 +6,13 @@
 # @param $1 maximum allowed number of threads; Default: 8;
 # @return number of threads available to be used;
 function get_nthreads () {
-  local nproc_bin;
-  local lscpu_bin;
-  local grep_bin;
-  local num_threads;
-  local half_threads;
-  local max_threads_to_use;
-  local threads_to_use;
+  \builtin local nproc_bin;
+  \builtin local lscpu_bin;
+  \builtin local grep_bin;
+  \builtin local num_threads;
+  \builtin local half_threads;
+  \builtin local max_threads_to_use;
+  \builtin local threads_to_use;
   max_threads_to_use="${1:-8}";
   nproc_bin="$(which_bin 'nproc')";
   lscpu_bin="$(which_bin 'lscpu')";
@@ -28,8 +28,8 @@ function get_nthreads () {
   elif [[ -n ${sysctl_bin} && $(get_os_type) == darwin ]]; then
     num_threads="$("${sysctl_bin}" -n hw.ncpu)";
   else
-    builtin echo -ne "4";
-    return 0;
+    \builtin echo -ne "4";
+    \builtin return 0;
   fi
 
   half_threads="$((num_threads/2))";
@@ -39,6 +39,6 @@ function get_nthreads () {
     threads_to_use="${max_threads_to_use}";
   fi
 
-  builtin echo -ne "${threads_to_use}";
-  return 0;
+  \builtin echo -ne "${threads_to_use}";
+  \builtin return 0;
 }

@@ -15,27 +15,29 @@
 
 function scan_ssh_ports ()
 {
-    local output_str;
-    local lsof_bin;
+    \builtin local output_str;
+    \builtin local lsof_bin;
     lsof_bin="$(require 'lsof')";
-    output_str="$(sudo "${lsof_bin}" -i | grep -i 'ssh' | sed 's/\s/###/g' | sed 's/#*#/\t/g' | sed 's/\s(/ (/g' | cut -f 1,3,5,8-)";
-    builtin echo -ne '* SSH Server ports:\n\n';
-    builtin echo -ne 'Not implemented yet\n\n';
-    builtin echo -ne '* SSH Client ports (outgoing):\n\n';
-    builtin echo -ne 'command\tuser\tip_version\tport_type\tname\n';
-    builtin echo -ne "${output_str}";
-    return 0
+    output_str="$(
+    sudo "${lsof_bin}" -i       | grep -i 'ssh'       | sed 's/\s/###/g'       | sed 's/#*#/\t/g'       | sed 's/\s(/ (/g'       | cut -f 1,3,5,8-
+  )";
+    \builtin echo -ne '* SSH Server ports:\n\n';
+    \builtin echo -ne 'Not implemented yet\n\n';
+    \builtin echo -ne '* SSH Client ports (outgoing):\n\n';
+    \builtin echo -ne 'command\tuser\tip_version\tport_type\tname\n';
+    \builtin echo -ne "${output_str}";
+    \builtin return 0
 }
 
 function exit_fun ()
 {
-    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?${1:-'An error occurred. Exiting.'}}";
     \builtin exit 1
 }
 
 function require ()
 {
-    local cmd_str;
+    \builtin local cmd_str;
     \builtin local cmd_bin;
     \builtin local cmd_res;
     \builtin local full_cmd;
@@ -45,14 +47,14 @@ function require ()
         exit_fun "'${cmd_str}' executable not found in '\${PATH}'";
         \builtin exit 1;
     fi;
-    if [[ ${#} -eq 1 ]]; then
+    if [[ ${#:-} -eq 1 ]]; then
         cmd_res="$("${cmd_bin}" --version 2>&1 || \builtin echo -ne '')";
         full_cmd="${cmd_bin} --version";
     else
         cmd_res="$("${cmd_bin}" "${@:2}" 2>&1 || \builtin echo -ne '')";
         full_cmd="${cmd_bin} ${*:2}";
     fi;
-    if [[ -n ${cmd_res} ]]; then
+    if [[ -n "${cmd_res}" ]]; then
         \builtin echo -ne "${cmd_bin}";
     else
         exit_fun "'${full_cmd}' can't be executed";

@@ -5,19 +5,23 @@
 # + Curretly only working with YAML files;
 # @param --priv | -p Search var file on private path.
 function get_config () {
-  local _usage="Usage: ${0} <{--priv|-p]>";
-  unset _usage;
-  local cfg_dir;
-  local file_base_name;
-  local file_ext;
-  local var_file;
-  local argv;
-  if [[ ${1:-} == --priv ]] || [[ ${1:-} == -p ]]; then
-    declare -a argv=("${@:3}");
+  \builtin local _usage;
+  _usage="Usage: ${0} <{--priv|-p]>";
+  \builtin unset _usage;
+  \builtin local cfg_dir;
+  \builtin local file_base_name;
+  \builtin local file_ext;
+  \builtin local var_file;
+  \builtin local argv;
+  if [[ "${1:-}" == "--priv" ]] || [[ "${1:-}" == "-p" ]]; then
+
+    \builtin declare -a argv;
+    argv=("${@:3}");
     file_base_name="${2:-}";
     cfg_dir="$(get_config_path --priv)";
   else
-    declare -a argv=("${@:2}");
+    \builtin declare -a argv;
+    argv=("${@:2}");
     file_base_name="${1:-}";
     cfg_dir="$(get_config_path)";
   fi

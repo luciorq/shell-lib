@@ -15,16 +15,16 @@
 
 function create_log ()
 {
-    local _usage;
+    \builtin local _usage;
     _usage="Usage: ${0} <APP_NAME> [<DIR>]/logs";
-    unset _usage;
-    local base_path;
-    local app_name;
-    local log_path;
-    local time_str;
-    local mkdir_bin;
-    local touch_bin;
-    local rand_str;
+    \builtin unset _usage;
+    \builtin local base_path;
+    \builtin local app_name;
+    \builtin local log_path;
+    \builtin local time_str;
+    \builtin local mkdir_bin;
+    \builtin local touch_bin;
+    \builtin local rand_str;
     app_name="${1:-}";
     base_path="${2:-}";
     if [[ -z ${base_path} ]]; then
@@ -51,13 +51,13 @@ function create_log ()
 
 function __get_hash ()
 {
-    local hash_len;
-    local hash_str;
-    local ssl_bin;
+    \builtin local hash_len;
+    \builtin local hash_str;
+    \builtin local ssl_bin;
     hash_len="${1:-6}";
     if [[ ${hash_len} -eq 0 ]]; then
         exit_fun "Hash length can not be set to '0'";
-        exit 1;
+        \builtin exit 1;
     fi;
     ssl_bin="$(require 'openssl')";
     if [ -n "${ssl_bin}" ]; then
@@ -71,10 +71,10 @@ function __get_hash ()
 
 function __get_hash_fallback ()
 {
-    local hash_len;
-    local i;
-    local rand_num;
-    local hash_str;
+    \builtin local hash_len;
+    \builtin local i;
+    \builtin local rand_num;
+    \builtin local hash_str;
     hash_len="${1:-6}";
     hash_str='';
     for ((i = 0 ; i < hash_len ; i++))
@@ -137,23 +137,23 @@ function __get_hash_fallback ()
 
 function __get_tz_timestamp ()
 {
-    local timestamp;
-    local date_bin;
+    \builtin local timestamp;
+    \builtin local date_bin;
     date_bin="$(require 'date')";
     timestamp="$(TZ='US/Eastern' "${date_bin}" '+%Y%m%d-%H%M%S')";
-    builtin echo -ne "${timestamp}";
-    return 0
+    \builtin echo -ne "${timestamp}";
+    \builtin return 0
 }
 
 function exit_fun ()
 {
-    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?${1:-'An error occurred. Exiting.'}}";
     \builtin exit 1
 }
 
 function require ()
 {
-    local cmd_str;
+    \builtin local cmd_str;
     \builtin local cmd_bin;
     \builtin local cmd_res;
     \builtin local full_cmd;
@@ -163,14 +163,14 @@ function require ()
         exit_fun "'${cmd_str}' executable not found in '\${PATH}'";
         \builtin exit 1;
     fi;
-    if [[ ${#} -eq 1 ]]; then
+    if [[ ${#:-} -eq 1 ]]; then
         cmd_res="$("${cmd_bin}" --version 2>&1 || \builtin echo -ne '')";
         full_cmd="${cmd_bin} --version";
     else
         cmd_res="$("${cmd_bin}" "${@:2}" 2>&1 || \builtin echo -ne '')";
         full_cmd="${cmd_bin} ${*:2}";
     fi;
-    if [[ -n ${cmd_res} ]]; then
+    if [[ -n "${cmd_res}" ]]; then
         \builtin echo -ne "${cmd_bin}";
     else
         exit_fun "'${full_cmd}' can't be executed";

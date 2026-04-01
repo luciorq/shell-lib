@@ -15,13 +15,13 @@
 
 function sudo_fun ()
 {
-    builtin local sudo_bin;
-    builtin local bash_bin;
-    builtin local cmd_str;
-    builtin local cmd_type;
-    builtin local args_q;
-    builtin local args_str;
-    builtin local cmd_prep;
+    \builtin local sudo_bin;
+    \builtin local bash_bin;
+    \builtin local cmd_str;
+    \builtin local cmd_type;
+    \builtin local args_q;
+    \builtin local args_str;
+    \builtin local cmd_prep;
     sudo_bin="$(which_bin 'sudo')";
     if [[ -z "${sudo_bin}" ]]; then
         exit_fun "'sudo' is not available ...";
@@ -42,9 +42,12 @@ function sudo_fun ()
     fi;
     bash_bin="$(which_bin 'bash')";
     cmd_prep="shopt -s expand_aliases; _SUDO_FUN=true; TERM=xterm-256color; ";
-    declare -a args_q=("${@@Q}");
+    \builtin declare -a args_q;
+    args_q=("${@@Q}");
     args_str="${args_q[*]:1}";
-    cmd_type="$(_SUDO_FUN=true "${bash_bin}" -i -c "${cmd_prep} LC_ALL=C \builtin type -t '${cmd_str}';")";
+    cmd_type="$(
+    _SUDO_FUN=true "${bash_bin}" -i -c       "${cmd_prep} LC_ALL=C \builtin type -t '${cmd_str}';"
+  )";
     case "${cmd_type}" in
         file)
             type_str="Normal"
@@ -71,17 +74,19 @@ function sudo_fun ()
 
 function exit_fun ()
 {
-    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?${1:-'An error occurred. Exiting.'}}";
     \builtin exit 1
 }
 
 function type_str ()
 {
-    local type_key type_str_arr;
-    type_key="$1";
-    declare -A type_str_arr=([keyword]="is a shell keyword" [builtin]="is a shell builtin" [alias]="is aliased to" [function]="is a function");
-    echo "${type_str_arr["${type_key}"]}";
-    return 0
+    \builtin local type_key;
+    \builtin local type_str_arr;
+    type_key="${1:-}";
+    \builtin declare -A type_str_arr;
+    type_str_arr=([keyword]="is a shell keyword" [builtin]="is a shell builtin" [alias]="is aliased to" [function]="is a function");
+    \builtin echo "${type_str_arr["${type_key}"]}";
+    \builtin return 0
 }
 
 function which_bin ()

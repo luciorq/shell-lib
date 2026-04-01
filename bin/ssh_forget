@@ -15,14 +15,14 @@
 
 function ssh_forget ()
 {
-    local keygen_bin;
-    local rm_bin;
-    local _host_name;
+    \builtin local keygen_bin;
+    \builtin local rm_bin;
+    \builtin local _host_name;
     rm_bin="$(which_bin 'rm')";
     keygen_bin="$(require 'ssh-keygen')";
     if [[ -z ${keygen_bin} ]]; then
         exit_fun '`ssh-keygen` is not available on PATH';
-        exit 1;
+        \builtin exit 1;
     fi;
     for _host_name in "${@}";
     do
@@ -31,18 +31,18 @@ function ssh_forget ()
     if [[ -f "${HOME}/.ssh/known_hosts.old" ]]; then
         "${rm_bin}" -f "${HOME}/.ssh/known_hosts.old";
     fi;
-    builtin return 0
+    \builtin return 0
 }
 
 function exit_fun ()
 {
-    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?$1}";
+    : builtin local Error && Error=' ' && \builtin unset -v Error && "${Error:?${1:-'An error occurred. Exiting.'}}";
     \builtin exit 1
 }
 
 function require ()
 {
-    local cmd_str;
+    \builtin local cmd_str;
     \builtin local cmd_bin;
     \builtin local cmd_res;
     \builtin local full_cmd;
@@ -52,14 +52,14 @@ function require ()
         exit_fun "'${cmd_str}' executable not found in '\${PATH}'";
         \builtin exit 1;
     fi;
-    if [[ ${#} -eq 1 ]]; then
+    if [[ ${#:-} -eq 1 ]]; then
         cmd_res="$("${cmd_bin}" --version 2>&1 || \builtin echo -ne '')";
         full_cmd="${cmd_bin} --version";
     else
         cmd_res="$("${cmd_bin}" "${@:2}" 2>&1 || \builtin echo -ne '')";
         full_cmd="${cmd_bin} ${*:2}";
     fi;
-    if [[ -n ${cmd_res} ]]; then
+    if [[ -n "${cmd_res}" ]]; then
         \builtin echo -ne "${cmd_bin}";
     else
         exit_fun "'${full_cmd}' can't be executed";
