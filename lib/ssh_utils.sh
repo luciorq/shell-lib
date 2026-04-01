@@ -23,11 +23,22 @@ function ssha_fun () {
 
   ssh_agent_bin="$(require 'ssh-agent')";
   ssh_add_bin="$(require 'ssh-add')";
+  if [[ -z ${ssh_agent_bin} || -z ${ssh_add_bin} ]]; then
+    exit_fun 'Required binaries not found. See usage.';
+    \builtin return 1;
+  fi
+
   \builtin declare -a ssha_args;
   ssha_args=();
   os_type="$(get_os_type)";
-  if [[ ${os_type} == darwin ]]; then
-    \builtin declare -a ssha_args;
+
+  # On macOS, use the Apple Keychain to store SSH keys
+  # NOTE: @luciorq Only the ssh-add command on `/usr/bin/ssh-add` supports the
+  # + `--apple-use-keychain` flag, so we need to check the OS type and the path
+  # + before adding the flag.
+  if [[ "${os_type}" == "darwin" ]] \
+    && [[ "${ssh_add_bin}" == "/usr/bin/ssh-add" ]]; then
+    # \builtin declare -a ssha_args;
     ssha_args=('--apple-use-keychain');
   fi
   \builtin eval "$("${ssh_agent_bin}")" \

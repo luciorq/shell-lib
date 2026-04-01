@@ -177,11 +177,14 @@ function ssha_fun ()
     fi;
     ssh_agent_bin="$(require 'ssh-agent')";
     ssh_add_bin="$(require 'ssh-add')";
+    if [[ -z ${ssh_agent_bin} || -z ${ssh_add_bin} ]]; then
+        exit_fun 'Required binaries not found. See usage.';
+        \builtin exit 1;
+    fi;
     \builtin declare -a ssha_args;
     ssha_args=();
     os_type="$(get_os_type)";
-    if [[ ${os_type} == darwin ]]; then
-        \builtin declare -a ssha_args;
+    if [[ "${os_type}" == "darwin" ]] && [[ "${ssh_add_bin}" == "/usr/bin/ssh-add" ]]; then
         ssha_args=('--apple-use-keychain');
     fi;
     \builtin eval "$("${ssh_agent_bin}")" && "${ssh_add_bin}" "${ssha_args[@]}" "${key_path}";
