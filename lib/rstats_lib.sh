@@ -128,7 +128,7 @@ function rstats_install_all_pkgs () {
 function rstats_install_pkg () {
   \builtin local _usage;
   _usage="Usage: ${0} <PKG_NAME> [cran|gh|github|local|bioc*|[r]universe] [--force]"
-  \builtin unset _usage;
+  \builtin unset -v _usage;
   \builtin local pkg_name;
   \builtin local pkg_type;
   \builtin local r_bin;

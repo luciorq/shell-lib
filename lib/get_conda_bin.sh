@@ -56,7 +56,7 @@ function conda_priv_fun () {
 function install_micromamba () {
   \builtin local _usage;
   _usage="${0} [--force] [--system]";
-  \builtin unset _usage;
+  \builtin unset -v _usage;
   \builtin local micromamba_bin;
   \builtin local conda_platform;
   \builtin local download_url;

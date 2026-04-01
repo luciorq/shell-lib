@@ -103,7 +103,7 @@ function pixi_show_activated_vars () {
     \builtin echo -ne "${_usage}\n";
     \builtin return 0;
   fi
-  \builtin unset _usage;
+  \builtin unset -v _usage;
 
   \builtin local pixi_bin;
   \builtin local jq_bin;

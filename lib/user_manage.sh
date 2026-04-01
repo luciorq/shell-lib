@@ -4,7 +4,7 @@
 function __user_create () {
   \builtin local _usage;
   _usage="Usage: ${0} <USER_NAME> <USER_UID> [<PW|PW_HASH>]"
-  \builtin unset _usage;
+  \builtin unset -v _usage;
   \builtin local user_name;
   \builtin local user_uid;
   \builtin local user_pw;
@@ -81,17 +81,18 @@ function __user_create () {
 
 # Add user to groups
 function __user_add_group () {
-  local _usage="Usage: ${0} <USER_NAME> <GROUP_1> [<GROUP_2> ... <GROUP_N>]"
-  unset _usage
-  local user_name
-  local args_arr
-  local groups_to_add
-  local usermod_bin
-  local sudo_bin
-  user_name="${1:-}"
-  usermod_bin="$(require 'usermod' '-h')"
-  sudo_bin="$(require 'sudo')"
-  \builtin mapfile -t args_arr < <(builtin echo "${@:-}")
+  \builtin local _usage;
+  _usage="Usage: ${0} <USER_NAME> <GROUP_1> [<GROUP_2> ... <GROUP_N>]";
+  \builtin unset -v _usage;
+  \builtin local user_name;
+  \builtin local args_arr;
+  \builtin local groups_to_add;
+  \builtin local usermod_bin;
+  \builtin local sudo_bin;
+  user_name="${1:-}";
+  usermod_bin="$(require 'usermod' '-h')";
+  sudo_bin="$(require 'sudo')";
+  \builtin mapfile -t args_arr < <(\builtin echo "${@:-}");
   groups_to_add="$(
     \builtin echo "${args_arr[@]:1}" |
       sed -r 's|\s+|,|g'
@@ -101,30 +102,31 @@ function __user_add_group () {
 }
 
 # Delete User
-function __user_remove() {
-  local _usage="Usage: ${0} <USER_NAME>"
-  unset _usage
-  local user_name
-  local userdel_bin
-  local sudo_bin
-  userdel_bin="$(require 'userdel' '-h')"
-  sudo_bin="$(require 'sudo')"
-  user_name="${1:-}"
-  if [[ -z ${user_name} ]]; then
-    exit_fun 'User name not supplied'
+function __user_remove () {
+  \builtin local _usage;
+  _usage="Usage: ${0} <USER_NAME>";
+  \builtin unset -v _usage;
+  \builtin local user_name;
+  \builtin local userdel_bin;
+  \builtin local sudo_bin;
+  userdel_bin="$(require 'userdel' '-h')";
+  sudo_bin="$(require 'sudo')";
+  user_name="${1:-}";
+  if [[ -z "${user_name}" ]]; then
+    exit_fun 'User name not supplied';
     \builtin return 1
   fi
-  "${sudo_bin}" "${userdel_bin}" -r "${user_name}"
+  "${sudo_bin}" "${userdel_bin}" -r "${user_name}";
   \builtin return 0
 }
 
 # TODO: @luciorq Finish setting replicate_pw function
 # Replicate hashed user password
 # + from one remote host to another
-function __user_replicate_pw_server() {
+function __user_replicate_pw_server () {
   \builtin local _usage;
   _usage="Usage: ${0} <USER_NAME> <HOST_FROM> <HOST_TO>";
-  \builtin unset _usage;
+  \builtin unset -v _usage;
   \builtin local user_name;
   \builtin local host_control_plane;
   # \builtin local host_targets;
@@ -178,7 +180,7 @@ function __user_replicate_pw_server() {
 function __create_data_storage_user () {
   \builtin local _usage;
   _usage="Usage: ${0} <USER_NAME>";
-  \builtin unset _usage;
+  \builtin unset -v _usage;
   \builtin local user_name;
   \builtin local host_name;
   \builtin local user_dir;

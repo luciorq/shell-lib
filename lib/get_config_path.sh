@@ -4,7 +4,7 @@
 function get_config_path () {
   \builtin local _usage;
   _usage="${0} [--priv | -p] [<private_dir>]";
-  \builtin unset _usage;
+  \builtin unset -v _usage;
   \builtin local cfg_path;
   \builtin local private_dir;
 

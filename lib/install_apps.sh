@@ -207,23 +207,26 @@ function __install_app_source () {
   build_path="${dl_path}/${build_arr[0]}";
 
   # make -C "${build_path}/bash-${build_version}" configure -j ${num_threads};
-  function __build_app () {
-    \builtin local build_path="${1}";
-    \builtin local install_path="${2}";
-    (
-      \builtin cd "${build_path}" \
-        || {
-          \builtin echo -ne "Error: Failed to change directory to '${build_path}'\n";
-          \builtin return 1;
-        };
-      ./configure --prefix="${install_path}" \
-        || {
-          \builtin echo -ne "Error: Failed to execute 'configure' script\n";
-          \builtin return 1;
-        }
-    )
-  };
-  __build_app "${build_path}" "${install_path}";
+  #function __build_app () {
+    #\builtin local build_path;
+    #build_path="${1:-}";
+    #\builtin local install_path;
+    # install_path="${2:-}";
+  (
+    \builtin cd "${build_path}" \
+      || {
+        \builtin echo -ne "Error: Failed to change directory to '${build_path}'\n";
+        \builtin return 1;
+      };
+    ./configure --prefix="${install_path}" \
+      || {
+        \builtin echo -ne "Error: Failed to execute 'configure' script\n";
+        \builtin return 1;
+      }
+  )
+  # };
+  # __build_app "${build_path}" "${install_path}";
+  # \builtin unset -f __build_app;
   "${make_bin}" \
     -C "${build_path}" \
     -j "${num_threads}";
@@ -245,7 +248,7 @@ function __install_app_source () {
     \builtin local install_path;
     \builtin local app_name;
     \builtin local install_type;
-    \builtin local prefix_path;
+    # \builtin local prefix_path;
     \builtin local envs_path;
     \builtin local link_path;
     \builtin local install_path;
@@ -338,10 +341,10 @@ function __install_app_source () {
     \builtin local get_url;
     \builtin local dl_path;
     \builtin local rm_bin;
-    rm_bin="$(which_bin 'rm')";
-    install_path="${1}";
-    tarball_name="${2}";
-    get_url="${3}";
+    rm_bin="$(require 'rm')";
+    install_path="${1:-}";
+    tarball_name="${2:-}";
+    get_url="${3:-}";
     dl_path="$(create_temp 'install_app')";
     download "${get_url}" "${dl_path}";
     unpack "${dl_path}/${tarball_name}" "${install_path}";

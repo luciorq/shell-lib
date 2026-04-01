@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-# TODO: Why those functions exists? Should be removed? Why not just 'builtin cd'
+# TODO: @luciorq Why those functions exists? Should be removed?
+# + Why not just '\builtin cd'
 
 # Functions to change predefined paths
 

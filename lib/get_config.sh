@@ -7,7 +7,7 @@
 function get_config () {
   \builtin local _usage;
   _usage="Usage: ${0} <{--priv|-p]>";
-  \builtin unset _usage;
+  \builtin unset -v _usage;
   \builtin local cfg_dir;
   \builtin local file_base_name;
   \builtin local file_ext;

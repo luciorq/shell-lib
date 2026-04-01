@@ -2,10 +2,10 @@
 
 # Kitten Aware SSH connection
 function ssh_fun () {
-  \builtin local ssh_bin;
   \builtin local _usage;
   _usage="Usage: ${0} <[SSH_ARGS]>";
   \builtin unset -v _usage;
+  \builtin local ssh_bin;
   ssh_bin="$(require 'ssh' '-V')";
   \builtin set -x;
   # TODO: luciorq check if there is any real advantage of using -A in the

@@ -5,20 +5,17 @@
 # + if not tries curl, then wget
 function download() {
   # usage: download <URL> <OUTPUT_DIR> <THREAD_NUM>
-  function download_usage() {
-    \builtin echo -ne "usage: download <URL> [<OUTPUT_DIR>] [<THREADS>]\n" >&2
-  }
+  \builtin local _usage;
+  _usage="${0} <URL> [<OUTPUT_DIR>] [<THREADS>]"
   if [[ ${#} -eq 0 ]]; then
-    download_usage
-    \builtin unset download_usage
-    \builtin return 1
+    exit_fun "Invalid execution.\nUsage: ${_usage}\n";
+    \builtin return 1;
   fi
   if [[ ${1:-} == '-h' ]]; then
-    download_usage
-    \builtin unset download_usage
-    \builtin return 0
+    exit_fun "Usage: ${_usage}\n";
+    \builtin return 0;
   fi
-  \builtin unset download_usage
+  \builtin unset -v _usage
   \builtin local get_url
   \builtin local dir_output
   \builtin local thread_num

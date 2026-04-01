@@ -18,7 +18,7 @@ function bashly_update () {
 function bashly_build () {
   \builtin local _usage;
   _usage="Usage: ${0} <BASHLY_FILE>";
-  \builtin unset _usage;
+  \builtin unset -v _usage;
   \builtin local bashly_bin;
   \builtin local _function_name;
   bashly_bin="$(which_bin 'bashly')";

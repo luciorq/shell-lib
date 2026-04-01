@@ -39,11 +39,12 @@ function __unpack_deb () {
 # Unpack compressed files to directory
 function unpack () {
   \builtin local _usage;
-  function _usage () {
-    \builtin echo >&2 -ne "Usage: ${0} <ZIP_FILE> [<OUTPUT_DIR>]\n";
-  }
-  if [[ ${#:-} -eq 0 ]]; then _usage; \builtin unset _usage; \builtin return 1; fi
-  \builtin unset _usage;
+  _usage="Usage: ${0} <ZIP_FILE> [<OUTPUT_DIR>]"
+  if [[ ${#:-} -eq 0 ]]; then
+    exit_fun "Invalid execution.\nUsage: ${_usage}\n";
+    \builtin return 1;
+  fi
+  \builtin unset -v _usage;
   \builtin local zip_path;
   \builtin local dir_output;
   \builtin local output_file_path;

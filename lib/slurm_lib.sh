@@ -34,8 +34,9 @@ function slurm_check_nodes () {
 # Request interactive section on slurm
 # + Defaults: 4 CPU, 32 GB RAM, 120 Minutes, 0 GPU
 function slurm_interactive_session () {
-  \builtin local _usage="Usage: ${0} [PARTITION] [N_CPU] [MEM_GB] [TIME_MIN] [GPU_NUM] [GROUP_NAME]";
-  \builtin unset _usage;
+  \builtin local _usage;
+  _usage="Usage: ${0} [PARTITION] [N_CPU] [MEM_GB] [TIME_MIN] [GPU_NUM] [GROUP_NAME]";
+  \builtin unset -v _usage;
   \builtin local bash_bin;
   \builtin local srun_bin;
   \builtin local sg_bin;
@@ -74,8 +75,9 @@ function slurm_interactive_session () {
 # Request interactive session with GPU support
 # + Defaults: 1 GPU, 4 CPU, 32 GB RAM, 120 Minutes
 function slurm_interactive_gpu_session () {
-  \builtin local _usage="Usage: ${0} [GPU_NUM] [PARTITION] [N_CPU] [MEM_GB] [TIME_MIN]";
-  \builtin unset _usage;
+  \builtin local _usage;
+  _usage="Usage: ${0} [GPU_NUM] [PARTITION] [N_CPU] [MEM_GB] [TIME_MIN]";
+  \builtin unset -v _usage;
   \builtin local gpu_num;
   \builtin local partition_name;
   \builtin local num_cpu;
@@ -173,8 +175,9 @@ function slurm_check_gpus () {
 
 # Cancel all jobs for a given user
 function slurm_cancel_all_jobs () {
-  \builtin local _usage="Usage: ${0} [USER_NAME]";
-  \builtin unset _usage;
+  \builtin local _usage;
+  _usage="Usage: ${0} [USER_NAME]";
+  \builtin unset -v _usage;
   # \builtin local squeue_bin;
   \builtin local scancel_bin;
   \builtin local user_name;

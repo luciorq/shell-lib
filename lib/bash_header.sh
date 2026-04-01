@@ -23,7 +23,7 @@ function bash_header () {
   \builtin echo -ne '    \\builtin echo -ne "Usage: ${_usage}\\n";\n';
   \builtin echo -ne '    \\builtin return 0;\n';
   \builtin echo -ne '  fi\n';
-  \builtin echo -ne '  \\builtin unset _usage;\n';
+  \builtin echo -ne '  \\builtin unset -v _usage;\n';
   \builtin echo -ne '\n';
   \builtin echo -ne '  \\builtin return 0;\n';
   \builtin echo -ne '}\n';

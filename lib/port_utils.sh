@@ -28,7 +28,7 @@ function scan_ssh_ports () {
 function scan_port () {
   \builtin local _usage;
   _usage="Usage: ${0} <HOST> <PORTS>";
-  \builtin unset _usage;
+  \builtin unset -v _usage;
   \builtin local host_port;
   \builtin local host_port_end;
   \builtin local host_name;

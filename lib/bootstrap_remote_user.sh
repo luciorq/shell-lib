@@ -49,8 +49,8 @@ function clean_homebrew_cache () {
   \builtin return 0;
 }
 
-# Clean R cache
-# function
+# TODO: @luciorq Clean R cache
+# + function
 
 # Check for required system tools
 function __check_req_cli_tools () {
@@ -209,7 +209,7 @@ function __build_rust_cargo () {
 function __rebuild_rust_source_app () {
   \builtin local _usage;
   _usage="usage: ${0} <CARGO_PKG_NAME> <APP_BINARIY>";
-  \builtin unset _usage;
+  \builtin unset -v _usage;
   \builtin local pkg_name;
   \builtin local app_bin;
   \builtin local cargo_bin;
@@ -424,15 +424,15 @@ function __build_glibc () {
   unpack "${build_path}/${base_name}.tar.gz" "${build_path}";
   "${mkdir_bin}" -p "${inst_path}";
   "${mkdir_bin}" -p "${build_path}/${base_name}/build";
-  function __build_app_glibc () {
-    (
-      \builtin cd "${build_path}/${base_name}/build" \
-        || \builtin return 1;
-      ../configure --prefix="${inst_path}"
-    )
-  };
-  __build_app_glibc;
-  \builtin unset __build_app_glibc;
+  # function __build_app_glibc () {
+  (
+    \builtin cd "${build_path}/${base_name}/build" \
+      || \builtin return 1;
+    ../configure --prefix="${inst_path}"
+  )
+  # };
+  # __build_app_glibc;
+  # \builtin unset -f __build_app_glibc;
   MAKE="$(which make)" "${make_bin}" \
     -C "${build_path}/${base_name}" -j "${num_threads}";
   MAKE="$(which make)" "${make_bin}" \
@@ -452,7 +452,7 @@ function __build_git () {
   \builtin local get_url;
   \builtin local rm_bin;
   \builtin local make_bin;
-  \builtin local __build_app_git;
+  # \builtin local __build_app_git;
   rm_bin="$(which_bin 'rm')";
   make_bin="$(which_bin 'gmake')";
   if [[ -z ${make_bin} ]]; then
@@ -469,15 +469,15 @@ function __build_git () {
   download "${get_url}" "${build_path}";
   unpack "${build_path}/main.zip" "${build_path}";
   "${make_bin}" -C "${build_path}/git-main" configure -j "${num_threads}"
-  function __build_app_git () {
-    (
-      \builtin cd "${build_path}/git-main" \
-        || \builtin return 1;
-      ./configure --prefix="${inst_path}";
-    )
-  };
-  __build_app_git;
-  \builtin unset __build_app_git;
+  # function __build_app_git () {
+  (
+    \builtin cd "${build_path}/git-main" \
+      || \builtin return 1;
+    ./configure --prefix="${inst_path}";
+  )
+  # };
+  # __build_app_git;
+  # \builtin unset -f __build_app_git;
   "${make_bin}" -C "${build_path}/git-main" -j "${num_threads}";
   "${make_bin}" -C "${build_path}/git-main" install -j "${num_threads}";
   "${rm_bin}" -rf "${build_path}/git-main" "${build_path}/main.zip";
@@ -539,16 +539,16 @@ function __build_bash () {
   build_path="$(create_temp bash-inst)";
   download "${get_url}" "${build_path}";
   unpack "${build_path}/bash-${build_version}.tar.gz" "${build_path}";
-  local __build_app_bash;
-  function __build_app_bash () {
-    (
-      \builtin cd "${build_path}/bash-${build_version}" \
-        || \builtin return 1;
-      ./configure --prefix="${inst_path}";
-    )
-  };
-  __build_app_bash;
-  \builtin unset __build_app_bash;
+  # \builtin local __build_app_bash;
+  # function __build_app_bash () {
+  (
+    \builtin cd "${build_path}/bash-${build_version}" \
+      || \builtin return 1;
+    ./configure --prefix="${inst_path}";
+  )
+  # };
+  # __build_app_bash;
+  # \builtin unset -f __build_app_bash;
   "${make_bin}" \
     -C "${build_path}/bash-${build_version}" -j "${num_threads}";
   "${make_bin}" \

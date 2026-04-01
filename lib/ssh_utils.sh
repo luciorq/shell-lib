@@ -8,7 +8,7 @@
 function ssha_fun () {
   \builtin local _usage;
   _usage="usage: ${0} <KEY_FILE_PATH>";
-  \builtin unset _usage;
+  \builtin unset -v _usage;
   \builtin local ssh_agent_bin;
   \builtin local ssh_add_bin;
   \builtin local ssha_args;
@@ -54,7 +54,7 @@ function ssha_fun () {
 function ssh_key_create_and_push () {
   \builtin local _usage;
   _usage="usage: ${0} <USER> <HOST> <ID_FILE> [<PORT>|22]";
-  \builtin unset _usage;
+  \builtin unset -v _usage;
   \builtin local ssh_user;
   \builtin local remote_ip;
   \builtin local key_name;
@@ -87,7 +87,7 @@ function ssh_key_create_and_push () {
 function ssh_generate_key () {
   \builtin local _usage;
   _usage="usage: ${0} <USER> <HOST> <ID_FILE>";
-  \builtin unset _usage;
+  \builtin unset -v _usage;
   \builtin local ssh_user;
   \builtin local ssh_host;
   \builtin local key_name;
@@ -127,7 +127,7 @@ function ssh_generate_key () {
 function ssh_send_key {
   \builtin local _usage;
   _usage="usage: ${0} <USER> <HOST> <ID_FILE> <HOST_PORT>";
-  \builtin unset _usage;
+  \builtin unset -v _usage;
   \builtin local ssh_user;
   \builtin local ssh_host;
   \builtin local key_name;

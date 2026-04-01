@@ -50,7 +50,7 @@ function conda_run () {
 function conda_create_env () {
   \builtin local _usage;
   _usage="${0} <ENV_NAME> <PKGS> [<CHANNELS>] [<PLATFORM>]";
-  \builtin unset _usage;
+  \builtin unset -v _usage;
   \builtin local env_name;
   \builtin local pkgs_str;
   \builtin local channels_str;

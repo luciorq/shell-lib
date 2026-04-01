@@ -3,7 +3,7 @@
 function get_default_shell () {
   \builtin local _usage;
   _usage="usage: ${0} [<USER_NAME>]";
-  \builtin unset _usage;
+  \builtin unset -v _usage;
   \builtin local user_name;
   \builtin local dscl_bin;
   \builtin local getent_bin;

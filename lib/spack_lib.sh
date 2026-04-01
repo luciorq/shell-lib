@@ -5,7 +5,7 @@
 function spack_load_env () {
   \builtin local _usage;
   _usage='Usage: spack_load_env [SPACK_DIR]';
-  \builtin unset _usage;
+  \builtin unset -v _usage;
   \builtin local spack_dir;
 
   # check for environment variable first, then argument, then default paths
