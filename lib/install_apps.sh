@@ -380,7 +380,7 @@ function __install_app_source () {
       --root "${install_path}" \
       ${git_var}${app_name};
 
-  \builtin local exit_code="$?";
+  \builtin local exit_code="${?}";
   if [[ ${exit_code} -ne 0 ]]; then
     \builtin echo "Error: Failed to install rust app";
     \builtin return 1;

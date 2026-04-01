@@ -15,8 +15,9 @@
 
 function exec_remote ()
 {
-    \builtin local _usage="${0} <HOST> '<COMMAND>'";
-    \builtin unset _usage;
+    \builtin local _usage;
+    _usage="${0} <HOST> '<COMMAND>'";
+    \builtin unset -v _usage;
     \builtin local _debug_var;
     _debug_var="${DEBUG:-false}";
     if [[ "${_debug_var}" == true ]]; then

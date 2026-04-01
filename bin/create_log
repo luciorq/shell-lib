@@ -17,7 +17,7 @@ function create_log ()
 {
     \builtin local _usage;
     _usage="Usage: ${0} <APP_NAME> [<DIR>]/logs";
-    \builtin unset _usage;
+    \builtin unset -v _usage;
     \builtin local base_path;
     \builtin local app_name;
     \builtin local log_path;

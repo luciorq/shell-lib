@@ -17,7 +17,7 @@ function ssha_fun ()
 {
     \builtin local _usage;
     _usage="usage: ${0} <KEY_FILE_PATH>";
-    \builtin unset _usage;
+    \builtin unset -v _usage;
     \builtin local ssh_agent_bin;
     \builtin local ssh_add_bin;
     \builtin local ssha_args;

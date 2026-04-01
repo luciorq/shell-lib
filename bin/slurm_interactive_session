@@ -15,8 +15,9 @@
 
 function slurm_interactive_session ()
 {
-    \builtin local _usage="Usage: ${0} [PARTITION] [N_CPU] [MEM_GB] [TIME_MIN] [GPU_NUM] [GROUP_NAME]";
-    \builtin unset _usage;
+    \builtin local _usage;
+    _usage="Usage: ${0} [PARTITION] [N_CPU] [MEM_GB] [TIME_MIN] [GPU_NUM] [GROUP_NAME]";
+    \builtin unset -v _usage;
     \builtin local bash_bin;
     \builtin local srun_bin;
     \builtin local sg_bin;

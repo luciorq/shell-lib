@@ -17,7 +17,7 @@ function parse_yaml ()
 {
     \builtin local _usage;
     _usage="Usage: ${0} <FILE_NAME> [<KEY_1>...<KEY_N>]";
-    \builtin unset _usage;
+    \builtin unset -v _usage;
     \builtin local yq_bin;
     \builtin local ruby_bin;
     \builtin local py3_bin;

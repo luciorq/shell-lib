@@ -15,8 +15,9 @@
 
 function slurm_cancel_all_jobs ()
 {
-    \builtin local _usage="Usage: ${0} [USER_NAME]";
-    \builtin unset _usage;
+    \builtin local _usage;
+    _usage="Usage: ${0} [USER_NAME]";
+    \builtin unset -v _usage;
     \builtin local scancel_bin;
     \builtin local user_name;
     user_name="${1:-${USER:-}}";

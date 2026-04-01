@@ -408,10 +408,10 @@ function __install_app_binary ()
     \builtin local get_url;
     \builtin local dl_path;
     \builtin local rm_bin;
-    rm_bin="$(which_bin 'rm')";
-    install_path="${1}";
-    tarball_name="${2}";
-    get_url="${3}";
+    rm_bin="$(require 'rm')";
+    install_path="${1:-}";
+    tarball_name="${2:-}";
+    get_url="${3:-}";
     dl_path="$(create_temp 'install_app')";
     download "${get_url}" "${dl_path}";
     unpack "${dl_path}/${tarball_name}" "${install_path}";
@@ -441,7 +441,7 @@ function __install_app_cargo ()
         app_name="${get_url}";
     fi;
     "${cargo_bin}" install --quiet --all-features --root "${install_path}" ${git_var}${app_name};
-    \builtin local exit_code="$?";
+    \builtin local exit_code="${?}";
     if [[ ${exit_code} -ne 0 ]]; then
         \builtin echo "Error: Failed to install rust app";
         \builtin exit 1;
@@ -458,7 +458,6 @@ function __install_app_mamba ()
     \builtin local install_path;
     \builtin local app_name;
     \builtin local install_type;
-    \builtin local prefix_path;
     \builtin local envs_path;
     \builtin local link_path;
     \builtin local install_path;
@@ -544,20 +543,14 @@ function __install_app_source ()
     LC_ALL=C "${ls_bin}" -A1 -- "${dl_path}"
   );
     build_path="${dl_path}/${build_arr[0]}";
-    function __build_app ()
-    {
-        \builtin local build_path="${1}";
-        \builtin local install_path="${2}";
-        ( \builtin cd "${build_path}" || {
-            \builtin echo -ne "Error: Failed to change directory to '${build_path}'\n";
-            \builtin exit 1
-        };
-        ./configure --prefix="${install_path}" || {
-            \builtin echo -ne "Error: Failed to execute 'configure' script\n";
-            \builtin exit 1
-        } )
+    ( \builtin cd "${build_path}" || {
+        \builtin echo -ne "Error: Failed to change directory to '${build_path}'\n";
+        \builtin exit 1
     };
-    __build_app "${build_path}" "${install_path}";
+    ./configure --prefix="${install_path}" || {
+        \builtin echo -ne "Error: Failed to execute 'configure' script\n";
+        \builtin exit 1
+    } );
     "${make_bin}" -C "${build_path}" -j "${num_threads}";
     "${make_bin}" -C "${build_path}" install -j "${num_threads}";
     "${rm_bin}" -rf "${build_path}";
@@ -757,21 +750,17 @@ function create_temp ()
 
 function download ()
 {
-    function download_usage ()
-    {
-        \builtin echo -ne "usage: download <URL> [<OUTPUT_DIR>] [<THREADS>]\n" 1>&2
-    };
+    \builtin local _usage;
+    _usage="${0} <URL> [<OUTPUT_DIR>] [<THREADS>]";
     if [[ ${#} -eq 0 ]]; then
-        download_usage;
-        \builtin unset download_usage;
+        exit_fun "Invalid execution.\nUsage: ${_usage}\n";
         \builtin exit 1;
     fi;
     if [[ ${1:-} == '-h' ]]; then
-        download_usage;
-        \builtin unset download_usage;
+        exit_fun "Usage: ${_usage}\n";
         \builtin return 0;
     fi;
-    \builtin unset download_usage;
+    \builtin unset -v _usage;
     \builtin local get_url;
     \builtin local dir_output;
     \builtin local thread_num;
@@ -826,7 +815,7 @@ function get_config ()
 {
     \builtin local _usage;
     _usage="Usage: ${0} <{--priv|-p]>";
-    \builtin unset _usage;
+    \builtin unset -v _usage;
     \builtin local cfg_dir;
     \builtin local file_base_name;
     \builtin local file_ext;
@@ -861,7 +850,7 @@ function get_config_path ()
 {
     \builtin local _usage;
     _usage="${0} [--priv | -p] [<private_dir>]";
-    \builtin unset _usage;
+    \builtin unset -v _usage;
     \builtin local cfg_path;
     \builtin local private_dir;
     \builtin local first_arg;
@@ -960,7 +949,7 @@ function parse_yaml ()
 {
     \builtin local _usage;
     _usage="Usage: ${0} <FILE_NAME> [<KEY_1>...<KEY_N>]";
-    \builtin unset _usage;
+    \builtin unset -v _usage;
     \builtin local yq_bin;
     \builtin local ruby_bin;
     \builtin local py3_bin;
@@ -1036,16 +1025,12 @@ function require ()
 function unpack ()
 {
     \builtin local _usage;
-    function _usage ()
-    {
-        \builtin echo -ne "Usage: ${0} <ZIP_FILE> [<OUTPUT_DIR>]\n" 1>&2
-    };
+    _usage="Usage: ${0} <ZIP_FILE> [<OUTPUT_DIR>]";
     if [[ ${#:-} -eq 0 ]]; then
-        _usage;
-        \builtin unset _usage;
+        exit_fun "Invalid execution.\nUsage: ${_usage}\n";
         \builtin exit 1;
     fi;
-    \builtin unset _usage;
+    \builtin unset -v _usage;
     \builtin local zip_path;
     \builtin local dir_output;
     \builtin local output_file_path;

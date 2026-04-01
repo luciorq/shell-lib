@@ -245,7 +245,7 @@ function get_config ()
 {
     \builtin local _usage;
     _usage="Usage: ${0} <{--priv|-p]>";
-    \builtin unset _usage;
+    \builtin unset -v _usage;
     \builtin local cfg_dir;
     \builtin local file_base_name;
     \builtin local file_ext;
@@ -280,7 +280,7 @@ function get_config_path ()
 {
     \builtin local _usage;
     _usage="${0} [--priv | -p] [<private_dir>]";
-    \builtin unset _usage;
+    \builtin unset -v _usage;
     \builtin local cfg_path;
     \builtin local private_dir;
     \builtin local first_arg;
@@ -300,7 +300,7 @@ function parse_yaml ()
 {
     \builtin local _usage;
     _usage="Usage: ${0} <FILE_NAME> [<KEY_1>...<KEY_N>]";
-    \builtin unset _usage;
+    \builtin unset -v _usage;
     \builtin local yq_bin;
     \builtin local ruby_bin;
     \builtin local py3_bin;
@@ -375,10 +375,10 @@ function require ()
 
 function ssh_fun ()
 {
-    \builtin local ssh_bin;
     \builtin local _usage;
     _usage="Usage: ${0} <[SSH_ARGS]>";
     \builtin unset -v _usage;
+    \builtin local ssh_bin;
     ssh_bin="$(require 'ssh' '-V')";
     \builtin set -x;
     "${ssh_bin}" "${@:1}";

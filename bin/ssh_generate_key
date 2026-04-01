@@ -17,7 +17,7 @@ function ssh_generate_key ()
 {
     \builtin local _usage;
     _usage="usage: ${0} <USER> <HOST> <ID_FILE>";
-    \builtin unset _usage;
+    \builtin unset -v _usage;
     \builtin local ssh_user;
     \builtin local ssh_host;
     \builtin local key_name;
