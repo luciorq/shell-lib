@@ -30,20 +30,11 @@ function slurm_check_gpus ()
     sed_bin="$(require 'sed')";
     paste_bin="$(require 'paste')";
     column_bin="$(require 'column')";
-    gpu_output="$("${scontrol_bin}" show nodes     | "${grep_bin}" -i     -e CfgTRES= -e AllocTRES= -e NodeName= -e Gres= -e Partitions=
-  )";
-    gpu_node_names="$(
-    \builtin echo -ne "${gpu_output}"       | "${grep_bin}" 'NodeName='       | "${sed_bin}" -e 's|\s.*||g'       | "${sed_bin}" -e 's|NodeName=||g'
-  )";
-    gpus_installed="$(
-    \builtin echo -ne "${gpu_output}"       | "${grep_bin}" 'Gres='       | "${sed_bin}" -e 's|Gres\=||g'       | "${sed_bin}" -e 's|gpu\:||g'
-  )";
-    gpus_used="$(
-    \builtin echo -ne "${gpu_output}"       | "${grep_bin}" 'AllocTRES='       | "${sed_bin}" -e 's|.*gres/gpu:||g'       | "${sed_bin}" -e 's|AllocTRES\=|0|g'
-  )";
-    partition_names="$(
-    \builtin echo -ne "${gpu_output}"       | "${grep_bin}" -v 'Gres='       | "${grep_bin}" -v 'AllocTRES='       | "${grep_bin}" -v 'CfgTRES='       | "${sed_bin}" -e 's|NodeName\=.*|NA|g'       | "${sed_bin}" -e ':a;N;$!ba;s/\n//g'       | "${sed_bin}" -e 's|Partitions\=||g'       | "${sed_bin}" -e 's|,|\\|/g'       | "${sed_bin}" -e 's|NA|\n|g'
-  )";
+    gpu_output="$("${scontrol_bin}" show nodes | "${grep_bin}" -i -e CfgTRES= -e AllocTRES= -e NodeName= -e Gres= -e Partitions=)";
+    gpu_node_names="$(\builtin echo -ne "${gpu_output}" | "${grep_bin}" 'NodeName=' | "${sed_bin}" -e 's|\s.*||g' | "${sed_bin}" -e 's|NodeName=||g')";
+    gpus_installed="$(\builtin echo -ne "${gpu_output}" | "${grep_bin}" 'Gres=' | "${sed_bin}" -e 's|Gres\=||g' | "${sed_bin}" -e 's|gpu\:||g')";
+    gpus_used="$(\builtin echo -ne "${gpu_output}" | "${grep_bin}" 'AllocTRES=' | "${sed_bin}" -e 's|.*gres/gpu:||g' | "${sed_bin}" -e 's|AllocTRES\=|0|g')";
+    partition_names="$(\builtin echo -ne "${gpu_output}" | "${grep_bin}" -v 'Gres=' | "${grep_bin}" -v 'AllocTRES=' | "${grep_bin}" -v 'CfgTRES=' | "${sed_bin}" -e 's|NodeName\=.*|NA|g' | "${sed_bin}" -e ':a;N;$!ba;s/\n//g' | "${sed_bin}" -e 's|Partitions\=||g' | "${sed_bin}" -e 's|,|\\|/g' | "${sed_bin}" -e 's|NA|\n|g')";
     CLICOLOR_FORCE=1 "${paste_bin}" <(\builtin echo -ne "NODENAME\n${gpu_node_names}") <(\builtin echo -ne "TOTAL_GPUS\n${gpus_installed}") <(\builtin echo -ne "USED_GPUS\n${gpus_used}") <(\builtin echo -ne "PARTITION\n${partition_names}") | grep -v '(null)' | "${column_bin}" -t;
     \builtin return 0
 }

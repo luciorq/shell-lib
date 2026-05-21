@@ -19,8 +19,8 @@ function source_remote ()
     \builtin local curl_bin;
     \builtin local wget_bin;
     script_url="${1:-}";
-    curl_bin="$(\builtin command -v curl 2>/dev/null || \builtin echo -ne '')";
-    wget_bin="$(\builtin command -v wget 2>/dev/null || \builtin echo -ne '')";
+    curl_bin="$(\builtin command -v curl 2> /dev/null || \builtin echo -ne '')";
+    wget_bin="$(\builtin command -v wget 2> /dev/null || \builtin echo -ne '')";
     if [[ -n ${curl_bin} ]]; then
         \builtin source /dev/stdin <<< "$("${curl_bin}" -f -s -S -L "${script_url}")";
     else

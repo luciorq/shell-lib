@@ -34,7 +34,7 @@ function scan_port ()
     "${nc_bin}" -z -v "${host_name}" "${host_port}-${host_port_end}";
     for _port in $(seq "${host_port}" "${host_port_end}");
     do
-        "${timeout_bin}" 1 "${bash_bin}" -c "</dev/tcp/${host_name}/${_port}" >&/dev/null && \builtin echo -ne "Port: ${_port} - open\n" || \builtin echo -ne "Port: ${_port} - closed\n";
+        "${timeout_bin}" 1 "${bash_bin}" -c "</dev/tcp/${host_name}/${_port}" &> /dev/null && \builtin echo -ne "Port: ${_port} - open\n" || \builtin echo -ne "Port: ${_port} - closed\n";
     done;
     \builtin return 0
 }

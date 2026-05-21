@@ -23,7 +23,7 @@ function sudo_check ()
         exit_fun '`sudo` program not available';
         \builtin exit 1;
     fi;
-    sudo_uid=$("${sudo_bin}" -n id -u 2>/dev/null || id -u);
+    sudo_uid=$("${sudo_bin}" -n id -u 2> /dev/null || id -u);
     if [[ "${sudo_uid}" == 0 ]]; then
         sudo_bool=true;
     else

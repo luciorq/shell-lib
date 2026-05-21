@@ -45,9 +45,7 @@ function sudo_fun ()
     \builtin declare -a args_q;
     args_q=("${@@Q}");
     args_str="${args_q[*]:1}";
-    cmd_type="$(
-    _SUDO_FUN=true "${bash_bin}" -i -c       "${cmd_prep} LC_ALL=C \builtin type -t '${cmd_str}';"
-  )";
+    cmd_type="$(_SUDO_FUN=true "${bash_bin}" -i -c "${cmd_prep} LC_ALL=C \builtin type -t '${cmd_str}';")";
     case "${cmd_type}" in
         file)
             type_str="Normal"

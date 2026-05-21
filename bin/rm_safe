@@ -32,13 +32,11 @@ function rm_safe ()
     safe_dirs_arr=("${HOME}" "${HOME}/Documents" "${HOME}/documents" "${HOME}/projects" "${HOME}/workspaces" "/Users/${USER}" "/home/${USER}" '${HOME}' '/Users/${USER}' '/home/${USER}' '/root' '/home' '/data' '/System' '/User' '/Volumes' '/');
     for _arg in "${@}";
     do
-        path_arg="$("${realpath_bin}" 2> /dev/null "${_arg}" || \builtin echo -ne '')";
+        path_arg="$("${realpath_bin}" "${_arg}" 2> /dev/null || \builtin echo -ne '')";
         if [[ -n ${path_arg} ]]; then
             for _safe_dir in "${safe_dirs_arr[@]}";
             do
-                safe_path="$(
-          "${realpath_bin}" 2> /dev/null "${_safe_dir}" || \builtin echo -ne ''
-        )";
+                safe_path="$("${realpath_bin}" "${_safe_dir}" 2> /dev/null || \builtin echo -ne '')";
                 if [[ ${safe_path} == "${path_arg}" ]]; then
                     \builtin echo -ne "Error: '${safe_path}' is a **protected** directory. Don't delete it!\n";
                     \builtin exit 1;
