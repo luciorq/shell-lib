@@ -34,7 +34,12 @@ function conda_priv_fun ()
         \builtin hash -r;
         \builtin return 0;
     fi;
-    "${conda_bin}" "${@:-}";
+    if [[ "${conda_bin}" =~ micromamba$ ]]; then
+        use_uv_flag="--use-uv";
+    else
+        use_uv_flag="";
+    fi;
+    "${conda_bin}" ${use_uv_flag} "${@:-}";
     \builtin return 0
 }
 

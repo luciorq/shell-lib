@@ -47,7 +47,13 @@ function conda_priv_fun () {
     \builtin hash -r;
     \builtin return 0;
   fi
-  "${conda_bin}" "${@:-}";
+  if [[ "${conda_bin}" =~ micromamba$ ]]; then
+    use_uv_flag="--use-uv";
+  else
+    use_uv_flag="";
+  fi
+  # TODO: @luciorq - use_uv_flag should be empty if not micromamba,
+  "${conda_bin}" ${use_uv_flag} "${@:-}";
   \builtin return 0;
 }
 
@@ -73,7 +79,7 @@ function install_micromamba () {
   \builtin local mkdir_bin;
 
   # TODO(luciorq): check if micromamba is already installed for the root user
-  # + when `--system`` flag is provided.
+  # + when `--system` flag is provided.
   force_flag='0';
   for _arg in "${@:-}"; do
     if [[ ${_arg} == --force ]]; then
