@@ -237,26 +237,34 @@ function rstats_update_rstats_version () {
 
 # Install RIG - R installation manager
 function rstats_install_rig () {
-  \builtin local rig_bin
-  rig_bin="$(which_bin 'rig')"
+  \builtin local rig_bin;
+  rig_bin="$(which_bin 'rig')";
   if [[ -z ${rig_bin} ]]; then
-    __install_app 'rig'
+    if [[ "$(get_os_type)" == darwin ]]; then
+      if [[ -z $(which_bin 'brew') ]]; then
+        exit_fun 'Homebrew is not installed. Please install Homebrew first: https://brew.sh/';
+        \builtin return 1
+      fi
+      brew install r-rig;
+    else
+      __install_app 'rig';
+    fi
   fi
   \builtin return 0
 }
 
 # Remove installed R package
 function rstats_remove_pkg () {
-  \builtin local r_bin
-  \builtin local pkg_name
-  \builtin local script_str
-  r_bin="$(require 'R')"
-  pkg_name="${1:-}"
-  script_str="utils::remove.packages('${pkg_name}')"
+  \builtin local r_bin;
+  \builtin local pkg_name;
+  \builtin local script_str;
+  r_bin="$(require 'R')";
+  pkg_name="${1:-}";
+  script_str="utils::remove.packages('${pkg_name}')";
   "${r_bin}" \
     -q -s -e \
-    "${script_str}"
-  \builtin return 0
+    "${script_str}";
+  \builtin return 0;
 }
 
 function rstats_rstudio () {
@@ -267,7 +275,7 @@ function rstats_rstudio () {
   rig_bin="$(require 'rig')";
 
   if [[ -z ${rig_bin} ]]; then
-    exit_fun '{rig} CLI is not installed.'
+    exit_fun '{rig} CLI is not installed.';
     \builtin return 1;
   fi
 
@@ -347,7 +355,6 @@ function rstats_install_rv () {
       \builtin return 1;
     fi;
     curl -sSL https://raw.githubusercontent.com/A2-ai/rv/refs/heads/main/scripts/install.sh | bash
-
     # curl -fsSL https://pixi.sh/install.sh | bash;
   else
     \builtin echo -ne "rv is already installed at: ${rv_bin}\n";
