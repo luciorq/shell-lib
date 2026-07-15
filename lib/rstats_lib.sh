@@ -250,7 +250,7 @@ function rstats_install_rig () {
       __install_app 'rig';
     fi
   fi
-  \builtin return 0
+  \builtin return 0;
 }
 
 # Remove installed R package

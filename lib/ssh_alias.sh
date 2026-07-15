@@ -10,6 +10,8 @@ function ssh_alias () {
   \builtin local remote_user;
   \builtin local key_arg_arr;
   \builtin local host_str;
+  \builtin declare -a key_arg_arr;
+
   host_name="${1:-}";
   host_info_avail="$(get_config --priv host_info "${host_name}")";
   if [[ -z ${host_info_avail} ]]; then
@@ -19,7 +21,7 @@ function ssh_alias () {
   key_name="$(get_config --priv host_info "${host_name}" key)";
   if [[ -n ${key_name} ]]; then
     key_path="${HOME}/.ssh/keys/${key_name}";
-    declare -a key_arg_arr=(
+    key_arg_arr=(
       -i
       "${key_path}"
     );
@@ -41,7 +43,18 @@ function ssh_alias () {
   else
     host_str="${host_ip}";
   fi
-  __sync_user_config "${host_str}" "${host_port}" "${key_name}";
+
+  \builtin local current_hostname;
+  current_hostname="$(get_hostname)";
+  \builtin declare -a allowed_sync_hosts;
+  \builtin mapfile -t allowed_sync_hosts < <(
+    get_config env allowed_hosts
+  );
+
+  if [[ ${current_hostname} != "${host_name}" ]] && [[ " ${allowed_sync_hosts[*]} " =~ " ${current_hostname} " ]]; then
+    __sync_user_config "${host_str}" "${host_port}" "${key_name}";
+  fi
+
   ssh_fun "${key_arg_arr[@]}" -p "${host_port}" "${host_str}";
   \builtin return 0;
 }
