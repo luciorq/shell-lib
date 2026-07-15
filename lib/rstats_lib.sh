@@ -228,11 +228,11 @@ function rstats_install_rstats_version () {
 # Update current installed R versions
 # + devel, release, next
 function rstats_update_rstats_version () {
-  rstats_install_rig
-  rstats_install_rstats_version devel
-  rstats_install_rstats_version next
-  rstats_install_rstats_version release
-  \builtin return 0
+  rstats_install_rig;
+  rstats_install_rstats_version devel;
+  rstats_install_rstats_version next;
+  rstats_install_rstats_version release;
+  \builtin return 0;
 }
 
 # Install RIG - R installation manager
