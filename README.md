@@ -46,7 +46,8 @@ Recommended installation directory:
 
 - `${HOME}/.local/bin` for user-only installation.
 - `/usr/local/bin` for system-wide installation.
-- `/opt/shell-lib/bin` or `/opt/apps/bin` are also good candidates for system-wide installation.
+- `/opt/shell-lib/bin` or `/opt/apps/bin` are also good candidates for
+  system-wide installation.
 
 ### Using as a library
 
@@ -66,12 +67,21 @@ E.g. for calling `dfh` script.
 
 ---
 
-## Further reading and curiosities about safe Bash code
+## Further Reading: Bash Safety and Best Practices
+
+> [!NOTE]
+> The links in this section are provided for reference and learning,
+> though I do not necessarily endorse or adopt all the practices they describe.
+> For the specific style and design patterns used in this project, please refer
+> to [docs/style_guide.md](./docs/style_guide.md).
 
 - [Common Bash pitfalls](https://mywiki.wooledge.org/BashPitfalls)
 - [Parsing `ls` ouput can be really dangerous](https://mywiki.wooledge.org/ParsingLs)
 - [Why you don't read lines with `for`](https://mywiki.wooledge.org/DontReadLinesWithFor)
+- [Palomero Lab Bash Scripting Reference](https://palomerolab.org/how-to/linux-cli/bash/)
+- [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html)
 
 ---
 
+> [!WARNING]
 > Source with caution and have fun!
