@@ -7,6 +7,7 @@ function require_fun () {
     \builtin echo -ne "${fun_name}";
   else
     exit_fun "require_fun: function \`${fun_name}\` not found";
+    \builtin return 1;
   fi
   \builtin return 0;
 }

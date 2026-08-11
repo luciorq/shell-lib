@@ -10,6 +10,7 @@ function sudo_fun () {
   \builtin local args_q;
   \builtin local args_str;
   \builtin local cmd_prep;
+  \builtin local type_str;
   sudo_bin="$(which_bin 'sudo')";
   if [[ -z "${sudo_bin}" ]]; then
     exit_fun "'sudo' is not available ...";

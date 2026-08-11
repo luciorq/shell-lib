@@ -9,6 +9,7 @@ function git_remove_file () {
   file_to_remove="${1:-}";
   if [[ -z "${file_to_remove}" ]]; then
     exit_fun "'${file_to_remove}' is not found.";
+    \builtin return 1;
   fi
   git_bin="$(require 'git')";
   git_remove_cmd="git rm -rf --cached --ignore-unmatch";

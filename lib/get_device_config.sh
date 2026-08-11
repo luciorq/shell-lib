@@ -9,8 +9,8 @@ function get_hostname () {
   uname_bin="$(which_bin 'uname')";
   if [[ -z ${hostname_str} ]]; then
     if [[ -n ${hostname_bin} ]]; then
-      hostname_str="$(hostname)";
-    elif [[ -n ${hostname_bin} ]]; then
+      hostname_str="$("${hostname_bin}")";
+    elif [[ -n ${uname_bin} ]]; then
       hostname_str="$("${uname_bin}" -n)";
     else
       exit_fun "'hostname' command not available";

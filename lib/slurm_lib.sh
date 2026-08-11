@@ -46,6 +46,7 @@ function slurm_interactive_session () {
   \builtin local time_min;
   \builtin local time_hour;
   \builtin local gpu_num;
+  \builtin local group_name;
   bash_bin="$(require 'bash')";
   srun_bin="$(require 'srun')";
   sg_bin="$(require 'sg')";

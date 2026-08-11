@@ -92,7 +92,7 @@ function __user_add_group () {
   user_name="${1:-}";
   usermod_bin="$(require 'usermod' '-h')";
   sudo_bin="$(require 'sudo')";
-  \builtin mapfile -t args_arr < <(\builtin echo "${@:-}");
+  \builtin mapfile -t args_arr < <(\builtin echo "${@}");
   groups_to_add="$(
     \builtin echo "${args_arr[@]:1}" |
       sed -r 's|\s+|,|g'

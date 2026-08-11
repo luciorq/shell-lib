@@ -323,7 +323,7 @@ function __check_glibc () {
   ldd_bin="$(which_bin 'ldd')";
   if [[ -z ${ldd_bin} ]]; then
     exit_fun '__check_glibc: `ldd` not found';
-    \builtin return 0;
+    \builtin return 1;
   fi
   min_version="${1:-2.18}";
   glibc_version="$(
@@ -366,14 +366,15 @@ function __build_glibc () {
   \builtin local build_path;
   \builtin local install_type;
   \builtin local force_version;
+  \builtin local base_name;
   \builtin local __build_app_glibc;
   install_type="${1:---user}";
   force_version="${2:-latest}";
+  app_name='glibc';
   inst_path="${HOME}/.local/opt/apps/${app_name}";
   if [[ ${install_type} == --system ]]; then
     inst_path="/opt/apps/${app_name}";
   fi
-  app_name='glibc';
   if [[ ! ${OSTYPE:-} =~ "linux" ]]; then
     \builtin return 0;
   fi
@@ -578,6 +579,8 @@ function __install_yq () {
   \builtin local mkdir_bin;
   \builtin local uname_bin;
   \builtin local link_inst_path;
+  \builtin local inst_path;
+  \builtin local base_url;
   inst_path="$(__install_path --user)";
   link_inst_path="${HOME}/.local/bin";
   uname_bin="$(require 'uname')";
@@ -587,7 +590,10 @@ function __install_yq () {
     Linux-aarch64)    bin_arch="linux_arm64"    ;;
     Darwin-x86_64)    bin_arch="darwin_amd64"   ;;
     Darwin-arm64)     bin_arch="darwin_arm64"   ;;
-    *) exit_fun "Unknown CPU architecture '${sys_arch}'\n" ;;
+    *)
+      exit_fun "Unknown CPU architecture '${sys_arch}'\n";
+      \builtin return 1;
+    ;;
   esac
   ln_bin="$(require 'ln')";
   chmod_bin="$(require 'chmod')";

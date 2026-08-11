@@ -22,5 +22,5 @@ function timeout_exec () {
   "${timeout_bin}" \
     --kill-after "${kill_time}" "${term_time}" \
     "${@}";
-  \builtin return "${?}";
+  \builtin return "${?:-1}";
 }

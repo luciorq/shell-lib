@@ -31,6 +31,7 @@ function conda_priv_fun () {
   \builtin local conda_bin;
   \builtin local env_name;
   \builtin local conda_env_exports;
+  \builtin local use_uv_flag;
   conda_bin="$(get_conda_bin)";
   if [[ -z ${1:-} ]]; then
     "${conda_bin}" --help;

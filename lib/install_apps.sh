@@ -79,6 +79,8 @@ function __get_gh_latest_tag () {
   \builtin local grep_bin;
   \builtin local curl_bin;
   \builtin local sort_bin;
+  \builtin local latest_tag_arr;
+  \builtin local _i;
   repo="${1:-}";
   # Check required commands
   \builtin local required_commands;

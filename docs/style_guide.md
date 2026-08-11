@@ -316,17 +316,18 @@ Consequences for library code:
   environment exports produced by trusted tools
   (`eval "$(zoxide init bash)"`, conda activation hooks) and the documented
   `extra_cmd` escape hatch in `install_apps` (whose input is the user's own
-  config file). Never `eval` to build a command line, use arrays.
+  config file).
+  Never `eval` to build a command line, use arrays.
 - Read lines with `mapfile -t arr < <(cmd)`; iterate files with globs
   (`for _f in "${dir}"/*; do`), never by parsing `ls`.
 - Use `--` before positional operands of external commands that may start
   with `-` (`rm -- "${path}"`, `cd -- "${dir}"`).
-- Arithmetic uses `(( ))`; comparisons in `[[ ]]` use `-eq`/`-gt` for
-  numbers and `==`/`!=` for strings. Prefer `[[ -z ${x} ]]` over
-  `[[ ${x} == "" ]]`.
+- Arithmetic operations use `(( ))`.
+  Comparisons in `[[ ]]` use `-eq`/`-gt` for numbers and `==`/`!=` for strings.
+  Prefer `[[ -z ${x} ]]` over `[[ ${x} == "" ]]`.
 - Prefer parameter expansion over `sed`/`awk`/`cut` for simple string
-  surgery: `${var%.gz}`, `${var##*/}`, `${var,,}`, `${var//x/y}`. When
-  stripping a *suffix*, anchor it (`${name%.gz}`), never use substring
+  manipulations: `${var%.gz}`, `${var##*/}`, `${var,,}`, `${var//x/y}`.
+  When stripping a *suffix*, anchor it (`${name%.gz}`), never use substring
   replacement (`${name/.gz/}` matches anywhere in the path).
 
 ## 10. Portability rules

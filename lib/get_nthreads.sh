@@ -9,6 +9,8 @@ function get_nthreads () {
   \builtin local nproc_bin;
   \builtin local lscpu_bin;
   \builtin local grep_bin;
+  \builtin local awk_bin;
+  \builtin local sysctl_bin;
   \builtin local num_threads;
   \builtin local half_threads;
   \builtin local max_threads_to_use;
