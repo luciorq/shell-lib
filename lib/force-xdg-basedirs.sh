@@ -341,6 +341,14 @@ if [[ ! -d "${XDG_DATA_HOME}/gsutil" ]]; then
   \mkdir -p "${XDG_DATA_HOME}/gsutil";
 fi
 
+# Nextflow - workflow manager
+# export NXF_HOME="${XDG_DATA_HOME}/nextflow";
+export NXF_DISABLE_WAVE_SERVICE=true
+export NXF_DISABLE_CHECK_LATEST=true
+
+# Streamlit - Python web app framework
+export STREAMLIT_BROWSER_GATHERUSAGESTATS=false
+
 # PIXI - conda package manager ---
 
 # =============================================================================

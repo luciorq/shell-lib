@@ -214,6 +214,8 @@ function rstats_install_rstats_version () {
   "${rig_bin}" add "${rstats_version}";
   "${rig_bin}" default "${rstats_version}";
   if [[ ${os_type} == darwin ]]; then
+    # TODO: does linux need `make-orthogonal` and `fix-permissions`?
+    "${rig_bin}" system make-orthogonal;
     "${rig_bin}" system fix-permissions;
     "${rig_bin}" sysreqs add gfortran;
     "${rig_bin}" sysreqs add pkgconfig;
@@ -245,6 +247,10 @@ function rstats_install_rig () {
         exit_fun 'Homebrew is not installed. Please install Homebrew first: https://brew.sh/';
         \builtin return 1
       fi
+      # NOTE: do not use cask, the `r-rig` formula already install just the binary.
+      # brew tap r-lib/rig
+      # brew trust r-lib/rig
+      # brew install --cask rig
       brew install r-rig;
     else
       __install_app 'rig';
