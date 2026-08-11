@@ -3,6 +3,7 @@
 # Retrieve ports where programs are listening to
 function check_used_ports () {
   \builtin local ss_bin;
+  \builtin local grep_bin;
   \builtin local tr_bin;
   \builtin local cut_bin;
   \builtin local rev_bin;

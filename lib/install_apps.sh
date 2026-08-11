@@ -13,7 +13,7 @@ function install_apps () {
   if [[ ${#} -eq 0 ]]; then
     install_type='--user';
   fi
-  for _arg in "${@:-}"; do
+  for _arg in "${@}"; do
     if [[ ${_arg} == --system ]]; then
       install_type='--system';
     elif [[ ${_arg} == --user ]]; then
@@ -124,7 +124,7 @@ function __get_gh_latest_tag () {
   fi
   \builtin mapfile -t tag_sort_arr < <(
     "${cat_bin}" <(
-      for _i in ${tag_arr[@]}; do \builtin echo -ne "${_i}\n"; done;
+      for _i in "${tag_arr[@]}"; do \builtin echo -ne "${_i}\n"; done;
     ) \
       | "${grep_bin}" '^v*[0-9]' \
       | "${sort_bin}" -rV
@@ -451,7 +451,7 @@ function __install_app_source () {
       link_inst_path="${HOME}/.local/bin";
       install_type='--user';
     fi
-    for _arg in "${@:-}"; do
+    for _arg in "${@}"; do
       if [[ ${_arg} == --system ]]; then
         link_inst_path="/usr/local/bin";
         install_type='--system';

@@ -8,9 +8,9 @@ function exa_fun () {
   exa_bin="$(which_bin 'eza')";
   exa_res="$("${exa_bin}" -v 2> /dev/null > /dev/null || \builtin echo -ne "${?:-1}")";
   if [[ -n ${exa_res} || -z ${exa_bin} ]]; then
-    "${ls_bin}" "${@:-}";
+    "${ls_bin}" "${@}";
     \builtin return 0;
   fi
-  "${exa_bin}" "${@:-}";
+  "${exa_bin}" "${@}";
   \builtin return 0;
 }

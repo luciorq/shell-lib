@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 function pure_cat () {
-  cat_pure "${@:-}";
+  cat_pure "${@}";
   \builtin return 0;
 }
 
 function pure_head () {
-  head_pure "${@:-}";
+  head_pure "${@}";
   \builtin return 0;
 }

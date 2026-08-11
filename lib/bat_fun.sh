@@ -18,7 +18,7 @@ function bat_fun () {
   if [[ -n ${bat_bin} && -z ${bat_avail} ]]; then
     "${bat_bin}" "${@}" --theme 'gruvbox-dark';
   else
-    "${cat_bin}";
+    "${cat_bin}" "${@}";
   fi
   \builtin return 0;
 }

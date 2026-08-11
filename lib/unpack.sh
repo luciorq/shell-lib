@@ -12,6 +12,7 @@ function __unpack_deb () {
   \builtin local ar_bin;
   \builtin local realpath_bin;
   \builtin local ls_bin;
+  \builtin local content_dirs;
   deb_path="${1:-}";
   dir_output="${2:-}";
   rm_bin="$(which_bin 'rm')";

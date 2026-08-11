@@ -22,7 +22,7 @@ function __cd_dir () {
   \builtin local dir_path;
   \builtin local dir_path_arr;
   \builtin local realpath_bin;
-  dir_arg=("$@:-");
+  dir_arg=("${@}");
   \builtin mapfile -t dir_path_arr < <(
     \builtin eval \builtin echo -ne "${dir_arg[*]}"
   );

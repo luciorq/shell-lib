@@ -6,7 +6,7 @@ function text_box () {
   \builtin local w;
   \builtin local _l;
   \builtin local tput_bin;
-  s=("${@:-}");
+  s=("${@}");
   tput_bin="$(require 'tput')";
 
   for _l in "${s[@]}"; do

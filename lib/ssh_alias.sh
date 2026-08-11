@@ -15,7 +15,7 @@ function ssh_alias () {
   host_name="${1:-}";
   host_info_avail="$(get_config --priv host_info "${host_name}")";
   if [[ -z ${host_info_avail} ]]; then
-    ssh_fun "${@:-}";
+    ssh_fun "${@}";
     \builtin return 0;
   fi
   key_name="$(get_config --priv host_info "${host_name}" key)";

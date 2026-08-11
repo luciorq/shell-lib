@@ -175,6 +175,7 @@ function __build_rust_cargo () {
   \builtin local cargo_path;
   \builtin local _link_bin;
   \builtin local link_bin_arr;
+  \builtin local rustup_bin;
   cargo_bin="$(which_bin 'cargo')";
   install_path="${HOME}/.local/share/cargo/bin";
   link_path="${HOME}/.local/bin";
