@@ -393,6 +393,7 @@ The claim "portable given modern Bash" translates to these concrete rules:
 
 - Comment block above each function: one-line summary, `# +` continuation
   lines, `@param` / `@return` tags for non-obvious signatures.
-- `TODO: @luciorq <text>` marks known debt. Dead code should be deleted, not
-  commented out, git history preserves it. (Several files currently violate
-  this; treat large commented blocks as removal candidates.)
+- `TODO: @luciorq <text>` marks known debt.
+  Dead code should be deleted, not commented out, git history preserves it.
+  (Several files currently violate this, treat large commented blocks as
+  removal candidates.)

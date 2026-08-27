@@ -166,6 +166,8 @@ if [[ ! -d "${XDG_CONFIG_HOME}/python" ]]; then
   \mkdir -p "${XDG_CONFIG_HOME}/python";
 fi
 
+# Streamlit - Python web app framework
+export STREAMLIT_BROWSER_GATHERUSAGESTATS=false
 
 # Ruby =======================================================================
 # Gems - Ruby Gems
@@ -341,14 +343,18 @@ if [[ ! -d "${XDG_DATA_HOME}/gsutil" ]]; then
   \mkdir -p "${XDG_DATA_HOME}/gsutil";
 fi
 
+# =============================================================================
+# Bioinformatics tools ---
+
 # Nextflow - workflow manager
 # export NXF_HOME="${XDG_DATA_HOME}/nextflow";
 export NXF_DISABLE_WAVE_SERVICE=true
 export NXF_DISABLE_CHECK_LATEST=true
 
-# Streamlit - Python web app framework
-export STREAMLIT_BROWSER_GATHERUSAGESTATS=false
+# 10X Genomics - Cell Ranger
+export TENX_DISABLE_TELEMETRY=1;
 
+# =============================================================================
 # PIXI - conda package manager ---
 
 # =============================================================================
