@@ -17,14 +17,14 @@
 [[ -z ${XDG_STATE_HOME} ]] && export XDG_STATE_HOME="${HOME}/.local/state";
 
 # Terminfo - ncurses
-export TERMINFO="${XDG_DATA_HOME}/terminfo";
-export TERMINFO_DIRS="${XDG_DATA_HOME}/terminfo":/usr/share/terminfo;
+\builtin export TERMINFO="${XDG_DATA_HOME}/terminfo";
+\builtin export TERMINFO_DIRS="${XDG_DATA_HOME}/terminfo":/usr/share/terminfo;
 
 # Ack
-export ACKRC="${XDG_CONFIG_HOME}/ack/ackrc"
+\builtin export ACKRC="${XDG_CONFIG_HOME}/ack/ackrc"
 
 # Atom
-export ATOM_HOME="${XDG_DATA_HOME}/atom";
+\builtin export ATOM_HOME="${XDG_DATA_HOME}/atom";
 
 # Visual Studio Code - vscode - Portable
 # export VSCODE_PORTABLE="${XDG_DATA_HOME}/vscode"
@@ -33,30 +33,30 @@ export ATOM_HOME="${XDG_DATA_HOME}/atom";
 # fi
 
 # AWS CLI
-export AWS_SHARED_CREDENTIALS_FILE="${XDG_CONFIG_HOME}/aws/credentials";
-export AWS_CONFIG_FILE="${XDG_CONFIG_HOME}/aws/config";
+\builtin export AWS_SHARED_CREDENTIALS_FILE="${XDG_CONFIG_HOME}/aws/credentials";
+\builtin export AWS_CONFIG_FILE="${XDG_CONFIG_HOME}/aws/config";
 
 # Azure CLI
-export AZURE_CONFIG_DIR="${XDG_DATA_HOME}/azure";
+\builtin export AZURE_CONFIG_DIR="${XDG_DATA_HOME}/azure";
 
 # Ripgrep
-export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME}/ripgrep/config";
+\builtin export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME}/ripgrep/config";
 if [[ ! -f ${XDG_CONFIG_HOME}/ripgrep/config ]]; then
   \mkdir -p "${XDG_CONFIG_HOME}/ripgrep";
   \touch "${XDG_CONFIG_HOME}/ripgrep/config";
 fi
 
 # Docker
-export DOCKER_CONFIG="${XDG_CONFIG_HOME}/docker";
+\builtin export DOCKER_CONFIG="${XDG_CONFIG_HOME}/docker";
 
 # Docker Machine
-export MACHINE_STORAGE_PATH="${XDG_DATA_HOME}/docker/machine";
+\builtin export MACHINE_STORAGE_PATH="${XDG_DATA_HOME}/docker/machine";
 
 # Minikube
-export MINIKUBE_HOME="${XDG_DATA_HOME}/minikube";
+\builtin export MINIKUBE_HOME="${XDG_DATA_HOME}/minikube";
 
 # GnuPG
-export GNUPGHOME="${XDG_DATA_HOME}/gnupg";
+\builtin export GNUPGHOME="${XDG_DATA_HOME}/gnupg";
 if [[ ! -d ${XDG_CONFIG_HOME}/gnupg ]]; then
   \mkdir -p "${XDG_CONFIG_HOME}/gnupg";
 fi
@@ -78,54 +78,54 @@ if [[ ! -L ${GNUPGHOME}/gpg-agent.conf \
 fi
 
 # Less
-export LESSKEY="${XDG_CONFIG_HOME}/less/lesskey";
-export LESSHISTFILE="${XDG_STATE_HOME}/less/history";
+\builtin export LESSKEY="${XDG_CONFIG_HOME}/less/lesskey";
+\builtin export LESSHISTFILE="${XDG_STATE_HOME}/less/history";
 
 # GNU Screen
-export SCREENRC="${XDG_CONFIG_HOME}/screen/screenrc";
+\builtin export SCREENRC="${XDG_CONFIG_HOME}/screen/screenrc";
 
 # Mozilla Firefox third-party tools
-export MOZILLA_CONFIG="${XDG_STATE_HOME}/mozilla";
+\builtin export MOZILLA_CONFIG="${XDG_STATE_HOME}/mozilla";
 if [[ ! -d ${XDG_STATE_HOME}/mozilla ]]; then
   \mkdir -p "${XDG_STATE_HOME}/mozilla";
 fi
 
 # Mathematica
-export MATHEMATICA_USERBASE="${XDG_CONFIG_HOME}/Mathematica";
+\builtin export MATHEMATICA_USERBASE="${XDG_CONFIG_HOME}/Mathematica";
 
 # Node.js
-export NODE_REPL_HISTORY="${XDG_STATE_HOME}/node/repl_history";
+\builtin export NODE_REPL_HISTORY="${XDG_STATE_HOME}/node/repl_history";
 
 # NVM
-export NVM_DIR="${XDG_DATA_HOME}/nvm";
+\builtin export NVM_DIR="${XDG_DATA_HOME}/nvm";
 
 # NotMuch
-export NOTMUCH_CONFIG="${XDG_CONFIG_HOME}/notmuch/config";
+\builtin export NOTMUCH_CONFIG="${XDG_CONFIG_HOME}/notmuch/config";
 
 # Parallel
-export PARALLEL_HOME="${XDG_CONFIG_HOME}/parallel";
+\builtin export PARALLEL_HOME="${XDG_CONFIG_HOME}/parallel";
 
 # PostgreSQL
-export PSQLRC="${XDG_CONFIG_HOME}/postgres/rc";
-export PSQL_HISTORY="${XDG_STATE_HOME}/postgres/history";
-export PGPASSFILE="${XDG_CONFIG_HOME}/postgres/pass";
-export PGSERVICEFILE="${XDG_CONFIG_HOME}/postgres/service.conf";
+\builtin export PSQLRC="${XDG_CONFIG_HOME}/postgres/rc";
+\builtin export PSQL_HISTORY="${XDG_STATE_HOME}/postgres/history";
+\builtin export PGPASSFILE="${XDG_CONFIG_HOME}/postgres/pass";
+\builtin export PGSERVICEFILE="${XDG_CONFIG_HOME}/postgres/service.conf";
 # We need to create these directories if not exists
 \mkdir -p "${XDG_CONFIG_HOME}/postgres";
 \mkdir -p "${XDG_STATE_HOME}/postgres";
 
 # SQLite
-export SQLITE_HISTORY="${XDG_DATA_HOME}/sqlite_history";
+\builtin export SQLITE_HISTORY="${XDG_DATA_HOME}/sqlite_history";
 
 # Readline
-export INPUTRC="${XDG_CONFIG_HOME}/readline/inputrc";
+\builtin export INPUTRC="${XDG_CONFIG_HOME}/readline/inputrc";
 
 # Vagrant
-export VAGRANT_HOME="${XDG_DATA_HOME}/vagrant";
-export VAGRANT_ALIAS_FILE="${XDG_DATA_HOME}/vagrant/aliases";
+\builtin export VAGRANT_HOME="${XDG_DATA_HOME}/vagrant";
+\builtin export VAGRANT_ALIAS_FILE="${XDG_DATA_HOME}/vagrant/aliases";
 
 # WeeChat
-export WEECHAT_HOME="${XDG_CONFIG_HOME}/weechat"
+\builtin export WEECHAT_HOME="${XDG_CONFIG_HOME}/weechat"
 
 # wget
 if [[ ! -d ${XDG_CONFIG_HOME}/wget ]]; then
@@ -134,7 +134,7 @@ fi
 if [[ ! -f ${XDG_CONFIG_HOME}/wget/wgetrc ]]; then
   \touch "${XDG_CONFIG_HOME}/wget/wgetrc";
 fi
-export WGETRC="${XDG_CONFIG_HOME}/wget/wgetrc";
+\builtin export WGETRC="${XDG_CONFIG_HOME}/wget/wgetrc";
 
 if [[ ! -d ${XDG_CACHE_HOME}/wget ]]; then
   \mkdir -p "${XDG_CACHE_HOME}/wget";
@@ -148,57 +148,57 @@ fi
 # JAVA =======================================================================
 # java openjdk
 # NOTE: @luciorq _JAVA_OPTIONS is breaking java inside conda environments.
-# export _JAVA_OPTIONS="-Djava.util.prefs.userRoot=${XDG_CONFIG_HOME}/java";
+\builtin export _JAVA_OPTIONS="-Djava.util.prefs.userRoot=${XDG_CONFIG_HOME}/java";
 if [[ ! -d "${XDG_CONFIG_HOME}/java" ]]; then
   \mkdir -p "${XDG_CONFIG_HOME}/java";
 fi
 # gradle build tools
-export GRADLE_USER_HOME="${XDG_DATA_HOME}/gradle";
+\builtin export GRADLE_USER_HOME="${XDG_DATA_HOME}/gradle";
 
 # Python =====================================================================
 # python / jupyter
-export IPYTHONDIR="${XDG_CONFIG_HOME}/jupyter";
-export JUPYTER_CONFIG_DIR="${XDG_CONFIG_HOME}/jupyter";
-export PYLINTHOME="${XDG_CACHE_HOME}/pylint";
-export PYTHON_EGG_CACHE="${XDG_CACHE_HOME}/python-eggs";
-export PYTHONSTARTUP="${XDG_CONFIG_HOME}/python/pythonrc";
+\builtin export IPYTHONDIR="${XDG_CONFIG_HOME}/jupyter";
+\builtin export JUPYTER_CONFIG_DIR="${XDG_CONFIG_HOME}/jupyter";
+\builtin export PYLINTHOME="${XDG_CACHE_HOME}/pylint";
+\builtin export PYTHON_EGG_CACHE="${XDG_CACHE_HOME}/python-eggs";
+\builtin export PYTHONSTARTUP="${XDG_CONFIG_HOME}/python/pythonrc";
 if [[ ! -d "${XDG_CONFIG_HOME}/python" ]]; then
   \mkdir -p "${XDG_CONFIG_HOME}/python";
 fi
 
 # Streamlit - Python web app framework
-export STREAMLIT_BROWSER_GATHERUSAGESTATS=false
+\builtin export STREAMLIT_BROWSER_GATHERUSAGESTATS=false
 
 # Ruby =======================================================================
 # Gems - Ruby Gems
-export GEM_HOME="${XDG_DATA_HOME}/gem";
-export GEM_SPEC_CACHE="${XDG_CACHE_HOME}/gem";
+\builtin export GEM_HOME="${XDG_DATA_HOME}/gem";
+\builtin export GEM_SPEC_CACHE="${XDG_CACHE_HOME}/gem";
 # Bundler - Ruby bundler
-export BUNDLE_USER_CONFIG="${XDG_CONFIG_HOME}/bundle";
-export BUNDLE_USER_CACHE="${XDG_CACHE_HOME}/bundle";
-export BUNDLE_USER_PLUGIN="${XDG_DATA_HOME}/bundle/plugin";
+\builtin export BUNDLE_USER_CONFIG="${XDG_CONFIG_HOME}/bundle";
+\builtin export BUNDLE_USER_CACHE="${XDG_CACHE_HOME}/bundle";
+\builtin export BUNDLE_USER_PLUGIN="${XDG_DATA_HOME}/bundle/plugin";
 
 # RUST =======================================================================
 # Rustup
-export RUSTUP_HOME="${XDG_DATA_HOME}/rustup";
+\builtin export RUSTUP_HOME="${XDG_DATA_HOME}/rustup";
 
 # Cargo - rust cargo
-export CARGO_HOME="${XDG_DATA_HOME}/cargo";
+\builtin export CARGO_HOME="${XDG_DATA_HOME}/cargo";
 
 # GO =========================================================================
 # Golang
-export GOPATH="${XDG_DATA_HOME}/go";
+\builtin export GOPATH="${XDG_DATA_HOME}/go";
 
 # JULIA ======================================================================
 # Julia Programming Language
-export JULIA_DEPOT_PATH="${XDG_DATA_HOME}/julia:${JULIA_DEPOT_PATH}";
+\builtin export JULIA_DEPOT_PATH="${XDG_DATA_HOME}/julia:${JULIA_DEPOT_PATH}";
 
 # R ==========================================================================
 # Make R language (rstats) respect XDG base dirs spec
-export R_ENVIRON_USER="${XDG_CONFIG_HOME}/R/Renviron";
-export R_PROFILE_USER="${XDG_CONFIG_HOME}/R/Rprofile";
-export R_MAKEVARS_USER="${XDG_CONFIG_HOME}/R/Makevars";
-export R_HISTFILE="${XDG_DATA_HOME}/R/Rhistory";
+\builtin export R_ENVIRON_USER="${XDG_CONFIG_HOME}/R/Renviron";
+\builtin export R_PROFILE_USER="${XDG_CONFIG_HOME}/R/Rprofile";
+\builtin export R_MAKEVARS_USER="${XDG_CONFIG_HOME}/R/Makevars";
+\builtin export R_HISTFILE="${XDG_DATA_HOME}/R/Rhistory";
 if [[ ! -d "${XDG_DATA_HOME}/R" ]]; then
   \mkdir -p "${XDG_DATA_HOME}/R";
 fi
@@ -212,7 +212,7 @@ fi
 
 # BASH Shell
 # GNU BASH history respect XDG base dirs spec
-export HISTFILE="${XDG_DATA_HOME}/bash/history";
+\builtin export HISTFILE="${XDG_DATA_HOME}/bash/history";
 \mkdir -p "${XDG_STATE_HOME}/bash";
 \mkdir -p "${XDG_DATA_HOME}/bash";
 if [[ ! -f ${HISTFILE} ]]; then
@@ -220,33 +220,33 @@ if [[ ! -f ${HISTFILE} ]]; then
 fi
 
 # Nvidia CUDA
-export CUDA_CACHE_PATH="${XDG_CACHE_HOME}/nv";
+\builtin export CUDA_CACHE_PATH="${XDG_CACHE_HOME}/nv";
 if [[ ! -d "${CUDA_CACHE_PATH}" ]]; then
   \mkdir -p "${CUDA_CACHE_PATH}";
 fi
 # =============================================================================
 # Android (ADB)
-export ADB_VENDOR_KEYS="${XDG_CONFIG_HOME}/adb/adbkey";
+\builtin export ADB_VENDOR_KEYS="${XDG_CONFIG_HOME}/adb/adbkey";
 
 # Android Studio
-export ANDROID_HOME="${XDG_DATA_HOME}/android";
+\builtin export ANDROID_HOME="${XDG_DATA_HOME}/android";
 
 # Subversion (svn) - some homebrew formulas used it
 \mkdir -p "${XDG_CONFIG_HOME}/subversion";
 \builtin alias svn='svn --config-dir "${XDG_CONFIG_HOME}/subversion" ';
 
 # TeamSpeak
-export TS3_CONFIG_DIR="${XDG_CONFIG_HOME}/ts3client";
+\builtin export TS3_CONFIG_DIR="${XDG_CONFIG_HOME}/ts3client";
 
 # Starship prompt configuration path
-export STARSHIP_CONFIG="${XDG_CONFIG_HOME}/starship/config.toml";
+\builtin export STARSHIP_CONFIG="${XDG_CONFIG_HOME}/starship/config.toml";
 
 # LaTeX
 \mkdir -p "${XDG_CONFIG_HOME}/latexmk/latexmkrc";
-export "TEXMACS_HOME_PATH=${XDG_STATE_HOME}/texmacs";
-export "TEXMFHOME=${XDG_DATA_HOME}/texmf";
-export "TEXMFVAR=${XDG_CACHE_HOME}/texlive/texmf-var";
-export "TEXMFCONFIG=${XDG_CONFIG_HOME}/texlive/texmf-config";
+\builtin export "TEXMACS_HOME_PATH=${XDG_STATE_HOME}/texmacs";
+\builtin export "TEXMFHOME=${XDG_DATA_HOME}/texmf";
+\builtin export "TEXMFVAR=${XDG_CACHE_HOME}/texlive/texmf-var";
+\builtin export "TEXMFCONFIG=${XDG_CONFIG_HOME}/texlive/texmf-config";
 
 # Lua Rocks
 # if [[ -d ${HOME}/.luarocks ]]; then
@@ -259,7 +259,7 @@ if [[ ! -d ${XDG_CONFIG_HOME}/luarocks ]]; then
   \mkdir -p "${XDG_CONFIG_HOME}/luarocks";
 fi
 # X11
-export XAUTHORITY="${XDG_CONFIG_HOME}/X11/Xauthority";
+\builtin export XAUTHORITY="${XDG_CONFIG_HOME}/X11/Xauthority";
 if [[ ! -d ${XDG_CONFIG_HOME}/X11 ]]; then
   \mkdir -p "${XDG_CONFIG_HOME}/X11";
 fi
@@ -267,10 +267,10 @@ if [[ -f ${HOME}/.Xauthority ]]; then
   \cp "${HOME}/.Xauthority" "${XAUTHORITY}";
   \chmod 0600 "${XAUTHORITY}";
 fi
-export XINITRC="${XDG_CONFIG_HOME}/X11/xinitrc";
+\builtin export XINITRC="${XDG_CONFIG_HOME}/X11/xinitrc";
 # JavaScript
 # NPM
-export NPM_CONFIG_USERCONFIG="${XDG_CONFIG_HOME}/npm/npmrc";
+\builtin export NPM_CONFIG_USERCONFIG="${XDG_CONFIG_HOME}/npm/npmrc";
 if [[ ! -d "$(dirname "${NPM_CONFIG_USERCONFIG}")" ]]; then
   \mkdir -p "$(dirname "${NPM_CONFIG_USERCONFIG}")";
 fi
@@ -290,19 +290,19 @@ fi
 \builtin alias svn='svn --config-dir "${XDG_CONFIG_HOME}/subversion"';
 
 # Anaconda / Conda / Mamba
-export CONDARC="${XDG_CONFIG_HOME}/conda/condarc";
+\builtin export CONDARC="${XDG_CONFIG_HOME}/conda/condarc";
 if [[ ! -d "$(dirname "${CONDARC}")" ]]; then
   \mkdir -p "$(dirname "${CONDARC}")";
 fi
-export CONDA_ENVS_PATH="${XDG_DATA_HOME}/conda/envs";
+\builtin export CONDA_ENVS_PATH="${XDG_DATA_HOME}/conda/envs";
 if [[ ! -d ${CONDA_ENVS_PATH} ]]; then
   \mkdir -p "${CONDA_ENVS_PATH}";
 fi
 \mkdir -p "$(dirname "${CONDA_ENVS_PATH}")/envs";
 \mkdir -p "$(dirname "${CONDA_ENVS_PATH}")/pkgs";
-export CONDA_ROOT_PREFIX="${XDG_DATA_HOME}/conda";
-export MAMBA_ROOT_PREFIX="${XDG_DATA_HOME}/conda";
-export MAMBA_ENVS_PATH="${XDG_DATA_HOME}/conda/envs";
+\builtin export CONDA_ROOT_PREFIX="${XDG_DATA_HOME}/conda";
+\builtin export MAMBA_ROOT_PREFIX="${XDG_DATA_HOME}/conda";
+\builtin export MAMBA_ENVS_PATH="${XDG_DATA_HOME}/conda/envs";
 
 # OpenSSH
 # + control masters
@@ -322,7 +322,7 @@ fi
   dockstore='dockstore --script --config "${HOME}/.config/dockstore/config"';
 
 # Zellij - session manager
-export ZELLIJ_CONFIG_DIR="${XDG_CONFIG_HOME}/zellij";
+\builtin export ZELLIJ_CONFIG_DIR="${XDG_CONFIG_HOME}/zellij";
 if [[ ! -d "${ZELLIJ_CONFIG_DIR}" ]]; then
   \mkdir -p "${ZELLIJ_CONFIG_DIR}";
 fi
@@ -335,7 +335,7 @@ fi
 # + state_dir = "$XDG_DATA_HOME"/gsutil
 # + state_dir = ~/.local/cache/gsutil
 # + needs to be set within BOTO_CONFIG file.
-export BOTO_CONFIG="${XDG_CONFIG_HOME}/gsutil/config";
+\builtin export BOTO_CONFIG="${XDG_CONFIG_HOME}/gsutil/config";
 if [[ ! -d "${XDG_CONFIG_HOME}/gsutil" ]]; then
   \mkdir -p "${XDG_CONFIG_HOME}/gsutil";
 fi
@@ -347,14 +347,41 @@ fi
 # Bioinformatics tools ---
 
 # Nextflow - workflow manager
-# export NXF_HOME="${XDG_DATA_HOME}/nextflow";
-export NXF_DISABLE_WAVE_SERVICE=true
-export NXF_DISABLE_CHECK_LATEST=true
+# \builtin export NXF_HOME="${XDG_DATA_HOME}/nextflow";
+\builtin export NXF_DISABLE_WAVE_SERVICE=true
+\builtin export NXF_DISABLE_CHECK_LATEST=true
 
 # 10X Genomics - Cell Ranger
-export TENX_DISABLE_TELEMETRY=1;
+\builtin export TENX_DISABLE_TELEMETRY=1;
 
 # =============================================================================
 # PIXI - conda package manager ---
+# Pixi should respect the general DO_NOT_TRACK env var, but it is safe to
+# + explicitly disable telemetry via environment variable.
+# + Doc: <https://pixi.prefix.dev/latest/reference/telemetry/#how-to-opt-out>
+\builtin export DO_NOT_TRACK=1;
+\builtin export PIXI_NO_TELEMETRY=1;
+
+# This is probably a wrong one, but worth double checking
+# + \builtin export PIXI_DISABLE_TELEMETRY=1;
+
+# =============================================================================
+# Homebrew - package manager
+
+# TODO: hallucination nonsense down here, but worth checking if Homebrew
+# + respects XDG base directories for cache and config on macOS if a user
+# + centric installation would be possible.
+
+# Respect XDG base directories for cache and config
+# \builtin export HOMEBREW_CACHE="${XDG_CACHE_HOME}/homebrew";
+# \builtin export HOMEBREW_CONFIG="${XDG_CONFIG_HOME}/homebrew";
+# if [[ ! -d "${XDG_CACHE_HOME}/homebrew" ]]; then
+#   \mkdir -p "${XDG_CACHE_HOME}/homebrew";
+# fi
+# if [[ ! -d "${XDG_CONFIG_HOME}/homebrew" ]]; then
+#   \mkdir -p "${XDG_CONFIG_HOME}/homebrew";
+# fi
+
+\builtin export HOMEBREW_NO_ANALYTICS=1;
 
 # =============================================================================
