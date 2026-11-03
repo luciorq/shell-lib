@@ -9,12 +9,15 @@ function reload_interface () {
   fi
   sys_os="${sys_os,,}";
   if [[ ${sys_os} =~ darwin ]]; then
+    # ControlCenter commonly swallows some keys
+    killall ControlCenter SystemUIServer Dock;
     __reload_skhd;
     # __reload_karabiner;
     # Replaced spacebar with sketchybar
     # + __reload_spacebar;
     __reload_sketchybar;
     __reload_yabai;
+    killall Dock;
   fi
   \builtin return 0;
 }
@@ -73,6 +76,8 @@ function __reload_skhd () {
   \builtin local id_bin;
   \builtin local launchctl_bin;
   \builtin local user_id;
+  # ControlCenter commonly get keys stuck, like the CTRL + F8
+  killall ControlCenter SystemUIServer;
   id_bin="$(require 'id')";
   launchctl_bin="$(require 'launchctl')";
   user_id="$("${id_bin}" -u)";
